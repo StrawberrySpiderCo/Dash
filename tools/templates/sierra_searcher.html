@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Sierra Searcher{% endblock %}
+{% block template %}
+<div>
+    {% for employee in employees %}
+    <h4>{{ employee.display_name }}</h4>
+    <li>{{ employee.webex_id }}</li>
+    <li>{{ employee.upn }}</li>
+    {% if employee.extension %}
+    <li>Extension: {{ employee.extension }}</li>
+    {%endif%}
+    {% if employee.webex_loc_id %}
+    <li>Loc ID: {{ employee.webex_loc_id }}</li>
+    {%endif%}
+    {% if employee.site %}
+    <li>Site: {{ employee.site }}</li>
+    {%endif%}
+    <br><br>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Map{% endblock %}
+{% block template %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script  src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.AnimatedMarker/1.0.0/AnimatedMarker.min.js"></script>
+    <script src="https://unpkg.com/leaflet-geometryutil"></script>
+    <script src="{% static 'Javascript/Leaflet.SmoothWheelZoom-master/SmoothWheelZoom.js'%}"></script>
+
+    <style>
+      #map-container {
+            position: relative;
+            height: 35%;
+          }
+        
+          #map {
+            display: flex;
+            position: absolute;
+            right: 150;
+            bottom: 150;
+            width: 70%;
+            height: 50%;
+          }
+    .animated-marker {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #000;
+      border-radius: 10px;
+      background-color: #fff;
+    }
+    </style>
+          <h1>Map</h1>
+    <div id="map">
+    </div>
+    <script>
+//Centers map Lat Long for bako        
+var  map = L.map('map',{zoomControl: false,  scrollWheelZoom: false, // disable original zoom function
+  smoothWheelZoom: true,  // enable smooth zoom 
+  smoothSensitivity: 2,  // zoom speed
+ }).setView([35.99855554946452, -118.57551961266829], 9);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/"></a> contributors',
+            maxZoom: 18,
+        }).addTo(map);
+        var markers = [];
+        </script>
+        {% for site in sites %}
+        <script>
+        var buildingIcon = L.icon({
+            iconUrl: "{% static 'images/Map_Photos/CSV_Green_Pin.png' %}",
+            iconSize: [35, 70],
+            iconAnchor: [35, 70],
+            popupAnchor: [-20, -70],
+            draggable: false
+          });
+          var popupContent =
+  '<h3>' + "{{ site.name }}" + '</h3>' +
+  '<form method="post" id="ping-form" action="{% url "ping_view" %}">' +
+  '{% csrf_token %}' +
+  '<input type="hidden" name="router_ip" value="' + "{{ site.wanIp }}" + '"/>' +
+  '<input type="hidden" name="marker_name" value="' + "{{ site.name }}" + '"/>' +
+  '</form>' +
+  '<a href="' + "{{ site.link }}" + '" target="_blank">' +
+  '<button class="button3">Meraki</button>' +
+  '</a>' +
+  '<p><strong>Address:</strong> <a href="https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent("{{ site.address }}") + '" target="_blank">' + "{{ site.address }}" + '</a></p>';
+
+            
+        
+          var newMarker = L.marker([{{ site.lat }}, {{ site.lng }}], { icon: buildingIcon, bounceOnAdd: false })
+            .addTo(map)
+            .bindPopup(popupContent);
+        </script>
+        {% endfor %}
+        
+    {% if html == "Ping was successful"%}
+    <script  type="text/javascript">
+      function showPopup(popupId) {
+        var popup = document.getElementById(popupId);
+        popup.style.display = "block";
+      }      
+      showPopup("ping-success");
+      function closePopup() {
+        document.getElementById("ping-success").style.display = "none";
+        document.getElementById("ping-failure").style.display = "none";
+      }
+    </script>
+{% elif html == "Ping Failed"%}
+    <script type="text/javascript">
+      console.log("{{ html }}")
+      function showPopup(popupId) {
+        var popup = document.getElementById(popupId);
+        popup.style.display = "block";
+      }      
+      showPopup("ping-failure")
+      function closePopup() {
+        document.getElementById("ping-success").style.display = "none";
+        document.getElementById("ping-failure").style.display = "none";
+      }
+    </script>
+          {% endif %}
+
+          {% endblock %}
+

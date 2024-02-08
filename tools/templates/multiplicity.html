@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+<head>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
+  
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Map_Photos/CSV_Grey_Logo.png' %}" />
+    <title>Multiplicity</title>
+</head>
+
+<style>
+    /* Style for the left menu */
+  /* Style for the left menu */
+  #left-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom:0;
+  width: 16%;
+  height: 100%;
+  overflow: auto;
+  font-family: "Roboto Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo,
+  Courier, monospace;
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  background-color: var(--color-neutral-2);
+  background-color: rgb(61,62,64);
+  
+  color: rgb(169,166,159);
+  z-index: 1000;
+  
+  justify-content: space-between;
+  align-items: center;
+  
+  }
+  #left-menu ul {
+  
+  list-style: none;
+  margin: 10%;
+  padding: 10%;
+  position: relative; 
+  z-index: 1000;
+  
+  }
+  #left-menu li {
+  margin:10%;
+  padding:10%;
+  color: rgb(169,166,159);
+  position: relative; 
+  z-index: 1000;
+  font-size: 25px;
+  cursor: pointer;
+  }
+  #left-menu li.active {
+  background-color: rgb(61,62,64);
+  position: relative; 
+  z-index: 1000;
+  top:50px;
+  }
+  #left-menu li img {
+  width: 90px;
+  height: 90px;
+  margin-right: 0;
+  position: fixed; 
+  z-index: 1000;
+  top: 1%;
+  left: .5%;
+  }
+  
+  /* Style for the top left box with the CSV PNG */
+  #top-left-box {
+  position: absolute;
+  top: 1.1%;
+  left: 5.7%;
+  width: 9%;
+  height: 7.5%;
+  background-color: rgb(61,62,64);
+  align-items: left;
+  justify-content: left;
+  color: rgb(169,166,159);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.55em;
+  font-weight: lighter;
+  z-index: 1000;
+  }
+  
+  #button-container{
+  position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+  }
+  .button {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  }
+  .menu-button {
+  border: none;
+  background: none;
+  color: rgb(169,166,159);;
+  padding: 10px 20px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  }
+
+  .tool-button {
+  border: none;
+  background: none;
+  color: rgb(169,166,159);;
+  padding: 10px 20px;
+  font-size: 25px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  }
+  
+  .menu-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  }
+  @media screen and (max-width: 1800px) {
+  #top-left-box {
+  font-size: 1.1em;
+  top: 1.3%;
+  left: 6%;
+  width: 9%;
+  height: 7.5%;
+  }
+  #left-menu li img {
+  width: 65px;
+  height: 65px;
+  margin-right: 0;
+  position: fixed; 
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  }}
+
+  
+  body {
+  display: flex;
+  flex-direction: column;
+  padding-left: 17%;
+  padding-right: 5%;
+  background-color: rgb(61,62,64);
+  color:rgb(211, 211, 211);
+  
+}
+.site-list {
+  font-size: 25px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  color: rgb(211, 211, 211);
+}
+nav ul li a {
+  color: rgb(211, 211, 211); /* set the desired color */
+  text-decoration: none; /* remove the underline */
+}
+
+.enlargeable {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    max-width: 200px;
+    height: auto;
+  }
+
+  .enlarged {
+    transform: scale(3);
+    max-width: none;
+    display: flex;
+  flex-direction: column;
+  padding-top: 10%;
+  padding-left: 35%;
+  padding-right: 17%;
+
+  }
+  .button1 {background-color: #4CAF50;  } /* Green */
+  .button2 {background-color: #008CBA;} /* Blue */
+  .button5 {background-color: #292525;}
+  .button3 {background-color: rgb(169,166,159); font-style: bold; color:rgb(61,62,64); font-size: 16px; margin: 4px 2px; cursor: pointer;}
+  .button4 {background-color: green; font-style: italic; color: aquamarine;}    
+  .dropdown {
+      position: absolute;
+      top: 14%;
+      left: 70%;
+      max-width: fit-content;
+      background-color: white;
+      border: 1px solid #ccc;
+      color: black;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .dropdown label {
+      display: block;
+      margin: 3px;
+    }
+
+    /* Style for the "Sites" label */
+    #site-label {
+      font-size: 25px;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+      color: rgb(211, 211, 211);
+      position: absolute;
+      top: 10%;
+      left: 70%;
+      max-width: fit-content;
+      cursor: pointer;
+      border: 3px solid #ccc;
+      padding-right: 1%;
+    }
+  </style>
+<body>
+    {% load static %}
+  <div id="left-menu">
+    <ul>
+        
+      <li class="active"><a href="{% url 'map' %}"><img src="{% static 'images/Map_Photos/CSV_Grey_Logo.png' %}"></a></li>
+      <li><a href="{% url 'map' %}"><button class="menu-button">Map</button></a></li>
+      <li><a href="{% url 'sites' %}"><button class="menu-button">Sites/Audits</button></a></li>
+      <li><a href="{% url 'projects' %}"><button class="menu-button">Projects</button></a></li>
+      <li><a href="{% url 'wikis' %}"><button class="menu-button">Wikis</button></a></li>
+      <li><a href="{% url 'tools' %}"><button class="menu-button">Tools</button></a></li>
+      <li><a href="{% url 'network' %}"><button class="menu-button">Network</button></a></li>
+    </ul>
+</div>
+<div id="top-left-box">
+    <h2 style = "font-weight: lighter; position: fixed;">Dashboard</h2>
+</div>  
+<button id="clone-button"  type = "submit" style="z-index: 1001; width: 150px; height: 100px; position: absolute; right: 1%;" class="button button3">
+  <a  style="color: rgb(0, 0, 0) !important; text-decoration: none;">CLONE</a>
+</button>
+<H3 style="font-size: 35px; max-width: 60%;">Select the sites from the drop down menu to right and fill out the form below. Hit the clone button in the top right to clone form to sites.</H3>
+
+
+<div class="dropdown" id="site-dropdown">
+  <label for="all-sites">
+    <input type="checkbox" id="all-sites" value="all"> All
+  </label>
+  {% for site in sites %}
+    <label for="site-{{ site.id }}">
+      <input type="checkbox" id="site-{{ site.id }}" name="site[]" value="{{ site.name }}"> {{ site.name }}
+    </label>
+  {% endfor %}
+</div>
+
+<!-- Label to show and hide the dropdown menu -->
+<label id="site-label" for="site-dropdown">Sites ↓</label>
+
+  
+  <!-- Form to submit the RF profile data to the view -->
+  <form style="position: absolute; top: 17%;" id="rf-profile-form" action="{% url 'clone_rf' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" id="selected-sites-input" name="selected_sites" value="">
+
+ <!-- Name -->
+<br><label for="profile-name">Name*</label>
+<br><input type="text" id="profile-name" name="profile_name" required value=""><br>
+
+<!-- Band Selection Type -->
+<br><label for="band-selection">Band Selection Type*</label>
+<br><select id="band-selection" name="band_selection_type" required>
+  <option value="ssid">ssid</option>
+  <option value="ap">ap</option>
+</select><br>
+
+<!-- Min Bitrate Type -->
+<br><label for="min-bitrate-type">Min Bitrate Type</label>
+<br><select id="min-bitrate-type" name="min_bitrate_type">
+  <option value="band">band</option>
+  <option value="ssid">ssid</option>
+</select><br>
+
+<!-- Steers Client to Best Available Access Point 
+<br><label for="steer-client">Steers Client to Best Available Access Point</label>
+<br><select id="steer-client" name="steer_client">
+  <option value=""></option>
+  <option value="true">true</option>
+  <option value="false">false</option>
+</select><br>-->
+
+<!-- Client Balancing Enabled -->
+<br><label for="client-balancing">Client Balancing Enabled</label>
+<br><select id="client-balancing" name="client_balancing">
+  <option value="true">true</option>
+  <option value="false">false</option>
+</select><br>
+
+<!-- Ap Band Settings 
+<br><label for="ap-band-mode">Ap Band Settings - bandOperationMode</label>
+<br><select id="ap-band-mode" name="ap_band_mode">
+  <option value=""></option>
+  <option value="dual">dual</option>
+  <option value="2.4ghz">2.4ghz</option>
+  <option value="5ghz">5ghz</option>
+</select><br>
+
+<--- Ap Band Settings - Steers Client to Most Open Band 
+<br><label for="ap-steer-client">Ap Band Settings - Steers Client to Most Open Band</label>
+<br><select id="ap-steer-client" name="ap_steer_client">
+  <option value=""></option>
+  <option value="true">true</option>
+  <option value="false">false</option>
+</select><br>-->
+
+<!-- Two Four Ghz Settings -->
+<h2>Two Four Ghz Settings</h2>
+
+<!-- Two Four Ghz Settings - Max Power -->
+<label for="two-four-ghz-max-power">Two Four Ghz Settings - Max Power</label>
+<br><input type="number" id="two-four-ghz-max-power" name="two_four_ghz_max_power" min="2" max="30" value="22">
+
+<!-- Two Four Ghz Settings - Min Power -->
+<br><label for="two-four-ghz-min-power">Two Four Ghz Settings - Min Power</label>
+<br><input type="number" id="two-four-ghz-min-power" name="two_four_ghz_min_power" min="2" max="30" value="5">
+
+<!-- Two Four Ghz Settings - RX-SOP -->
+<br><label for="two-four-ghz-rx-sop">Two Four Ghz Settings - RX-SOP</label>
+<br><input type="number" id="two-four-ghz-rx-sop" name="two_four_ghz_rx_sop" min="-95" max="-65" value="">
+
+<!-- Two Four Ghz Settings - AX Enabled -->
+<br><label for="two-four-ghz-ax-enabled">Determines whether AX radio on 2.4Ghz band is on or off</label>
+<br><select id="two-four-ghz-ax-enabled" name="two_four_ghz_ax_enabled">
+  <option value="false">false</option>
+  <option value="true">true</option>
+</select><br>
+
+<!-- Two Four Ghz Settings - Min Bitrate -->
+<br><label for="two-four-ghz-min-bitrate">Two Four Ghz Settings - Min Bitrate</label>
+<br><select id="two-four-ghz-min-bitrate" name="two_four_ghz_min_bitrate">
+  <option value="11">11</option>
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="5.5">5.5</option>
+  <option value="6">6</option>
+  <option value="9">9</option>
+  <option value="12">12</option>
+  <option value="18">18</option>
+  <option value="24">24</option>
+  <option value="36">36</option>
+  <option value="48">48</option>
+  <option value="54">54</option>
+</select><br>
+
+<!-- Two Four Ghz Settings - Valid Auto Channels 
+<br><label for="two-four-ghz-valid-channels">Two Four Ghz Settings - Valid Auto Channels</label>
+<br><select id="two-four-ghz-valid-channels" name="two_four_ghz_valid_channels" multiple>
+  <option value=""></option>
+  <option value="1">1</option>
+  <option value="6">6</option>
+  <option value="11">11</option>
+</select><br>-->
+
+<!-- Five Ghz Settings -->
+<h2>Five Ghz Settings</h2>
+
+<!-- Five Ghz Settings - Max Power -->
+<label for="five-ghz-max-power">Five Ghz Settings - Max Power</label>
+<br><input type="number" id="five-ghz-max-power" name="five_ghz_max_power" min="2" max="30" value="22">
+
+<!-- Five Ghz Settings - Min Bitrate -->
+<br><label for="five-ghz-min-bitrate">Five Ghz Settings - Min Bitrate</label>
+<br><select id="five-ghz-min-bitrate" name="five_ghz_min_bitrate">
+  <option value="12">12</option>
+  <option value="6">6</option>
+  <option value="9">9</option>
+  <option value="18">18</option>
+  <option value="24">24</option>
+  <option value="36">36</option>
+  <option value="48">48</option>
+  <option value="54">54</option>
+</select><br>
+
+<!-- Five Ghz Settings - Min Power -->
+<br><label for="five-ghz-min-power">Five Ghz Settings - Min Power</label>
+<br><input type="number" id="five-ghz-min-power" name="five_ghz_min_power" min="2" max="30" value="8">
+
+<!-- Five Ghz Settings - RX-SOP -->
+<br><label for="five-ghz-rx-sop">Five Ghz Settings - RX-SOP</label>
+<br><input type="number" id="five-ghz-rx-sop" name="five_ghz_rx_sop" min="-95" max="-65" value="">
+
+<!-- Five Ghz Settings - Channel Width 
+<br><label for="five-ghz-channel-width">Five Ghz Settings - Channel Width</label>
+<br><select id="five-ghz-channel-width" name="five_ghz_channel_width">
+  <option value=""></option>
+  <option value="auto">auto</option>
+  <option value="20">20</option>
+  <option value="40">40</option>
+  <option value="80">80</option>
+</select><br>-->
+
+
+<!-- Five Ghz Settings - Valid Auto Channels
+<br><label for="five-ghz-valid-channels">Five Ghz Settings - Valid Auto Channels</label>
+<br><select id="five-ghz-valid-channels" name="five_ghz_valid_channels" multiple>
+  <option value=""></option>
+  <option value="36">36</option>
+  <option value="40">40</option>
+  <option value="44">44</option>
+</select><br> -->
+
+<!-- Six Ghz Settings 
+<h2>6 Ghz Settings</h2>
+
+Six Ghz Settings - Max Power 
+<label for="six-ghz-max-power">6 Ghz Settings - Max Power</label>
+<br><input type="number" id="six-ghz-max-power" name="six_ghz_max_power" min="2" max="30" value="">
+
+ Six Ghz Settings - Min Bitrate 
+<br><label for="six-ghz-min-bitrate">6 Ghz Settings - Min Bitrate</label>
+<br><select id="six-ghz-min-bitrate" name="six_ghz_min_bitrate">
+  <option value=""></option>
+  <option value="6">6</option>
+  <option value="9">9</option>
+  <option value="12">12</option>
+  <option value="18">18</option>
+  <option value="24">24</option>
+  <option value="36">36</option>
+  <option value="48">48</option>
+  <option value="54">54</option>
+</select><br>
+
+ Six Ghz Settings - Min Power 
+<br><label for="six-ghz-min-power">Six Ghz Settings - Min Power</label>
+<br><input type="number" id="six-ghz-min-power" name="six_ghz_min_power" min="2" max="30" value="">
+
+Six Ghz Settings - RX-SOP 
+<br><label for="six-ghz-rx-sop">Six Ghz Settings - RX-SOP</label>
+<br><input type="number" id="six-ghz-rx-sop" name="six_ghz_rx_sop" min="-95" max="-65" value="">
+
+Six Ghz Settings - Channel Width 
+<br><label for="six-ghz-channel-width">Six Ghz Settings - Channel Width</label>
+<br><select id="six-ghz-channel-width" name="six_ghz_channel_width">
+  <option value=""></option>
+  <option value="0">0</option>
+  <option value="20">20</option>
+  <option value="40">40</option>
+  <option value="80">80</option>
+  <option value="160">160</option>
+</select><br>
+
+Six Ghz Settings - Valid Auto Channels 
+<br><label for="six-ghz-valid-channels">Six Ghz Settings - Valid Auto Channels</label>
+<br><select id="six-ghz-valid-channels" name="six_ghz_valid_channels" multiple>
+  <option value=""></option>
+  <option value="1">1</option>
+  <option value="5">5</option>
+  <option value="9">9</option>
+Add other valid channels as per the API call description 
+</select><br>-->
+
+<!-- Flex Radios 
+<h2>Flex Radios</h2>-->
+
+<!-- Flex Radios - By Model 
+<label for="flex-radios-by-model">Flex Radios - By Model</label>
+<br><input type="text" id="flex-radios-by-model" name="flex_radios_by_model" value="">-->
+
+<!-- Per Ssid Settings -->
+<h2>Per Ssid Settings</h2>
+
+<!-- Per Ssid Settings - SSID 0 -->
+<label for="ssid-0-mode">Settings for SSID 0 - bandOperationMode</label>
+<br><select id="ssid-0-mode" name="ssid_0_mode">
+  <option value="5ghz">5ghz</option>
+  <option value="dual">dual</option>
+  <option value="2.4ghz">2.4ghz</option>
+</select><br>
+
+<!-- Per Ssid Settings - SSID 0 - Steers Client to Most Open Band -->
+<br><label for="ssid-0-steer-client">Settings for SSID 0 - Steers Client to Most Open Band</label>
+<br><select id="ssid-0-steer-client" name="ssid_0_steer_client">
+  <option value="false">false</option>
+  <option value="true">true</option>
+</select><br>
+
+
+<!-- Per Ssid Settings - SSID 1 -->
+<br><label for="ssid-1-mode">Settings for SSID 1 - bandOperationMode</label>
+<br><select id="ssid-1-mode" name="ssid_1_mode">
+  <option value="dual">dual</option>
+  <option value="2.4ghz">2.4ghz</option>
+  <option value="5ghz">5ghz</option>
+</select><br>
+
+<!-- Per Ssid Settings - SSID 1 - Steers Client to Most Open Band -->
+<br><label for="ssid-1-steer-client">Settings for SSID 1 - Steers Client to Most Open Band</label>
+<br><select id="ssid-1-steer-client" name="ssid_1_steer_client">
+  <option value="true">true</option>
+  <option value="false">false</option>
+</select><br>
+
+
+<!-- Per Ssid Settings - SSID 2 -->
+<br><label for="ssid-2-mode">Settings for SSID 2 - bandOperationMode</label>
+<br><select id="ssid-2-mode" name="ssid_2_mode">
+  <option value="2.4ghz">2.4ghz</option>
+  <option value="5ghz">5ghz</option>
+  <option value="dual">dual</option>
+</select><br>
+
+<!-- Per Ssid Settings - SSID 2 - Steers Client to Most Open Band -->
+<br><label for="ssid-2-steer-client">Settings for SSID 2 - Steers Client to Most Open Band</label>
+<br><select id="ssid-2-steer-client" name="ssid_2_steer_client">
+  <option value="false">false</option>
+  <option value="true">true</option>
+</select><br>
+
+
+
+
+  </form>
+
+  <!-- JavaScript to handle dropdown functionality -->
+  <script>
+    $(document).ready(function() {
+      $('#site-label').click(function() {
+        $('#site-dropdown').toggle();
+      });
+
+      // Function to handle "All" checkbox selection
+      $('#all-sites').change(function() {
+        var allChecked = $(this).prop('checked');
+        $('#site-dropdown input[type="checkbox"]').prop('checked', allChecked);
+        console.log("All sites selected:", allChecked);
+        // Perform any necessary actions with the "All" checkbox
+      });
+
+      // Function to handle individual site checkbox selection
+      $('#site-dropdown input[type="checkbox"]').change(function() {
+        var selectedSites = $('#site-dropdown input[type="checkbox"]:checked')
+          .not('#all-sites')
+          .map(function() {
+            return this.value;
+          })
+          .get();
+          $('#selected-sites-input').val(JSON.stringify(selectedSites));
+        // Perform any necessary actions with the selected sites
+      });
+    });
+
+    $(document).ready(function() {
+    // Your existing code for handling dropdown functionality
+
+    // Add a click event listener to the "CLONE" button
+    $('#clone-button').click(function() {
+      // Trigger the form submission when the "CLONE" button is clicked
+      $('#rf-profile-form').submit();
+    });
+  });
+  </script>
+
+
+</body>
+</html>

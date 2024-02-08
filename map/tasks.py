@@ -1,0 +1,398 @@
+from __future__ import absolute_import, unicode_literals
+
+from celery import shared_task
+import meraki
+import requests
+import ipaddress
+from django.db import connection
+from map.models import Site
+from map.models import Device_Info, Client_Info, Org_Info, Employee
+from django.db import IntegrityError
+from time import sleep
+
+@shared_task
+def update_vlan_info_task():
+    api_key = '16209be12e5a4e06b76e0a6d668c5477b20924d9'
+    headers = {
+        'X-Cisco-Meraki-API-Key': api_key,
+        'Content-Type': 'application/json',
+    }
+    base_url = 'https://api.meraki.com/api/v1'
+    sites = Site.objects.all()
+    site_count = len(sites) 
+    total_clients = 0
+    for sited in sites:
+        network_id = sited.networkId
+        res = requests.get(f"{base_url}/networks/{network_id}/clients?statuses[]=Online&perPage=1000", headers=headers)
+        clients = res.json() if res.status_code == 200 else []
+        if clients:
+            for client in clients:
+                total_clients += 1
+                try:
+                    existing_client = Client_Info.objects.get(mac=str(client['mac']))
+                except Client_Info.DoesNotExist:
+                    try:
+                        existing_client = Client_Info.objects.get(ip=str(client['ip']))
+                    except Client_Info.DoesNotExist:
+                        Client_Info.objects.create(
+                        mac = str(client['mac']),
+                        network_name = str(sited.name),
+                        client_id = str(client['id']),
+                        description = str(client['description']),
+                        ip = str(client['ip']),
+                        ip6 = str(client['ip6']),
+                        ip6Local = str(client['ip6Local']),
+                        user = str(client['user']),
+                        firstSeen = str(client['firstSeen']),
+                        lastSeen = str(client['lastSeen']),
+                        manufacturer = str(client['manufacturer']),
+                        os = str(client['os']),
+                        deviceTypePrediction = str(client['deviceTypePrediction']),
+                        recentDeviceSerial = str(client['recentDeviceSerial']),
+                        recentDeviceName = str(client['recentDeviceName']),
+                        recentDeviceMac = str(client['recentDeviceMac']),
+                        recentDeviceConnection = str(client['recentDeviceConnection']),
+                        ssid = str(client['ssid']),
+                        vlan = str(client['vlan']),
+                        switchport = str(client['switchport']),
+                        usage = client['usage'],
+                        status = str(client['status']),
+                        notes = str(client['notes']),
+                        groupPolicy8021x = str(client['groupPolicy8021x']),
+                        adaptivePolicyGroup = str(client['adaptivePolicyGroup']),
+                        smInstalled = str(client['smInstalled']),
+                        pskGroup = str(client['pskGroup']),
+                    )
+        resp = requests.get(f"{base_url}/networks/{network_id}/appliance/vlans", headers=headers)
+        vlans = resp.json() if resp.status_code == 200 else []
+        available_ips = {} 
+        info = {} 
+        for vlan in vlans:
+            subnet = vlan['subnet']
+            subnet_info = ipaddress.IPv4Network(subnet)
+            all_ips = [str(ip) for ip in subnet_info.hosts()]
+            
+            client_ip = [client['ip'] for client in clients]
+            available_ips[vlan['name']] = [ip for ip in all_ips if ip not in client_ip]
+            used_count = len(all_ips) - len(available_ips[vlan['name']])
+            percentage_used = (used_count / len(all_ips)) * 100
+            subnet_used_percentage = round(percentage_used, 2)
+            
+            info[vlan['name']] = {
+                "available_ips": available_ips[vlan['name']],
+                "sub_percent": subnet_used_percentage
+            }
+
+        sited.vlans = vlans
+        sited.clients = clients
+        sited.available = info
+        sited.save()
+    org = Org_Info.objects.get(pk = 1)
+    org.client_count = total_clients
+    org.site_count = site_count
+    org.save()
+@shared_task
+def update_device_info_task():
+    sites = Site.objects.all()
+    api_key = '16209be12e5a4e06b76e0a6d668c5477b20924d9'
+    base_url = 'https://api.meraki.com/api/v1'
+    session_params = {
+        'api_key': api_key,
+        'single_request_timeout': 30,
+        'base_url': base_url,
+        'certificate_path': None,
+        'requests_proxy': None,
+        'wait_on_rate_limit': True,
+        'nginx_429_retry_wait_time': 1,
+        'action_batch_retry_wait_time': 1,
+        'retry_4xx_error': True,
+        'retry_4xx_error_wait_time': 1,
+        'maximum_retries': 100,
+        'simulate': False,
+        'be_geo_id': None,
+        'caller': None,
+        'use_iterator_for_get_pages': False
+    }
+    dashboard = meraki.DashboardAPI(**session_params)
+    organization_id = '445912'
+    networks = dashboard.organizations.getOrganizationNetworks(organization_id)
+    network_dict = {}
+    network_blacklist = ['Spare Network', 'MDM Executive Mobile', 'MDM Executive Laptop', 'MDM Line Staff Mobile', 'Azure KC Hub', 'Azure Test', 'MDM IT Test']
+    for network in networks:
+        if network['name'] in network_blacklist:
+            del network['name']
+        else:
+            network_add = {network['id']: network['name']}
+            network_dict.update(network_add)                                                                                                                                                                 
+    response = requests.get(f"{base_url}/organizations/{organization_id}/devices", headers={'Authorization': f'Bearer {api_key}'})
+    network_devices = response.json()
+    for device in network_devices:
+        if device['networkId'] in network_dict:
+            device_network = {"networkName":network_dict.get(device['networkId'])}
+            if device['model'].startswith("MX"):
+                try:
+                    site = Site.objects.get(networkId = device['networkId'])
+                    site.router_sn = device['serial']
+                    site.save()
+                except:
+                    print()
+            device.update(device_network)
+            Device_Info.objects.update_or_create(
+                serial=device['serial'],
+                defaults={
+                    'mac': device['mac'],
+                    'url': device['url'],
+                    'networkId': device['networkId'],
+                    'name': device['name'],
+                    'model': device['model'],
+                    'firmware': device['firmware'],
+                    'productType': device['productType'],
+                    'networkName': device['networkName']
+                }
+            )
+@shared_task
+def get_user_list():
+    get_user_url = "https://graph.microsoft.com/v1.0/groups/fe10e5e7-cdb6-43e9-ad31-7a7798ce4532/members"
+    fresno_get_user = "https://graph.microsoft.com/v1.0/groups/2748aeb0-f949-48bb-b9db-5006b7ae820f/members"
+    tenant_id = '370fb7ee-e5b0-4bf5-b91b-3b67fe429a27'
+    client_id = 'dae1f98c-134e-4f18-ba76-bbe8223da261'
+    client_secret = 'itG8Q~_0x64VGLU5t_jon0rtesAJCUP~jgmOQav4'
+    token_url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'
+    token_data = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'scope': 'https://graph.microsoft.com/.default'
+    }
+
+    response = requests.post(token_url, data=token_data)
+    response.raise_for_status()
+    access_token = response.json()['access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+        'ConsistencyLevel':'eventual'
+    }
+    surname_count = {}
+    user_count = 0
+    url = get_user_url
+    url1 = fresno_get_user
+
+    while url:
+        info = requests.get(url, headers=headers)
+        info.raise_for_status()
+        user_data = info.json()
+        for user in user_data['value']:
+             Employee.objects.update_or_create(display_name = user['displayName'], azure_id = user['id'], first_name = user['givenName'], phone = user['businessPhones'], last_name = user['surname'], title = user['jobTitle'], mail = user['mail'])
+             url = user_data.get('@odata.nextLink')
+    while url1:
+        info = requests.get(url1, headers=headers)
+        info.raise_for_status()
+        user_data = info.json()
+        for user in user_data['value']:
+            Employee.objects.update_or_create(display_name = user['displayName'], azure_id = user['id'], first_name = user['givenName'], phone = user['businessPhones'], last_name = user['surname'], title = user['jobTitle'], mail = user['mail'])
+            url1 = user_data.get('@odata.nextLink')
+
+@shared_task
+def get_user_info():
+    tenant_id = '370fb7ee-e5b0-4bf5-b91b-3b67fe429a27'
+    client_id = 'dae1f98c-134e-4f18-ba76-bbe8223da261'
+    client_secret = 'itG8Q~_0x64VGLU5t_jon0rtesAJCUP~jgmOQav4'
+    token_url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'
+    token_data = {
+        'grant_type': 'client_credentials',
+        'client_id': client_id,
+        'client_secret': client_secret,
+        'scope': 'https://graph.microsoft.com/.default'
+    }
+
+    response = requests.post(token_url, data=token_data)
+    response.raise_for_status()
+    access_token = response.json()['access_token']
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+        'ConsistencyLevel':'eventual'
+    }
+
+    employees = Employee.objects.all()
+    for employee in employees:
+        if not employee.upn:
+            get_user_url = f"https://graph.microsoft.com/v1.0/users/{employee.azure_id}"
+            request = requests.get(get_user_url, headers=headers)
+            data_request = request.json()
+            employee.upn = data_request['userPrincipalName']
+            employee.save()
+@shared_task
+def clean_up():
+    from django.db.models import Max
+
+    def reset_sequence(model):
+        max_id = model.objects.all().aggregate(max_id=Max('id'))['max_id']
+        if max_id is not None:
+            with connection.cursor() as cursor:
+                cursor.execute(f'ALTER SEQUENCE {model._meta.db_table}_id_seq RESTART WITH {max_id + 1}')
+
+    reset_sequence(Client_Info)
+    reset_sequence(Device_Info)
+
+    Client_Info.objects.all().delete()
+    Device_Info.objects.all().delete()
+@shared_task
+def get_webex_id():
+    webex_all_people = 'https://webexapis.com/v1/people?callingData=false&max=1000'
+    with open('map\\webex_access.txt', 'r') as access:
+        access_token = access.read()
+    headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+    people_request = requests.get(webex_all_people,headers=headers)
+    people_request.raise_for_status()
+    people = people_request.json()
+    for person in people['items']:
+            email = person['emails']
+            mail = email[0]
+            try:
+                user = Employee.objects.get(upn = mail)
+                user.webex_id = person['id']
+                print(f"{user.display_name} has an id {user.webex_id}")
+                user.save()
+            except Employee.DoesNotExist:   
+                pass
+    if 'Link' in people_request.headers and 'rel="next"' in people_request.headers['Link']:
+        next_url = people_request.headers['Link'].split(';')[0][1:-1]
+        people_request = requests.get(next_url, headers=headers)
+        people_request.raise_for_status()
+        people = people_request.json()
+        for person in people['items']:
+            email = person['emails']
+            mail = email[0]
+            try:
+                user = Employee.objects.get(upn = mail)
+                user.webex_id = person['id']
+                print(f"{user.display_name} has an id {user.webex_id}")
+                user.save()
+            except Employee.DoesNotExist:   
+                pass
+    if 'Link' in people_request.headers and 'rel="next"' in people_request.headers['Link']:
+        next_url = people_request.headers['Link'].split(';')[0][1:-1]
+        people_request = requests.get(next_url, headers=headers)
+        people_request.raise_for_status()
+        people = people_request.json()
+        for person in people['items']:
+            email = person['emails']
+            mail = email[0]
+            try:
+                user = Employee.objects.get(upn = mail)
+                user.webex_id = person['id']
+                print(f"{user.display_name} has an id {user.webex_id}")
+                user.save()
+            except Employee.DoesNotExist:   
+                pass
+
+@shared_task
+def get_webex_info():
+    webex_person = "https://webexapis.com/v1/people/"
+    employees = Employee.objects.all()
+    with open('map\\webex_access.txt', 'r') as access:
+        access_token = access.read()
+    headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+    for employee in employees:
+        if not employee.extension and employee.webex_id:
+            person_request = requests.get(webex_person+employee.webex_id,headers=headers)
+            person_request.raise_for_status()
+            person_info=person_request.json()                         
+            extension = None
+            if person_info.get('phoneNumbers'):
+                for number in person_info.get('phoneNumbers'):
+                    if number.get("type") == "work_extension":
+                        extension = number.get("value")
+                        break
+            employee.extension = extension
+            employee.webex_lic = person_info.get('licenses')
+            employee.save()
+
+@shared_task
+def delete_dev_id():
+    employees = Employee.objects.all()
+    for employee in employees:
+        employee.webex_dev_id = None
+        employee.save()
+
+@shared_task
+def get_webex_dev_id():
+    employees = Employee.objects.all()
+    webex_devices = "https://webexapis.com/v1/devices?personId="
+    with open('map\\webex_access.txt', 'r') as access:
+        access_token = access.read()
+    headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+    for employee in employees:
+        if not employee.site and employee.webex_id:
+            sleep(.8)
+            url = f"{webex_devices}{employee.webex_id}"
+            device_info = requests.get(url, headers=headers)
+            devicejson = device_info.json()
+            if devicejson['items']:
+                for device in devicejson['items']:
+                    if device['type'] ==  'phone':
+                        dev_id = device['id']
+                        mac = device['mac']
+                        employee.webex_dev_id = dev_id
+                        employee.phone_mac = mac
+                        employee.webex_model = device['product']
+                        if device['locationId']:
+                            employee.webex_loc_id = device['locationId']
+                            location = Site.objects.get(webex_id = device['locationId'])
+                            employee.site = location.name
+                        print(f"{employee.display_name}  {employee.site}")
+                employee.save()
+                #print(f"{employee.display_name}  {employee.webex_model}")
+        else:
+            pass
+            #print(f"DID NOT RUN LOOP INFO MAY EXSIT ALREADY {employee.display_name}   {employee.site}")
+@shared_task
+def get_location_webex_id():
+    locations_url = 'https://webexapis.com/v1/locations'
+    with open('map\\webex_access.txt', 'r') as access:
+        access_token = access.read()
+    headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+    location_request = requests.get(locations_url, headers=headers)
+    location_info = location_request.json()
+    for location in location_info['items']:
+            try:
+                site = Site.objects.get(webexName = location['name'])
+                site.webex_id = location['id']
+                site.save()
+            except Site.DoesNotExist:   
+                pass
+@shared_task
+def get_webex_token():
+    token_url = 'https://webexapis.com/v1/access_token'
+    client_secret = '0ff9659e9f14bccbdd41397ddcd37e5f074e68056bd730d5adf5cb892a5b1efa'
+    client_id  = 'C8010c7a4696232bb5444df72cc05808713d60b398cb10dbfbfe13ea8e68b25ec'
+    with open('map\\webex_refresh.txt', 'r') as refresh:
+        refresh_token = refresh.read()
+    refresh_payload = {
+        'client_id':client_id,
+        'client_secret':client_secret,
+        'refresh_token':refresh_token,
+        'grant_type':"refresh_token", 
+    }
+    refresh = requests.post(token_url,data=refresh_payload)
+    refresh_info = (refresh.json())
+    refresh_token = (refresh_info['refresh_token'])
+    access_token = (refresh_info['access_token'])
+    with open('map\\webex_access.txt', 'w') as env_file:
+        env_file.write(f'{access_token}')
+    with open('map\\webex_refresh.txt','w') as refreshtxt:
+        refreshtxt.write(f'{refresh_token}')

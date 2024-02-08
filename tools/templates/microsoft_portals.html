@@ -1,0 +1,2991 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}MS Portals{% endblock %}
+{% block template %}
+
+
+<header>
+    <div class="container">
+        <a id="a-title" href="/">
+            <h1>Microsoft Portals</h1>
+        </a>
+        <form style="margin: 0; padding: 0; display: inline">
+<label for="search" style="display: none">Quick Filter:</label>
+<input id="search" name="search" class="quickfilter" type="text" placeholder="Quick Filter">
+</form>
+
+<script type="text/javascript">
+function showOnlyMatchedPortals() {
+query = this.value;
+
+Array.from(document.querySelectorAll("div[class='portal-group'] div[class='portal']")).forEach((portalEntry) => {
+  // Remove individual portal entries
+  if (query.length >= 2) {
+    // build string that includes all text and link href data
+    let searchableString = portalEntry.innerText;
+    searchableString += Array.from(portalEntry.getElementsByTagName("a"))
+      .map((e) => {
+        return e.href;
+      })
+      .join("|");
+    // clean up, remove http(s) and newlines
+    searchableString = searchableString
+      .replace(/(https|http):\/\//gi, "")
+      .replace(/\n/g, "|")
+      .toUpperCase();
+    if (searchableString.indexOf(query.toUpperCase()) === -1) {
+      //Iterate through all children, even nested children
+      Array.from(portalEntry.getElementsByTagName("*")).forEach((elem) => {
+        elem.hidden = true;
+      });
+    } else {
+      Array.from(portalEntry.getElementsByTagName("*")).forEach((elem) => {
+        elem.hidden = false;
+      });
+    }
+  } else {
+    //Iterate through portal entries un-hiding them in case they were hidden
+    Array.from(document.querySelectorAll("div[class='portal-group'] div[class='portal']")).forEach((portalEntry) => {
+      Array.from(portalEntry.getElementsByTagName("*")).forEach((elem) => {
+        elem.hidden = false;
+      });
+    });
+  }
+});
+
+//Iterate through Portal-groups, and check each portal entries underneath and check if all child portal are hidden
+Array.from(document.querySelectorAll("div[class='portal-group']")).forEach((portalGroup) => {
+  let num = Array.from(portalGroup.querySelectorAll(".portal *")).reduce(
+    //Count how many elements are not-hidden (shown)
+    (total, elem) => total + (elem.hidden === false ? 1 : 0),
+    0
+  );
+  //If all elements are hidden, hide the entire portal-group
+  if (num === 0) {
+    portalGroup.hidden = true;
+  } else {
+    //If some portal elements are shown, be certain to show the parent portal-group
+    portalGroup.hidden = false;
+  }
+});
+
+// Display message if no portals are found
+totalNum = Array.from(document.querySelectorAll("div[class='portal-group']")).reduce((total, portalGroup) => total + (portalGroup.hidden === false ? 1 : 0), 0);
+
+if (totalNum === 0) {
+  document.getElementsByClassName("nomatches")[0].style = "display: block;";
+} else {
+  document.getElementsByClassName("nomatches")[0].style = "display: none;";
+}
+}
+
+function idleSave() {
+var t;
+
+function saveSearchParamToHistory() {
+  const qfInput = document.querySelector("#search");
+  writeSearchToHistory.call(qfInput);
+}
+window.onload = resetIdleTimer;
+window.onmousemove = resetIdleTimer;
+window.onmousedown = resetIdleTimer; // catches touchscreen presses as well
+window.ontouchstart = resetIdleTimer; // catches touchscreen swipes as well
+window.onclick = resetIdleTimer; // catches touchpad clicks as well
+window.onkeydown = resetIdleTimer;
+window.addEventListener("scroll", resetIdleTimer, true); // improved; see comments
+
+function resetIdleTimer() {
+  clearTimeout(t);
+  t = setTimeout(saveSearchParamToHistory, 5000); // time is in milliseconds
+}
+function writeSearchToHistory() {
+  let theURL = new URL(window.location.toString());
+  theURL.search = window.location.search.substring(1); // copy current search-parameters without the '#' AS search-parameters
+  theURL.searchParams.set("search", this.value);
+
+  if (window.location.toString() !== theURL.href) {
+    window.history.replaceState({}, "", theURL.href);
+  }
+}
+}
+idleSave();
+
+window.onload = function () {
+// Select Search Box Element
+const qfInput = document.querySelector("#search");
+
+// Fill Search Box with URL Search value
+let theURL = new URL("https://dummy.com");
+// create dummy url
+theURL.search = window.location.search.substring(1);
+// copy current search-parameters without the '#' AS search-parameters
+qfInput.value = theURL.searchParams.get("search");
+
+// Add Event Listeners for changes (After we set the search box value)
+qfInput.addEventListener("change", showOnlyMatchedPortals);
+qfInput.addEventListener("keyup", showOnlyMatchedPortals);
+qfInput.focus({
+  preventScroll: true,
+});
+// Place Cursor in the search box, ready to type
+
+// Create Promise to resolve after initial filtering is done
+var loadScriptAsync = function () {
+  return new Promise((resolve, reject) => {
+    showOnlyMatchedPortals.call(qfInput);
+    resolve();
+  });
+};
+var scriptLoaded = loadScriptAsync();
+scriptLoaded.then(function () {
+  document.querySelectorAll(window.location.hash).forEach(function (anchorLink) {
+    if (anchorLink.parentNode.hidden === false) {
+      anchorLink.scrollIntoView({
+        preventScroll: true,
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  });
+});
+};
+</script>
+
+        
+        <form style="margin: 0; padding: 0; display: inline">
+<label for="tenant_id" style="display: none">B2B Tenant ID:</label>
+<input id="tenant_id" name="tenant_id" class="quickfilter" type="text" placeholder="B2B Tenant ID">
+</form>
+
+<div id="tenant_id_privacy_warning" style="display: none;">
+<strong>Privacy Note:</strong> You can save the current page as
+a bookmark to store
+the tenant ID, but the tenant ID will show up in logs.
+</div>
+
+<script type="text/javascript">
+
+function replaceTenantId() {
+    let tenant_id = document.querySelector("#tenant_id").value;
+    let theURL = new URL(window.location.toString());
+
+    if (tenant_id == "") {
+        tenant_id = "00000000-0000-0000-0000-000000000000";
+        theURL.search = window.location.search.substring(1);
+        theURL.searchParams.delete("tenant_id");
+        document.querySelector("#tenant_id_privacy_warning").style = "display:none";
+    } else {
+        theURL.search = window.location.search.substring(1);
+        theURL.searchParams.set("tenant_id", tenant_id);
+        document.querySelector("#tenant_id_privacy_warning").style = "";
+    }
+
+    const links = document.getElementsByClassName("btn-B2B");
+    for (let i = 0; i < links.length; i++) {
+        // Replace twice, because URL components are escaped, whereas query components aren't
+        let template = links[i].getAttribute('data-tenant_id-template');
+        links[i].href = template.replace("{tenant_id}", tenant_id).replace("%7Btenant_id%7D", tenant_id);
+    }
+
+
+
+    if (window.location.toString() !== theURL.href) {
+        window.history.replaceState({}, "", theURL.href);
+    }
+}
+
+window.addEventListener("DOMContentLoaded", function () {
+
+    // Start by setting the data- attribute
+    const links = document.getElementsByClassName("btn-B2B");
+    for (let i = 0; i < links.length; i++) {
+        links[i].setAttribute('data-tenant_id-template', links[i].href);
+    }
+
+    let theURL = new URL("https://dummy.com");
+    theURL.search = window.location.search.substring(1);
+    let tenant_id = theURL.searchParams.get("tenant_id");
+
+    const tenantInput = document.querySelector("#tenant_id");
+
+    if (tenant_id != null) {
+        tenantInput.value = tenant_id;
+    }
+
+    replaceTenantId();
+
+    // Add Event Listeners for changes (After we set the initial value)
+    tenantInput.addEventListener("change", replaceTenantId);
+    tenantInput.addEventListener("keyup", replaceTenantId);
+    tenantInput.focus({
+        preventScroll: true,
+    });
+}, false);
+</script>
+
+
+    </div>
+</header>
+
+<div class="container">
+    <section id="main_content">
+        <article class="page">
+
+<h2>Administrator Portals</h2>
+
+<div class="entry">
+
+<div class="portal-group">
+<h2 id="microsoft-365-admin-portals">Microsoft 365 Admin Portals<a class="anchorjs-link " href="#microsoft-365-admin-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.1"></span>
+        Microsoft 365 Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.microsoft.com" target="_blank">https://admin.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/admincenter" target="_blank">aka.ms</a> <a class="btn-Old 🔗 btn-secondary btn" href="https://portal.office365.com" target="_blank">Old 🔗</a> <a class="btn-Alt btn-secondary btn" href="https://portal.microsoft.com" target="_blank">Alt</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.2"></span>
+        Microsoft 365 Apps Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://config.office.com" target="_blank">https://config.office.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.3"></span>
+        Exchange Admin Center (EAC) 
+        <span class="portal-note">New</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.exchange.microsoft.com" target="_blank">https://admin.exchange.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.4"></span>
+        Exchange Admin Center (EAC) 
+        <span class="portal-note">Old</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://outlook.office365.com/ecp/" target="_blank">https://outlook.office365.com/ecp/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.5"></span>
+        Kaizala Management Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://manage.kaiza.la/" target="_blank">https://manage.kaiza.la/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.6"></span>
+        Microsoft Purview 
+        <span class="portal-note">Microsoft 365 Compliance</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://compliance.microsoft.com" target="_blank">https://compliance.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.7"></span>
+        Microsoft 365 network connectivity test 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://connectivity.office.com" target="_blank">https://connectivity.office.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.8"></span>
+        Microsoft 365 Network Insights 
+        <span class="portal-note">Preview</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.office.com/adminportal/home#/networkperformance" target="_blank">https://portal.office.com/adminportal/home#/networkperformance</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.9"></span>
+        Microsoft Call Quality Dashboard (Teams) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://cqd.teams.microsoft.com" target="_blank">https://cqd.teams.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.10"></span>
+        Microsoft Call Quality Dashboard (Lync) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://cqd.lync.com" target="_blank">https://cqd.lync.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.11"></span>
+        Microsoft Intune Admin Center 
+        <span class="portal-note">Endpoint Manager</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://intune.microsoft.com" target="_blank">https://intune.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/in" target="_blank">aka.ms</a> <a class="btn-Old 🔗 btn-secondary btn" href="https://endpoint.microsoft.com/" target="_blank">Old 🔗</a> <a class="btn-B2B btn-secondary btn" href="https://intune.microsoft.com/00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://intune.microsoft.com/%7Btenant_id%7D">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.12"></span>
+        Microsoft Endpoint Manager Admin Console 
+        <span class="portal-note">Release Candidate</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://rc-devicemanagement.portal.azure.com" target="_blank">https://rc-devicemanagement.portal.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.13"></span>
+        Microsoft Endpoint Manager Admin Console 
+        <span class="portal-note">Old</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://devicemanagement.portal.azure.com" target="_blank">https://devicemanagement.portal.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.14"></span>
+        Microsoft Intune for Education 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://intuneeducation.portal.azure.com" target="_blank">https://intuneeducation.portal.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.15"></span>
+        Microsoft Online 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.microsoftonline.com/IWDefault.aspx" target="_blank">https://portal.microsoftonline.com/IWDefault.aspx</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.16"></span>
+        Microsoft Store for Business 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://businessstore.microsoft.com" target="_blank">https://businessstore.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.17"></span>
+        Microsoft Store for Education 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://educationstore.microsoft.com" target="_blank">https://educationstore.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.18"></span>
+        Microsoft Stream Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://web.microsoftstream.com/admin" target="_blank">https://web.microsoftstream.com/admin</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.19"></span>
+        Microsoft Purview 
+        <span class="portal-note">Azure and Fabric Governance</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://web.purview.azure.com/" target="_blank">https://web.purview.azure.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.20"></span>
+        Microsoft Purview 
+        <span class="portal-note">Preview Azure and Fabric Governance</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://purview.microsoft.com/" target="_blank">https://purview.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.21"></span>
+        Microsoft Teams Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.teams.microsoft.com" target="_blank">https://admin.teams.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/teamsadmincenter" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.22"></span>
+        Teams Rooms Pro Management portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.rooms.microsoft.com/" target="_blank">https://portal.rooms.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.23"></span>
+        My Staff (preview) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mystaff.microsoft.com" target="_blank">https://mystaff.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/mystaff" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.24"></span>
+        Non Profit Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://nonprofit.microsoft.com/" target="_blank">https://nonprofit.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.25"></span>
+        OneDrive Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.onedrive.com" target="_blank">https://admin.onedrive.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.26"></span>
+        Power Apps ISV Studio 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://isvstudio.powerapps.com/home" target="_blank">https://isvstudio.powerapps.com/home</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/ISVStudio" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.27"></span>
+        Power Apps Maker Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://make.powerapps.com" target="_blank">https://make.powerapps.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.28"></span>
+        Power Automate Maker Portal 
+        <span class="portal-note">Microsoft Flow</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://make.powerautomate.com" target="_blank">https://make.powerautomate.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-Old 🔗 btn-secondary btn" href="https://flow.microsoft.com" target="_blank">Old 🔗</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.29"></span>
+        Power BI Admin Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://app.powerbi.com/admin-portal/usageMetrics?noSignUpCheck=1" target="_blank">https://app.powerbi.com/admin-portal/usageMetrics?noSignUpCheck=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.30"></span>
+        Power Pages Preview 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://make.powerpages.microsoft.com/" target="_blank">https://make.powerpages.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.31"></span>
+        Power Platform admin center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.powerplatform.microsoft.com" target="_blank">https://admin.powerplatform.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/ppac" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.32"></span>
+        Power Virtual Agents Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://powerva.microsoft.com" target="_blank">https://powerva.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.33"></span>
+        Phone Number Service Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://pstnsd.powerappsportals.com/" target="_blank">https://pstnsd.powerappsportals.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.34"></span>
+        SharePoint Admin Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.microsoft.com/sharepoint" target="_blank">https://admin.microsoft.com/sharepoint</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.35"></span>
+        SharePoint look book 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://lookbook.microsoft.com/" target="_blank">https://lookbook.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.36"></span>
+        Skype for Business admin center 
+        <span class="portal-note">Deprecated</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://webdir2a.online.lync.com/LSCP" target="_blank">https://webdir2a.online.lync.com/LSCP</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.37"></span>
+        Yammer Admin 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.yammer.com/office365/admin" target="_blank">https://www.yammer.com/office365/admin</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.38"></span>
+        My Applications (My Apps) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://myapplications.microsoft.com/" target="_blank">https://myapplications.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="1.39"></span>
+        My Access (Access Packages) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://myaccess.microsoft.com/" target="_blank">https://myaccess.microsoft.com/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-B2B btn-secondary btn" href="https://myaccess.microsoft.com/00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://myaccess.microsoft.com/%7Btenant_id%7D">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="azure-it-admin-portals">Azure IT Admin Portals<a class="anchorjs-link " href="#azure-it-admin-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.1"></span>
+        Microsoft Azure Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com" target="_blank">https://portal.azure.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/AzPortal" target="_blank">aka.ms</a> <a class="btn-B2B btn-secondary btn" href="https://portal.azure.com/00000000-0000-0000-0000-000000000000/" target="_blank" data-tenant_id-template="https://portal.azure.com/%7Btenant_id%7D/">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.2"></span>
+        Microsoft Azure 
+        <span class="portal-note">Release Candidate</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://rc.portal.azure.com" target="_blank">https://rc.portal.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.3"></span>
+        Microsoft Azure 
+        <span class="portal-note">Preview</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://preview.portal.azure.com" target="_blank">https://preview.portal.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.4"></span>
+        Microsoft Entra Admin Center (Formerly Azure AD Admin Center) 
+        <span class="portal-note">Identity Management</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://entra.microsoft.com" target="_blank">https://entra.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/MSEntraPortal" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.5"></span>
+        Create New Tenant / Azure Active Directory 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://account.azure.com/organization" target="_blank">https://account.azure.com/organization</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.6"></span>
+        Azure Cloud Shell 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://shell.azure.com" target="_blank">https://shell.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.7"></span>
+        Azure Cosmos DB 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://cosmos.azure.com" target="_blank">https://cosmos.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.8"></span>
+        Azure Data Factory 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://adf.azure.com" target="_blank">https://adf.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.9"></span>
+        Azure Synapse Analytics 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://web.azuresynapse.net/" target="_blank">https://web.azuresynapse.net/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.10"></span>
+        Azure Non-profit Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://nonprofit.microsoft.com/#/ngoportal" target="_blank">https://nonprofit.microsoft.com/#/ngoportal</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.11"></span>
+        Azure Resource Explorer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://resources.azure.com" target="_blank">https://resources.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="2.12"></span>
+        Azure Resource Explorer 
+        <span class="portal-note">Raw</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://resources.azure.com/raw" target="_blank">https://resources.azure.com/raw</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="azure-it-admin-portals-sub-portal-links">Azure IT Admin Portals - Sub Portal Links<a class="anchorjs-link " href="#azure-it-admin-portals-sub-portal-links" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.1"></span>
+        Azure Authentication methods 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://aad.portal.azure.com/#blade/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/AdminAuthMethods/" target="_blank">https://aad.portal.azure.com/#blade/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/AdminAuthMethods/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.2"></span>
+        Azure Backup Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_DataProtection/BackupCenterMenuBlade/overview" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_DataProtection/BackupCenterMenuBlade/overview</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.3"></span>
+        Privileged Identity Management 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/CommonMenuBlade/quickStart" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/CommonMenuBlade/quickStart</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/pim" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.4"></span>
+        Desktop Analytics Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://devicemanagement.portal.azure.com/#blade/Microsoft_M365_ManageClient/ManageClientFrameBlade" target="_blank">https://devicemanagement.portal.azure.com/#blade/Microsoft_M365_ManageClient/ManageClientFrameBlade</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.5"></span>
+        Azure Sentinel 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_Security_Insights/WorkspaceSelectorBlade" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_Security_Insights/WorkspaceSelectorBlade</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="3.6"></span>
+        Azure Universal Print 
+        <span class="portal-note">Raw</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Universal_Print/MainMenuBlade/Overview" target="_blank">https://portal.azure.com/#blade/Universal_Print/MainMenuBlade/Overview</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="azure-ai-ml-portals">Azure AI / ML Portals<a class="anchorjs-link " href="#azure-ai-ml-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.1"></span>
+        Azure Machine Learning Studio 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://ml.azure.com" target="_blank">https://ml.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.2"></span>
+        Bot Framework Dev Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://dev.botframework.com" target="_blank">https://dev.botframework.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.3"></span>
+        Custom Translator 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.customtranslator.azure.ai/" target="_blank">https://portal.customtranslator.azure.ai/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.4"></span>
+        Custom Vision 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.customvision.ai/" target="_blank">https://www.customvision.ai/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.5"></span>
+        Vision Studio 
+        <span class="portal-note">Preview</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://preview.vision.azure.com/" target="_blank">https://preview.vision.azure.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.6"></span>
+        Speech Studio 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://speech.microsoft.com/" target="_blank">https://speech.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.7"></span>
+        Language Studio 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://language.azure.com/" target="_blank">https://language.azure.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.8"></span>
+        LUIS Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.luis.ai/" target="_blank">https://www.luis.ai/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.9"></span>
+        QnA Maker Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.qnamaker.ai/" target="_blank">https://www.qnamaker.ai/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.10"></span>
+        Video Indexer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.videoindexer.ai/" target="_blank">https://www.videoindexer.ai/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.11"></span>
+        Azure Graph Explorer 
+        <span class="portal-note">Deprecated</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://graphexplorer.azurewebsites.net/#" target="_blank">https://graphexplorer.azurewebsites.net/#</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="4.12"></span>
+        Azure OpenAI service 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://oai.azure.com/portal" target="_blank">https://oai.azure.com/portal</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="microsoft-licensing-support-portals">Microsoft Licensing/Support Portals<a class="anchorjs-link " href="#microsoft-licensing-support-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.1"></span>
+        Azure Subscriptions 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://account.azure.com/Subscriptions" target="_blank">https://account.azure.com/Subscriptions</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.2"></span>
+        Azure New Support Request 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#create/Microsoft.Support" target="_blank">https://portal.azure.com/#create/Microsoft.Support</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.3"></span>
+        Microsoft Azure Enterprise Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://ea.azure.com" target="_blank">https://ea.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.4"></span>
+        Microsoft FastTrack 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://fasttrack.microsoft.com" target="_blank">https://fasttrack.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.5"></span>
+        Microsoft License Advisor 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mla.microsoft.com" target="_blank">https://mla.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.6"></span>
+        Microsoft Partner Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://partner.microsoft.com" target="_blank">https://partner.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.7"></span>
+        Microsoft Services Hub 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://serviceshub.microsoft.com" target="_blank">https://serviceshub.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.8"></span>
+        Microsoft Volume Licensing eAgreements 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://eagreements.microsoft.com/" target="_blank">https://eagreements.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.9"></span>
+        Next Generation Volume Licensing 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://businessaccount.microsoft.com" target="_blank">https://businessaccount.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="5.10"></span>
+        Volume Licensing Service Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/Licensing/servicecenter/" target="_blank">https://www.microsoft.com/Licensing/servicecenter/</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="microsoft-defender-security-it-admin-portals">Microsoft Defender / Security IT Admin Portals<a class="anchorjs-link " href="#microsoft-defender-security-it-admin-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.1"></span>
+        Microsoft Security Copilot 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://securitycopilot.microsoft.com/" target="_blank">https://securitycopilot.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.2"></span>
+        Microsoft Defender Threat Intelligence 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://ti.defender.microsoft.com/" target="_blank">https://ti.defender.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.3"></span>
+        Microsoft 365 Defender 
+        <span class="portal-note">Previously Microsoft 365 security</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://security.microsoft.com" target="_blank">https://security.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-B2B btn-secondary btn" href="https://security.microsoft.com/homepage?tid=00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://security.microsoft.com/homepage?tid={tenant_id}">B2B</a> <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/de" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.4"></span>
+        Microsoft Defender for Cloud Apps (MDA) 
+        <span class="portal-note">Previously Microsoft Cloud App Security (MCAS)</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.cloudappsecurity.com" target="_blank">https://portal.cloudappsecurity.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/MCASPortal" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.5"></span>
+        Microsoft Defender for Endpoints (MDE) 
+        <span class="portal-note">Deprecated: Previously Defender ATP</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://securitycenter.windows.com" target="_blank">https://securitycenter.windows.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/MDATPportal" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.6"></span>
+        Microsoft Defender for Identity (MDI) 
+        <span class="portal-note">Deprecated: Previously Azure ATP</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.atp.azure.com" target="_blank">https://portal.atp.azure.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/MDIPortal" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.7"></span>
+        Microsoft Defender for Internet of Things (IoT) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_IoT_Defender/IoTDefenderDashboard" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_IoT_Defender/IoTDefenderDashboard</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.8"></span>
+        Microsoft Defender ATP Testground 
+        <span class="portal-note">Being deprecated 09/30/2022</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://demo.wd.microsoft.com/" target="_blank">https://demo.wd.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.9"></span>
+        Attack simulation training 
+        <span class="portal-note">sub-portal</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://security.microsoft.com/attacksimulator" target="_blank">https://security.microsoft.com/attacksimulator</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/AttackSim" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.10"></span>
+        Microsoft Defender for Cloud (MDC) 
+        <span class="portal-note">Azure Security Center (ASC)</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/0" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/0</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.11"></span>
+        Microsoft Secure Score 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://security.microsoft.com/securescore" target="_blank">https://security.microsoft.com/securescore</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.12"></span>
+        Microsoft Security Intelligence 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://microsoft.com/wdsi" target="_blank">https://microsoft.com/wdsi</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.13"></span>
+        Multi-factor authentication (MFA) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://account.activedirectory.windowsazure.com/usermanagement/multifactorverification.aspx" target="_blank">https://account.activedirectory.windowsazure.com/usermanagement/multifactorverification.aspx</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.14"></span>
+        CloudKnox Permissions Management 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://c1.app.mciem.cloudknox.io" target="_blank">https://c1.app.mciem.cloudknox.io</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.15"></span>
+        Microsoft AccountGuard 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://accountguard.microsoft.com" target="_blank">https://accountguard.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.16"></span>
+        Office 365 Security &amp; Compliance 
+        <span class="portal-note">Deprecated</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://protection.office.com" target="_blank">https://protection.office.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.17"></span>
+        Report an unsafe site (login) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site" target="_blank">https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.18"></span>
+        Report an unsafe site (guest) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site-guest" target="_blank">https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site-guest</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.19"></span>
+        Submit a file for malware analysis 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/en-us/wdsi/filesubmission" target="_blank">https://www.microsoft.com/en-us/wdsi/filesubmission</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.20"></span>
+        Submit Vulnerability 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://msrc.microsoft.com/report/vulnerability" target="_blank">https://msrc.microsoft.com/report/vulnerability</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.21"></span>
+        Reporting Infringement or DCMA Notice to Microsoft 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/en-us/legal/intellectualproperty/infringement" target="_blank">https://www.microsoft.com/en-us/legal/intellectualproperty/infringement</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.22"></span>
+        Reporting Issue with Bingbot 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/en-us/legal/intellectualproperty/infringement" target="_blank">https://www.microsoft.com/en-us/legal/intellectualproperty/infringement</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="6.23"></span>
+        Submit Abuse Report (CERT) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://msrc.microsoft.com/report/abuse" target="_blank">https://msrc.microsoft.com/report/abuse</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="developer-portals">Developer Portals<a class="anchorjs-link " href="#developer-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.1"></span>
+        Actionable Messages Developer Dashboard 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://outlook.office.com/connectors/oam/publish" target="_blank">https://outlook.office.com/connectors/oam/publish</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/publishoam" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.2"></span>
+        Actionable Message Designer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://amdesigner.azurewebsites.net/" target="_blank">https://amdesigner.azurewebsites.net/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.3"></span>
+        Adaptive Cards Designer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://adaptivecards.io/designer/" target="_blank">https://adaptivecards.io/designer/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.4"></span>
+        Applied AI Form Recognizer Studio - Preview 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://formrecognizer.appliedai.azure.com" target="_blank">https://formrecognizer.appliedai.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.5"></span>
+        Azure Data Explorer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://dataexplorer.azure.com/" target="_blank">https://dataexplorer.azure.com/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/kustofree" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.6"></span>
+        Azure DevOps 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://aex.dev.azure.com/me" target="_blank">https://aex.dev.azure.com/me</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-B2B btn-secondary btn" href="https://aex.dev.azure.com/me?tenant=00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://aex.dev.azure.com/me?tenant={tenant_id}">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.7"></span>
+        Bing Maps Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.bingmapsportal.com/" target="_blank">https://www.bingmapsportal.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.8"></span>
+        Microsoft Graph Explorer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://developer.microsoft.com/en-us/graph/graph-explorer" target="_blank">https://developer.microsoft.com/en-us/graph/graph-explorer</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/GE" target="_blank">aka.ms</a> <a class="btn-B2B btn-secondary btn" href="https://developer.microsoft.com/en-us/graph/graph-explorer?tenant=00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://developer.microsoft.com/en-us/graph/graph-explorer?tenant={tenant_id}">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.9"></span>
+        JWT/MS Token Decoder 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://jwt.ms/" target="_blank">https://jwt.ms/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.10"></span>
+        Message Card Playground 
+        <span class="portal-note">New Tool - Actionable Message Designer</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://messagecardplayground.azurewebsites.net/" target="_blank">https://messagecardplayground.azurewebsites.net/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.11"></span>
+        Microsoft Graph Toolkit 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mgt.dev/" target="_blank">https://mgt.dev/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.12"></span>
+        Visual Studio (VS) Code in the Web 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.vscode.dev/" target="_blank">https://www.vscode.dev/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.13"></span>
+        Visual Studio (VS) Code in the Web 
+        <span class="portal-note">Insiders Version</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://insiders.vscode.dev/" target="_blank">https://insiders.vscode.dev/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.14"></span>
+        Microsoft Online Error Code Lookup 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://login.microsoftonline.com/error" target="_blank">https://login.microsoftonline.com/error</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.15"></span>
+        Microsoft AppSource 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://appsource.microsoft.com/" target="_blank">https://appsource.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.16"></span>
+        Visual Studio Subscriptions 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://my.visualstudio.com" target="_blank">https://my.visualstudio.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.17"></span>
+        Visual Studio Subscriptions Management 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://manage.visualstudio.com" target="_blank">https://manage.visualstudio.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.18"></span>
+        Microsoft Clarity (HeatMaps &amp; Sessions Recordings) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://clarity.microsoft.com/" target="_blank">https://clarity.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.19"></span>
+        Bing WebMaster Tools 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.bing.com/webmasters" target="_blank">https://www.bing.com/webmasters</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.20"></span>
+        Developer Portal for Teams 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://dev.teams.microsoft.com" target="_blank">https://dev.teams.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="7.21"></span>
+        Microsoft 365 Developer Program Dashboard 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://developer.microsoft.com/microsoft-365/profile" target="_blank">https://developer.microsoft.com/microsoft-365/profile</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="health-status-portals">Health / Status Portals<a class="anchorjs-link " href="#health-status-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.1"></span>
+        Microsoft Service health status 
+        <span class="portal-note">Microsoft 365, Azure, Power Platform</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://status.office.com/" target="_blank">https://status.office.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.2"></span>
+        Microsoft 365 Service health status 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.office.com/ServiceStatus" target="_blank">https://portal.office.com/ServiceStatus</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.3"></span>
+        Microsoft 365 Service health status (Admin portal) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://admin.microsoft.com/AdminPortal/Home#/servicehealth" target="_blank">https://admin.microsoft.com/AdminPortal/Home#/servicehealth</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.4"></span>
+        Azure DevOps - Status 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://status.dev.azure.com" target="_blank">https://status.dev.azure.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.5"></span>
+        Azure Service Health -&gt; Service issues 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/?source=akams%2F#blade/Microsoft_Azure_Health/AzureHealthBrowseBlade/serviceIssues" target="_blank">https://portal.azure.com/?source=akams%2F#blade/Microsoft_Azure_Health/AzureHealthBrowseBlade/serviceIssues</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/azureservicehealth" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.6"></span>
+        Azure - Status 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://status.azure.com/status/" target="_blank">https://status.azure.com/status/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.7"></span>
+        Windows release health 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://learn.microsoft.com/windows/release-health/" target="_blank">https://learn.microsoft.com/windows/release-health/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="8.8"></span>
+        Twitter - Microsoft 365 Status Page 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://twitter.com/MSFT365Status" target="_blank">https://twitter.com/MSFT365Status</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="microsoft-trials">Microsoft Trials<a class="anchorjs-link " href="#microsoft-trials" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.1"></span>
+        Microsoft Defender for Identity Trial -3-month 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&amp;ali=1" target="_blank">https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.2"></span>
+        Microsoft Defender for Office 365 (Plan 2) 90 Day, Full Tenant Trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/signup/logout?OfferId=20298c4d-d500-47fa-b3cd-a3f7d75d9253" target="_blank">https://signup.microsoft.com/signup/logout?OfferId=20298c4d-d500-47fa-b3cd-a3f7d75d9253</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.3"></span>
+        Microsoft Defender for Endpoint P2 Trial - 3-month 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/create-account/signup?products=7f379fee-c4f9-4278-b0a1-e4c8c2fcdf7e&amp;ru=https://aka.ms/MDEp2OpenTrial" target="_blank">https://signup.microsoft.com/create-account/signup?products=7f379fee-c4f9-4278-b0a1-e4c8c2fcdf7e&amp;ru=https://aka.ms/MDEp2OpenTrial</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.4"></span>
+        Microsoft 365 E5 Security Trial - 1-month 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/Signup?OfferId=b73fce33-ac89-4175-b199-0173b4c74b1f&amp;ali=1" target="_blank">https://signup.microsoft.com/Signup?OfferId=b73fce33-ac89-4175-b199-0173b4c74b1f&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.5"></span>
+        Microsoft Defender for Identity Trial - 3-month 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&amp;ali=1" target="_blank">https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.6"></span>
+        App governance add-on to Microsoft Defender for Cloud Apps Trial - 90-day 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?products=a52e9277-0d85-4480-8cae-a84bc2ab32ae&amp;culture=en-us&amp;country=US&amp;ali=1" target="_blank">https://signup.microsoft.com/get-started/signup?products=a52e9277-0d85-4480-8cae-a84bc2ab32ae&amp;culture=en-us&amp;country=US&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.7"></span>
+        Microsoft 365 Defender portal trials hub 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://security.microsoft.com/trialHorizontalHub?sku=MDO&amp;ref=DocsRef" target="_blank">https://security.microsoft.com/trialHorizontalHub?sku=MDO&amp;ref=DocsRef</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.8"></span>
+        Microsoft Purview compliance portal trials hub 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://compliance.microsoft.com/trialHorizontalHub?sku=ComplianceE5&amp;ref=DocsRef" target="_blank">https://compliance.microsoft.com/trialHorizontalHub?sku=ComplianceE5&amp;ref=DocsRef</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.9"></span>
+        Microsoft 365 E5 Insider Risk Management Trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/signup?OfferId=7B74C69A-2BFC-41C9-AAF1-23070354622D" target="_blank">https://signup.microsoft.com/signup?OfferId=7B74C69A-2BFC-41C9-AAF1-23070354622D</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.10"></span>
+        Microsoft 365 E5 Information Protection and Governance Trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/signup?OfferId=503D4D1D-0169-4E1F-AE26-DB041C54C5C4" target="_blank">https://signup.microsoft.com/signup?OfferId=503D4D1D-0169-4E1F-AE26-DB041C54C5C4</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.11"></span>
+        Microsoft 365 E5 Compliance Trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/Signup?OfferId=d53d8416-fd1f-4552-831c-b5828ef2cbde&amp;ali=1" target="_blank">https://signup.microsoft.com/Signup?OfferId=d53d8416-fd1f-4552-831c-b5828ef2cbde&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.12"></span>
+        Compliance Manager Premium Assessment Add-On Trial - 90-day 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?products=e320704d-b7c9-4012-b6a6-0a2679790360&amp;culture=en-us&amp;country=US&amp;ali=1" target="_blank">https://signup.microsoft.com/get-started/signup?products=e320704d-b7c9-4012-b6a6-0a2679790360&amp;culture=en-us&amp;country=US&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.13"></span>
+        Microsoft 365 E5 eDiscovery and Audit Trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/signup?OfferId=c6ca396f-4467-4761-95f6-b6d9a5386716" target="_blank">https://signup.microsoft.com/signup?OfferId=c6ca396f-4467-4761-95f6-b6d9a5386716</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.14"></span>
+        Privacy Management - subject rights request (50) Trial - 90-day 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?products=1c6c565d-cae2-4648-aa92-bf52b523fdbd&amp;ali=1" target="_blank">https://signup.microsoft.com/get-started/signup?products=1c6c565d-cae2-4648-aa92-bf52b523fdbd&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.15"></span>
+        Priva Privacy Risk Management Trial - 90-day 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?products=e6b633e0-1b1e-4d95-b414-3ce9e8023c39" target="_blank">https://signup.microsoft.com/get-started/signup?products=e6b633e0-1b1e-4d95-b414-3ce9e8023c39</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.16"></span>
+        Sign-up for Office 365 E3, 25 licenses trial, 30-day 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?OfferId=B07A1127-DE83-4a6d-9F85-2C104BDAE8B4&amp;dl=ENTERPRISEPACK&amp;ali=1&amp;products=cfq7ttc0k59j%3a0009&amp;bac=1" target="_blank">https://signup.microsoft.com/get-started/signup?OfferId=B07A1127-DE83-4a6d-9F85-2C104BDAE8B4&amp;dl=ENTERPRISEPACK&amp;ali=1&amp;products=cfq7ttc0k59j%3a0009&amp;bac=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.17"></span>
+        Microsoft 365 Business Premium Trial, 1 Month 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://signup.microsoft.com/get-started/signup?products=53e11149-82f9-4bca-a7f2-8f72592e4f03&amp;mproducts=CFQ7TTC0LCHC:0003&amp;fmproducts=CFQ7TTC0LCHC:0003&amp;culture=en-in&amp;country=in&amp;ali=1" target="_blank">https://signup.microsoft.com/get-started/signup?products=53e11149-82f9-4bca-a7f2-8f72592e4f03&amp;mproducts=CFQ7TTC0LCHC:0003&amp;fmproducts=CFQ7TTC0LCHC:0003&amp;culture=en-in&amp;country=in&amp;ali=1</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.18"></span>
+        Sign-up for Azure $200 US Credits in 3 months, 12 months free services trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://azure.microsoft.com/en-us/offers/ms-azr-0044p/" target="_blank">https://azure.microsoft.com/en-us/offers/ms-azr-0044p/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.19"></span>
+        Sign-up for Dynamics 365 for 30 days trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://trials.dynamics.com" target="_blank">https://trials.dynamics.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.20"></span>
+        Sign-up for Microsoft 365 Developer Program trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://developer.microsoft.com/en-us/microsoft-365/dev-program" target="_blank">https://developer.microsoft.com/en-us/microsoft-365/dev-program</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="9.21"></span>
+        Sign-up for Intune, 1-month trial 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://go.microsoft.com/fwlink/?linkid=2019088" target="_blank">https://go.microsoft.com/fwlink/?linkid=2019088</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<div class="portal-group">
+<h2 id="other-useful-microsoft-portals">Other Useful Microsoft Portals<a class="anchorjs-link " href="#other-useful-microsoft-portals" aria-label="Anchor" data-anchorjs-icon="" style="font: 1em / 1 anchorjs-icons; padding-left: 0.375em;"></a></h2>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.1"></span>
+        Legacy Applications (B2B Redeem Invite) 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://account.activedirectory.windowsazure.com/" target="_blank">https://account.activedirectory.windowsazure.com/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-B2B btn-secondary btn" href="https://account.activedirectory.windowsazure.com/?tenantid=00000000-0000-0000-0000-000000000000" target="_blank" data-tenant_id-template="https://account.activedirectory.windowsazure.com/?tenantid={tenant_id}">B2B</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.2"></span>
+        Azure Lighthouse Blade 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.azure.com/#blade/Microsoft_Azure_CustomerHub/LighthouseBlade" target="_blank">https://portal.azure.com/#blade/Microsoft_Azure_CustomerHub/LighthouseBlade</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.3"></span>
+        Become Microsoft Certified 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE2PjDI/" target="_blank">https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE2PjDI/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/traincertposter" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.4"></span>
+        Customer Digital Experiences 
+        <span class="portal-note">Previously Demos.Microsoft.com</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://cdx.transform.microsoft.com" target="_blank">https://cdx.transform.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.5"></span>
+        Deployment Guides for Microsoft 365  
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://assistants.microsoft.com/" target="_blank">https://assistants.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.6"></span>
+        Feedback 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://feedbackportal.microsoft.com/" target="_blank">https://feedbackportal.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.7"></span>
+        Group Policy Search 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://gpsearch.azurewebsites.net/" target="_blank">https://gpsearch.azurewebsites.net/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.8"></span>
+        Infringement Report 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://msrc.microsoft.com/report/infringement" target="_blank">https://msrc.microsoft.com/report/infringement</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.9"></span>
+        Fast Cloud File Migrations 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mover.io/" target="_blank">https://mover.io/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.10"></span>
+        Microsoft Adoption 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://adoption.microsoft.com/" target="_blank">https://adoption.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.11"></span>
+        Microsoft Azure Sponsorships 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoftazuresponsorships.com" target="_blank">https://www.microsoftazuresponsorships.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.12"></span>
+        Microsoft Community 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://answers.microsoft.com" target="_blank">https://answers.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.13"></span>
+        Microsoft Dynamics Lifecycle Services 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://lcs.dynamics.com" target="_blank">https://lcs.dynamics.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.14"></span>
+        Microsoft Dynamics 365 and Power Platform Roadmap 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://experience.dynamics.com/releaseplans/" target="_blank">https://experience.dynamics.com/releaseplans/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.15"></span>
+        Microsoft Exam Sandbox 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mscertdemo.starttest.com/" target="_blank">https://mscertdemo.starttest.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.16"></span>
+        Microsoft Events 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://events.microsoft.com" target="_blank">https://events.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.17"></span>
+        Microsoft Home Use Program 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoft.com/home-use-program" target="_blank">https://www.microsoft.com/home-use-program</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.18"></span>
+        Microsoft MVP 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://mvp.microsoft.com" target="_blank">https://mvp.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.19"></span>
+        Microsoft Open Source 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://opensource.microsoft.com" target="_blank">https://opensource.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.20"></span>
+        Microsoft Remote Connectivity Analyzer 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://testconnectivity.microsoft.com" target="_blank">https://testconnectivity.microsoft.com</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/rca" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.21"></span>
+        Microsoft Reseller Profile Registration Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://reselleruat.microsoftcrmportals.com/" target="_blank">https://reselleruat.microsoftcrmportals.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.22"></span>
+        Microsoft Security Response Center 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://msrc-blog.microsoft.com/" target="_blank">https://msrc-blog.microsoft.com/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/solorigate" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.23"></span>
+        Microsoft Startups 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://portal.startups.microsoft.com" target="_blank">https://portal.startups.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.24"></span>
+        Microsoft 365 Lighthouse 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://lighthouse.microsoft.com/" target="_blank">https://lighthouse.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.25"></span>
+        Office 365 Anti-Spam IP Delist Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://sender.office.com" target="_blank">https://sender.office.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.26"></span>
+        Outlook Oauth Sandbox 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://myadevcenter.outlook.office365.com/" target="_blank">https://myadevcenter.outlook.office365.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.27"></span>
+        Office UI Fabric Icons 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://uifabricicons.azurewebsites.net/" target="_blank">https://uifabricicons.azurewebsites.net/</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/fluentui-icons" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.28"></span>
+        Power BI Playground 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://playground.powerbi.com/" target="_blank">https://playground.powerbi.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.29"></span>
+        Azure Cosmos DB Query Playground 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.documentdb.com/sql/demo" target="_blank">https://www.documentdb.com/sql/demo</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.30"></span>
+        Service Trust Portal 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://servicetrust.microsoft.com" target="_blank">https://servicetrust.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.31"></span>
+        Tech Community Video Hub 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://techcommunity.microsoft.com/t5/video-hub/ct-p/VideoHub" target="_blank">https://techcommunity.microsoft.com/t5/video-hub/ct-p/VideoHub</a>
+        </span>
+        
+        <span class="portal-secondary-urls">
+             • <a class="btn-aka.ms btn-secondary btn" href="https://aka.ms/VideoHub" target="_blank">aka.ms</a> 
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.32"></span>
+        Windows Virtual Desktop Consent Page 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://rdweb.wvd.microsoft.com" target="_blank">https://rdweb.wvd.microsoft.com</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.33"></span>
+        Microsoft Documentation 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://learn.microsoft.com/docs/" target="_blank">https://learn.microsoft.com/docs/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.34"></span>
+        Microsoft Training 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://learn.microsoft.com/training/" target="_blank">https://learn.microsoft.com/training/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.35"></span>
+        Outlook.com Smart Network Data Service 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://sendersupport.olc.protection.outlook.com/snds/index.aspx" target="_blank">https://sendersupport.olc.protection.outlook.com/snds/index.aspx</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.36"></span>
+        Azure Pass - Activate Azure subscription using Azure Pass Codes 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://www.microsoftazurepass.com/" target="_blank">https://www.microsoftazurepass.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.37"></span>
+        Azure Updates 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://azure.microsoft.com/en-us/updates/" target="_blank">https://azure.microsoft.com/en-us/updates/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.38"></span>
+        Microsoft Unlocked 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://unlocked.microsoft.com/" target="_blank">https://unlocked.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.39"></span>
+        ExpertZone 
+        <span class="portal-note">Training</span>
+        
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://expertzone.microsoft.com/" target="_blank">https://expertzone.microsoft.com/</a>
+        </span>
+        
+    </div>
+</div>
+
+<div class="portal">
+    <span class="portal-name">
+        <span class="portal-add" id="10.40"></span>
+        Windows 365 Subscription URL 
+    </span>
+    <div class="portal-details">
+        <span class="portal-url">
+            <a href="https://rdweb.wvd.microsoft.com/api/arm/feeddiscovery" target="_blank">https://rdweb.wvd.microsoft.com/api/arm/feeddiscovery</a>
+        </span>
+        
+    </div>
+</div>
+
+</div>
+
+<script type="text/javascript">
+
+const data = [{"groupName":"Microsoft 365 Admin Portals","portals":[{"portalName":"Microsoft 365 Admin Center","primaryURL":"https://admin.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/admincenter"},{"icon":"Old 🔗","url":"https://portal.office365.com"},{"icon":"Alt","url":"https://portal.microsoft.com"}]},{"portalName":"Microsoft 365 Apps Admin Center","primaryURL":"https://config.office.com"},{"portalName":"Exchange Admin Center (EAC)","primaryURL":"https://admin.exchange.microsoft.com","note":"New"},{"portalName":"Exchange Admin Center (EAC)","primaryURL":"https://outlook.office365.com/ecp/","note":"Old"},{"portalName":"Kaizala Management Portal","primaryURL":"https://manage.kaiza.la/"},{"portalName":"Microsoft Purview","primaryURL":"https://compliance.microsoft.com","note":"Microsoft 365 Compliance"},{"portalName":"Microsoft 365 network connectivity test","primaryURL":"https://connectivity.office.com"},{"portalName":"Microsoft 365 Network Insights","primaryURL":"https://portal.office.com/adminportal/home#/networkperformance","note":"Preview"},{"portalName":"Microsoft Call Quality Dashboard (Teams)","primaryURL":"https://cqd.teams.microsoft.com"},{"portalName":"Microsoft Call Quality Dashboard (Lync)","primaryURL":"https://cqd.lync.com"},{"portalName":"Microsoft Intune Admin Center","primaryURL":"https://intune.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/in"},{"icon":"Old 🔗","url":"https://endpoint.microsoft.com/"},{"icon":"B2B","url":"https://intune.microsoft.com/{tenant_id}"}],"note":"Endpoint Manager"},{"portalName":"Microsoft Endpoint Manager Admin Console","primaryURL":"https://rc-devicemanagement.portal.azure.com","note":"Release Candidate"},{"portalName":"Microsoft Endpoint Manager Admin Console","primaryURL":"https://devicemanagement.portal.azure.com","note":"Old"},{"portalName":"Microsoft Intune for Education","primaryURL":"https://intuneeducation.portal.azure.com"},{"portalName":"Microsoft Online","primaryURL":"https://portal.microsoftonline.com/IWDefault.aspx"},{"portalName":"Microsoft Store for Business","primaryURL":"https://businessstore.microsoft.com"},{"portalName":"Microsoft Store for Education","primaryURL":"https://educationstore.microsoft.com"},{"portalName":"Microsoft Stream Admin Center","primaryURL":"https://web.microsoftstream.com/admin"},{"portalName":"Microsoft Purview","primaryURL":"https://web.purview.azure.com/","note":"Azure and Fabric Governance"},{"portalName":"Microsoft Purview","primaryURL":"https://purview.microsoft.com/","note":"Preview Azure and Fabric Governance"},{"portalName":"Microsoft Teams Admin Center","primaryURL":"https://admin.teams.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/teamsadmincenter"}]},{"portalName":"Teams Rooms Pro Management portal","primaryURL":"https://portal.rooms.microsoft.com/"},{"portalName":"My Staff (preview)","primaryURL":"https://mystaff.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/mystaff"}]},{"portalName":"Non Profit Admin Center","primaryURL":"https://nonprofit.microsoft.com/"},{"portalName":"OneDrive Admin Center","primaryURL":"https://admin.onedrive.com"},{"portalName":"Power Apps ISV Studio","primaryURL":"https://isvstudio.powerapps.com/home","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/ISVStudio"}]},{"portalName":"Power Apps Maker Portal","primaryURL":"https://make.powerapps.com"},{"portalName":"Power Automate Maker Portal","primaryURL":"https://make.powerautomate.com","secondaryURLs":[{"icon":"Old 🔗","url":"https://flow.microsoft.com"}],"note":"Microsoft Flow"},{"portalName":"Power BI Admin Portal","primaryURL":"https://app.powerbi.com/admin-portal/usageMetrics?noSignUpCheck=1"},{"portalName":"Power Pages Preview","primaryURL":"https://make.powerpages.microsoft.com/"},{"portalName":"Power Platform admin center","primaryURL":"https://admin.powerplatform.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/ppac"}]},{"portalName":"Power Virtual Agents Portal","primaryURL":"https://powerva.microsoft.com"},{"portalName":"Phone Number Service Center","primaryURL":"https://pstnsd.powerappsportals.com/"},{"portalName":"SharePoint Admin Center","primaryURL":"https://admin.microsoft.com/sharepoint"},{"portalName":"SharePoint look book","primaryURL":"https://lookbook.microsoft.com/"},{"portalName":"Skype for Business admin center","primaryURL":"https://webdir2a.online.lync.com/LSCP","note":"Deprecated"},{"portalName":"Yammer Admin","primaryURL":"https://www.yammer.com/office365/admin"},{"portalName":"My Applications (My Apps)","primaryURL":"https://myapplications.microsoft.com/"},{"portalName":"My Access (Access Packages)","primaryURL":"https://myaccess.microsoft.com/","secondaryURLs":[{"icon":"B2B","url":"https://myaccess.microsoft.com/{tenant_id}"}]}]},{"groupName":"Azure IT Admin Portals","portals":[{"portalName":"Microsoft Azure Portal","primaryURL":"https://portal.azure.com","shortURL":"","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/AzPortal"},{"icon":"B2B","url":"https://portal.azure.com/{tenant_id}/"}]},{"portalName":"Microsoft Azure","primaryURL":"https://rc.portal.azure.com","note":"Release Candidate"},{"portalName":"Microsoft Azure","primaryURL":"https://preview.portal.azure.com","note":"Preview"},{"portalName":"Microsoft Entra Admin Center (Formerly Azure AD Admin Center)","primaryURL":"https://entra.microsoft.com","note":"Identity Management","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/MSEntraPortal"}]},{"portalName":"Create New Tenant / Azure Active Directory","primaryURL":"https://account.azure.com/organization"},{"portalName":"Azure Cloud Shell","primaryURL":"https://shell.azure.com"},{"portalName":"Azure Cosmos DB","primaryURL":"https://cosmos.azure.com"},{"portalName":"Azure Data Factory","primaryURL":"https://adf.azure.com"},{"portalName":"Azure Synapse Analytics","primaryURL":"https://web.azuresynapse.net/"},{"portalName":"Azure Non-profit Portal","primaryURL":"https://nonprofit.microsoft.com/#/ngoportal"},{"portalName":"Azure Resource Explorer","primaryURL":"https://resources.azure.com"},{"portalName":"Azure Resource Explorer","primaryURL":"https://resources.azure.com/raw","note":"Raw"}]},{"groupName":"Azure IT Admin Portals - Sub Portal Links","portals":[{"portalName":"Azure Authentication methods","primaryURL":"https://aad.portal.azure.com/#blade/Microsoft_AAD_IAM/AuthenticationMethodsMenuBlade/AdminAuthMethods/"},{"portalName":"Azure Backup Center","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_DataProtection/BackupCenterMenuBlade/overview"},{"portalName":"Privileged Identity Management","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/CommonMenuBlade/quickStart","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/pim"}]},{"portalName":"Desktop Analytics Portal","primaryURL":"https://devicemanagement.portal.azure.com/#blade/Microsoft_M365_ManageClient/ManageClientFrameBlade"},{"portalName":"Azure Sentinel","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_Security_Insights/WorkspaceSelectorBlade"},{"portalName":"Azure Universal Print","primaryURL":"https://portal.azure.com/#blade/Universal_Print/MainMenuBlade/Overview","note":"Raw"}]},{"groupName":"Azure AI / ML Portals","portals":[{"portalName":"Azure Machine Learning Studio","primaryURL":"https://ml.azure.com"},{"portalName":"Bot Framework Dev Portal","primaryURL":"https://dev.botframework.com"},{"portalName":"Custom Translator","primaryURL":"https://portal.customtranslator.azure.ai/"},{"portalName":"Custom Vision","primaryURL":"https://www.customvision.ai/"},{"portalName":"Vision Studio","primaryURL":"https://preview.vision.azure.com/","note":"Preview"},{"portalName":"Speech Studio","primaryURL":"https://speech.microsoft.com/"},{"portalName":"Language Studio","primaryURL":"https://language.azure.com/"},{"portalName":"LUIS Portal","primaryURL":"https://www.luis.ai/"},{"portalName":"QnA Maker Portal","primaryURL":"https://www.qnamaker.ai/"},{"portalName":"Video Indexer","primaryURL":"https://www.videoindexer.ai/"},{"portalName":"Azure Graph Explorer","primaryURL":"https://graphexplorer.azurewebsites.net/#","note":"Deprecated"},{"portalName":"Azure OpenAI service","primaryURL":"https://oai.azure.com/portal"}]},{"groupName":"Microsoft Licensing/Support Portals","portals":[{"portalName":"Azure Subscriptions","primaryURL":"https://account.azure.com/Subscriptions"},{"portalName":"Azure New Support Request","primaryURL":"https://portal.azure.com/#create/Microsoft.Support"},{"portalName":"Microsoft Azure Enterprise Portal","primaryURL":"https://ea.azure.com"},{"portalName":"Microsoft FastTrack","primaryURL":"https://fasttrack.microsoft.com"},{"portalName":"Microsoft License Advisor","primaryURL":"https://mla.microsoft.com"},{"portalName":"Microsoft Partner Center","primaryURL":"https://partner.microsoft.com"},{"portalName":"Microsoft Services Hub","primaryURL":"https://serviceshub.microsoft.com"},{"portalName":"Microsoft Volume Licensing eAgreements","primaryURL":"https://eagreements.microsoft.com/"},{"portalName":"Next Generation Volume Licensing","primaryURL":"https://businessaccount.microsoft.com"},{"portalName":"Volume Licensing Service Center","primaryURL":"https://www.microsoft.com/Licensing/servicecenter/"}]},{"groupName":"Microsoft Defender / Security IT Admin Portals","portals":[{"portalName":"Microsoft Security Copilot","primaryURL":"https://securitycopilot.microsoft.com/"},{"portalName":"Microsoft Defender Threat Intelligence","primaryURL":"https://ti.defender.microsoft.com/"},{"portalName":"Microsoft 365 Defender","primaryURL":"https://security.microsoft.com","secondaryURLs":[{"icon":"B2B","url":"https://security.microsoft.com/homepage?tid={tenant_id}"},{"icon":"aka.ms","url":"https://aka.ms/de"}],"note":"Previously Microsoft 365 security"},{"portalName":"Microsoft Defender for Cloud Apps (MDA)","primaryURL":"https://portal.cloudappsecurity.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/MCASPortal"}],"note":"Previously Microsoft Cloud App Security (MCAS)"},{"portalName":"Microsoft Defender for Endpoints (MDE)","primaryURL":"https://securitycenter.windows.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/MDATPportal"}],"note":"Deprecated: Previously Defender ATP"},{"portalName":"Microsoft Defender for Identity (MDI)","primaryURL":"https://portal.atp.azure.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/MDIPortal"}],"note":"Deprecated: Previously Azure ATP"},{"portalName":"Microsoft Defender for Internet of Things (IoT)","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_IoT_Defender/IoTDefenderDashboard"},{"portalName":"Microsoft Defender ATP Testground","primaryURL":"https://demo.wd.microsoft.com/","note":"Being deprecated 09/30/2022"},{"portalName":"Attack simulation training","primaryURL":"https://security.microsoft.com/attacksimulator","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/AttackSim"}],"note":"sub-portal"},{"portalName":"Microsoft Defender for Cloud (MDC)","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_Security/SecurityMenuBlade/0","note":"Azure Security Center (ASC)"},{"portalName":"Microsoft Secure Score","primaryURL":"https://security.microsoft.com/securescore"},{"portalName":"Microsoft Security Intelligence","primaryURL":"https://microsoft.com/wdsi"},{"portalName":"Multi-factor authentication (MFA)","primaryURL":"https://account.activedirectory.windowsazure.com/usermanagement/multifactorverification.aspx"},{"portalName":"CloudKnox Permissions Management","primaryURL":"https://c1.app.mciem.cloudknox.io"},{"portalName":"Microsoft AccountGuard","primaryURL":"https://accountguard.microsoft.com"},{"portalName":"Office 365 Security & Compliance","primaryURL":"https://protection.office.com","note":"Deprecated"},{"portalName":"Report an unsafe site (login)","primaryURL":"https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site"},{"portalName":"Report an unsafe site (guest)","primaryURL":"https://www.microsoft.com/en-us/wdsi/support/report-unsafe-site-guest"},{"portalName":"Submit a file for malware analysis","primaryURL":"https://www.microsoft.com/en-us/wdsi/filesubmission"},{"portalName":"Submit Vulnerability","primaryURL":"https://msrc.microsoft.com/report/vulnerability"},{"portalName":"Reporting Infringement or DCMA Notice to Microsoft","primaryURL":"https://www.microsoft.com/en-us/legal/intellectualproperty/infringement"},{"portalName":"Reporting Issue with Bingbot","primaryURL":"https://www.microsoft.com/en-us/legal/intellectualproperty/infringement"},{"portalName":"Submit Abuse Report (CERT)","primaryURL":"https://msrc.microsoft.com/report/abuse"}]},{"groupName":"Developer Portals","portals":[{"portalName":"Actionable Messages Developer Dashboard","primaryURL":"https://outlook.office.com/connectors/oam/publish","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/publishoam"}]},{"portalName":"Actionable Message Designer","primaryURL":"https://amdesigner.azurewebsites.net/"},{"portalName":"Adaptive Cards Designer","primaryURL":"https://adaptivecards.io/designer/"},{"portalName":"Applied AI Form Recognizer Studio - Preview","primaryURL":"https://formrecognizer.appliedai.azure.com"},{"portalName":"Azure Data Explorer","primaryURL":"https://dataexplorer.azure.com/","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/kustofree"}]},{"portalName":"Azure DevOps","primaryURL":"https://aex.dev.azure.com/me","secondaryURLs":[{"icon":"B2B","url":"https://aex.dev.azure.com/me?tenant={tenant_id}"}]},{"portalName":"Bing Maps Portal","primaryURL":"https://www.bingmapsportal.com/"},{"portalName":"Microsoft Graph Explorer","primaryURL":"https://developer.microsoft.com/en-us/graph/graph-explorer","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/GE"},{"icon":"B2B","url":"https://developer.microsoft.com/en-us/graph/graph-explorer?tenant={tenant_id}"}]},{"portalName":"JWT/MS Token Decoder","primaryURL":"https://jwt.ms/"},{"portalName":"Message Card Playground","primaryURL":"https://messagecardplayground.azurewebsites.net/","note":"New Tool - Actionable Message Designer"},{"portalName":"Microsoft Graph Toolkit","primaryURL":"https://mgt.dev/"},{"portalName":"Visual Studio (VS) Code in the Web","primaryURL":"https://www.vscode.dev/"},{"portalName":"Visual Studio (VS) Code in the Web","primaryURL":"https://insiders.vscode.dev/","note":"Insiders Version"},{"portalName":"Microsoft Online Error Code Lookup","primaryURL":"https://login.microsoftonline.com/error"},{"portalName":"Microsoft AppSource","primaryURL":"https://appsource.microsoft.com/"},{"portalName":"Visual Studio Subscriptions","primaryURL":"https://my.visualstudio.com"},{"portalName":"Visual Studio Subscriptions Management","primaryURL":"https://manage.visualstudio.com"},{"portalName":"Microsoft Clarity (HeatMaps & Sessions Recordings)","primaryURL":"https://clarity.microsoft.com/"},{"portalName":"Bing WebMaster Tools","primaryURL":"https://www.bing.com/webmasters"},{"portalName":"Developer Portal for Teams","primaryURL":"https://dev.teams.microsoft.com"},{"portalName":"Microsoft 365 Developer Program Dashboard","primaryURL":"https://developer.microsoft.com/microsoft-365/profile"}]},{"groupName":"Health / Status Portals","portals":[{"portalName":"Microsoft Service health status","primaryURL":"https://status.office.com/","note":"Microsoft 365, Azure, Power Platform"},{"portalName":"Microsoft 365 Service health status","primaryURL":"https://portal.office.com/ServiceStatus"},{"portalName":"Microsoft 365 Service health status (Admin portal)","primaryURL":"https://admin.microsoft.com/AdminPortal/Home#/servicehealth"},{"portalName":"Azure DevOps - Status","primaryURL":"https://status.dev.azure.com"},{"portalName":"Azure Service Health -> Service issues","primaryURL":"https://portal.azure.com/?source=akams%2F#blade/Microsoft_Azure_Health/AzureHealthBrowseBlade/serviceIssues","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/azureservicehealth"}]},{"portalName":"Azure - Status","primaryURL":"https://status.azure.com/status/"},{"portalName":"Windows release health","primaryURL":"https://learn.microsoft.com/windows/release-health/"},{"portalName":"Twitter - Microsoft 365 Status Page","primaryURL":"https://twitter.com/MSFT365Status"}]},{"groupName":"Microsoft Trials","portals":[{"portalName":"Microsoft Defender for Identity Trial -3-month","primaryURL":"https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&ali=1"},{"portalName":"Microsoft Defender for Office 365 (Plan 2) 90 Day, Full Tenant Trial","primaryURL":"https://signup.microsoft.com/signup/logout?OfferId=20298c4d-d500-47fa-b3cd-a3f7d75d9253"},{"portalName":"Microsoft Defender for Endpoint P2 Trial - 3-month","primaryURL":"https://signup.microsoft.com/create-account/signup?products=7f379fee-c4f9-4278-b0a1-e4c8c2fcdf7e&ru=https://aka.ms/MDEp2OpenTrial"},{"portalName":"Microsoft 365 E5 Security Trial - 1-month","primaryURL":"https://signup.microsoft.com/Signup?OfferId=b73fce33-ac89-4175-b199-0173b4c74b1f&ali=1"},{"portalName":"Microsoft Defender for Identity Trial - 3-month","primaryURL":"https://signup.microsoft.com/Signup?OfferId=a0db242a-96d7-4f99-bd52-05c0d5556257&ali=1"},{"portalName":"App governance add-on to Microsoft Defender for Cloud Apps Trial - 90-day","primaryURL":"https://signup.microsoft.com/get-started/signup?products=a52e9277-0d85-4480-8cae-a84bc2ab32ae&culture=en-us&country=US&ali=1"},{"portalName":"Microsoft 365 Defender portal trials hub","primaryURL":"https://security.microsoft.com/trialHorizontalHub?sku=MDO&ref=DocsRef"},{"portalName":"Microsoft Purview compliance portal trials hub","primaryURL":"https://compliance.microsoft.com/trialHorizontalHub?sku=ComplianceE5&ref=DocsRef"},{"portalName":"Microsoft 365 E5 Insider Risk Management Trial","primaryURL":"https://signup.microsoft.com/signup?OfferId=7B74C69A-2BFC-41C9-AAF1-23070354622D"},{"portalName":"Microsoft 365 E5 Information Protection and Governance Trial","primaryURL":"https://signup.microsoft.com/signup?OfferId=503D4D1D-0169-4E1F-AE26-DB041C54C5C4"},{"portalName":"Microsoft 365 E5 Compliance Trial","primaryURL":"https://signup.microsoft.com/Signup?OfferId=d53d8416-fd1f-4552-831c-b5828ef2cbde&ali=1"},{"portalName":"Compliance Manager Premium Assessment Add-On Trial - 90-day","primaryURL":"https://signup.microsoft.com/get-started/signup?products=e320704d-b7c9-4012-b6a6-0a2679790360&culture=en-us&country=US&ali=1"},{"portalName":"Microsoft 365 E5 eDiscovery and Audit Trial","primaryURL":"https://signup.microsoft.com/signup?OfferId=c6ca396f-4467-4761-95f6-b6d9a5386716"},{"portalName":"Privacy Management - subject rights request (50) Trial - 90-day","primaryURL":"https://signup.microsoft.com/get-started/signup?products=1c6c565d-cae2-4648-aa92-bf52b523fdbd&ali=1"},{"portalName":"Priva Privacy Risk Management Trial - 90-day","primaryURL":"https://signup.microsoft.com/get-started/signup?products=e6b633e0-1b1e-4d95-b414-3ce9e8023c39"},{"portalName":"Sign-up for Office 365 E3, 25 licenses trial, 30-day","primaryURL":"https://signup.microsoft.com/get-started/signup?OfferId=B07A1127-DE83-4a6d-9F85-2C104BDAE8B4&dl=ENTERPRISEPACK&ali=1&products=cfq7ttc0k59j%3a0009&bac=1"},{"portalName":"Microsoft 365 Business Premium Trial, 1 Month","primaryURL":"https://signup.microsoft.com/get-started/signup?products=53e11149-82f9-4bca-a7f2-8f72592e4f03&mproducts=CFQ7TTC0LCHC:0003&fmproducts=CFQ7TTC0LCHC:0003&culture=en-in&country=in&ali=1"},{"portalName":"Sign-up for Azure $200 US Credits in 3 months, 12 months free services trial","primaryURL":"https://azure.microsoft.com/en-us/offers/ms-azr-0044p/"},{"portalName":"Sign-up for Dynamics 365 for 30 days trial","primaryURL":"https://trials.dynamics.com"},{"portalName":"Sign-up for Microsoft 365 Developer Program trial","primaryURL":"https://developer.microsoft.com/en-us/microsoft-365/dev-program"},{"portalName":"Sign-up for Intune, 1-month trial","primaryURL":"https://go.microsoft.com/fwlink/?linkid=2019088"}]},{"groupName":"Other Useful Microsoft Portals","portals":[{"portalName":"Legacy Applications (B2B Redeem Invite)","primaryURL":"https://account.activedirectory.windowsazure.com/","secondaryURLs":[{"icon":"B2B","url":"https://account.activedirectory.windowsazure.com/?tenantid={tenant_id}"}]},{"portalName":"Azure Lighthouse Blade","primaryURL":"https://portal.azure.com/#blade/Microsoft_Azure_CustomerHub/LighthouseBlade"},{"portalName":"Become Microsoft Certified","primaryURL":"https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE2PjDI/","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/traincertposter"}]},{"portalName":"Customer Digital Experiences","primaryURL":"https://cdx.transform.microsoft.com","note":"Previously Demos.Microsoft.com"},{"portalName":"Deployment Guides for Microsoft 365 ","primaryURL":"https://assistants.microsoft.com/"},{"portalName":"Feedback","primaryURL":"https://feedbackportal.microsoft.com/"},{"portalName":"Group Policy Search","primaryURL":"https://gpsearch.azurewebsites.net/"},{"portalName":"Infringement Report","primaryURL":"https://msrc.microsoft.com/report/infringement"},{"portalName":"Fast Cloud File Migrations","primaryURL":"https://mover.io/"},{"portalName":"Microsoft Adoption","primaryURL":"https://adoption.microsoft.com/"},{"portalName":"Microsoft Azure Sponsorships","primaryURL":"https://www.microsoftazuresponsorships.com"},{"portalName":"Microsoft Community","primaryURL":"https://answers.microsoft.com"},{"portalName":"Microsoft Dynamics Lifecycle Services","primaryURL":"https://lcs.dynamics.com"},{"portalName":"Microsoft Dynamics 365 and Power Platform Roadmap","primaryURL":"https://experience.dynamics.com/releaseplans/"},{"portalName":"Microsoft Exam Sandbox","primaryURL":"https://mscertdemo.starttest.com/"},{"portalName":"Microsoft Events","primaryURL":"https://events.microsoft.com"},{"portalName":"Microsoft Home Use Program","primaryURL":"https://www.microsoft.com/home-use-program"},{"portalName":"Microsoft MVP","primaryURL":"https://mvp.microsoft.com"},{"portalName":"Microsoft Open Source","primaryURL":"https://opensource.microsoft.com"},{"portalName":"Microsoft Remote Connectivity Analyzer","primaryURL":"https://testconnectivity.microsoft.com","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/rca"}]},{"portalName":"Microsoft Reseller Profile Registration Portal","primaryURL":"https://reselleruat.microsoftcrmportals.com/"},{"portalName":"Microsoft Security Response Center","primaryURL":"https://msrc-blog.microsoft.com/","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/solorigate"}]},{"portalName":"Microsoft Startups","primaryURL":"https://portal.startups.microsoft.com"},{"portalName":"Microsoft 365 Lighthouse","primaryURL":"https://lighthouse.microsoft.com/"},{"portalName":"Office 365 Anti-Spam IP Delist Portal","primaryURL":"https://sender.office.com"},{"portalName":"Outlook Oauth Sandbox","primaryURL":"https://myadevcenter.outlook.office365.com/"},{"portalName":"Office UI Fabric Icons","primaryURL":"https://uifabricicons.azurewebsites.net/","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/fluentui-icons"}]},{"portalName":"Power BI Playground","primaryURL":"https://playground.powerbi.com/"},{"portalName":"Azure Cosmos DB Query Playground","primaryURL":"https://www.documentdb.com/sql/demo"},{"portalName":"Service Trust Portal","primaryURL":"https://servicetrust.microsoft.com"},{"portalName":"Tech Community Video Hub","primaryURL":"https://techcommunity.microsoft.com/t5/video-hub/ct-p/VideoHub","secondaryURLs":[{"icon":"aka.ms","url":"https://aka.ms/VideoHub"}]},{"portalName":"Windows Virtual Desktop Consent Page","primaryURL":"https://rdweb.wvd.microsoft.com"},{"portalName":"Microsoft Documentation","primaryURL":"https://learn.microsoft.com/docs/"},{"portalName":"Microsoft Training","primaryURL":"https://learn.microsoft.com/training/"},{"portalName":"Outlook.com Smart Network Data Service","primaryURL":"https://sendersupport.olc.protection.outlook.com/snds/index.aspx"},{"portalName":"Azure Pass - Activate Azure subscription using Azure Pass Codes","primaryURL":"https://www.microsoftazurepass.com/"},{"portalName":"Azure Updates","primaryURL":"https://azure.microsoft.com/en-us/updates/"},{"portalName":"Microsoft Unlocked","primaryURL":"https://unlocked.microsoft.com/"},{"portalName":"ExpertZone","primaryURL":"https://expertzone.microsoft.com/","note":"Training"},{"portalName":"Windows 365 Subscription URL","primaryURL":"https://rdweb.wvd.microsoft.com/api/arm/feeddiscovery"}]}]
+const portals = [].concat(...[...data.map(i => { return i.portals })])
+
+Array.from(document.getElementsByClassName("portal-add")).forEach((e) =>
+    e.addEventListener("click", (event) => {
+        let arrayLocation = event.target.id.split(".").map(i => i - 1)
+        let newLink = data[arrayLocation[0]].portals[arrayLocation[1]]
+        newLink.groupName = data[arrayLocation[0]].groupName
+        addLinkToLocalStorage(newLink)
+    })
+);
+</script>
+
+<p>The <img src=".\images\akamsicon.png" alt="aka.ms button"> icon is an aka.ms link - a Microsoft owned domain used for shortlinks.</p>
+
+</div>
+</article>
+        
+        <div class="nomatches" style="display: none;">
+<p>
+    No matches found 😢
+</p>
+</div>
+        
+    </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+<script>anchors.add();</script>
+
+
+
+
+</body>
+{% endblock %}

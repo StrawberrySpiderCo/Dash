@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}{{site.name}}{% endblock %}
+{% block template %}
+
+<style>
+.enlargeable {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    max-width: 200px;
+    height: auto;
+  }
+
+  .enlarged {
+    transform: scale(3);
+    max-width: none;
+    display: flex;
+  flex-direction: column;
+  padding-top: 10%;
+  padding-left: 35%;
+  padding-right: 17%;
+
+  }  
+  </style> 
+<p><a href="{% url 'site_details' site.id%}"><button style="color: black; background-color: rgb(226, 224, 224);"class = "menu-button">Return</button></a></p>
+<div style="font-size: 20px;">
+<h1>{{ site.name }} ***EDITING MODE***</h1>
+<p>Image:</p>
+<p><img id="zoomable-image" class="enlargeable" src="{% static 'images/Site_Photos/' %}{{ site.name }}/{{ site.name }}.jpg" style="max-width: 200px; height: auto;" onclick="toggleEnlarged(this)"></p>
+<p>Wan 1 - {{ site.wanIp }}</p>
+{% if site.wan2Ip%}
+<p>Wan 2 - {{ site.wan2Ip }}</p>
+{% endif %}
+{% if site.link %}
+    <p>Link: <a  style="color: rgb(113, 104, 231) !important; text-decoration: none;" href="{{ site.link }}" target="_blank">{{ site.link }}</a></p>
+{% endif %}
+{% if site.opHr %}
+    <p>Operating Hours: {{ site.opHr }}</p>
+{% endif %}
+<form method="POST" action="{% url 'site_update' site.id %}">
+    {% csrf_token %}
+    <p><label for="cleanliness_rating">Change Cleanliness Rating:</label>
+    <input type="number" id="cleanliness_rating" name="cleanliness_rating" value="{{ site.cleanliness_rating }}" max="5" min="1" required="">
+    </p>
+    <p>
+    <label for="difficulty_rating">Change Difficulty Rating:</label>
+    <input type="number" id="difficulty_rating" name="difficulty_rating" value="{{ site.difficulty_rating }}" max="3" min="1" required="">
+    </p>
+    <label for="rack_grounding">Rack Grounding?:</label>
+    <input type="checkbox" id="rack_grounding" name="rack_grounding" value="True" {% if site.rack_grounding %}checked{% endif %}>
+    
+    <p>
+        <label for="idf_mdf_door_locked">IDF/MDF Door Locked?: </label>
+        <input type="checkbox" id="idf_mdf_door_locked" name="idf_mdf_door_locked" value="True" {% if site.idf_mdf_door_locked %}checked{% endif %}>
+    </p>
+    
+    <label for="air_conditioning_functioning">Air Conditioning Functioning?: </label>
+    <input type="checkbox" id="air_conditioning_functioning" name="air_conditioning_functioning" value="True" {% if site.air_conditioning_functioning %}checked{% endif %}>
+    
+    <p>
+        <label for="ups_functioning">UPS Functioning?: </label>
+        <input type="checkbox" id="ups_functioning" name="ups_functioning" value="True" {% if site.ups_functioning %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="ups_logic_monitor_setup">UPS Logic Monitor Setup?: </label>
+        <input type="checkbox" id="ups_logic_monitor_setup" name="ups_logic_monitor_setup" value="True" {% if site.ups_logic_monitor_setup %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="temperature_humidity_sensors_setup">Temperature Humidity Sensors Setup?: </label>
+        <input type="checkbox" id="temperature_humidity_sensors_setup" name="temperature_humidity_sensors_setup" value="True" {% if site.temperature_humidity_sensors_setup %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="idf_mdf_cable_managed">IDF/MDF Cable Managed?: </label>
+        <input type="checkbox" id="idf_mdf_cable_managed" name="idf_mdf_cable_managed" value="True" {% if site.idf_mdf_cable_managed %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="appropriate_size_cables">Appropriate Size Cables?: </label>
+        <input type="checkbox" id="appropriate_size_cables" name="appropriate_size_cables" value="True" {% if site.appropriate_size_cables %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="idf_mdf_clean_clear">IDF/MDF Clean and Clear of Debris?: </label>
+        <input type="checkbox" id="idf_mdf_clean_clear" name="idf_mdf_clean_clear" value="True" {% if site.idf_mdf_clean_clear %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="devices_labeled">Devices Labeled?: </label>
+        <input type="checkbox" id="devices_labeled" name="devices_labeled" value="True" {% if site.devices_labeled %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="fiber_undamaged">Fiber Undamaged?: </label>
+        <input type="checkbox" id="fiber_undamaged" name="fiber_undamaged" value="True" {% if site.fiber_undamaged %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="devices_dual_power">Devices Dual Power?: </label>
+        <input type="checkbox" id="devices_dual_power" name="devices_dual_power" value="True" {% if site.devices_dual_power %}checked{% endif %}>
+    </p>
+    
+    <p>
+        <label for="trashcan">Trashcan?: </label>
+        <input type="checkbox" id="trashcan" name="trashcan" value="True" {% if site.trashcan %}checked{% endif %}>
+    </p>
+    <p>
+        <label for="comments">Comments:</label><br>
+        <textarea id="comments" name="comments" rows="4" cols="50">{{ site.comments}}</textarea>
+    </p>    
+    <p>
+      <label for="address">Address:</label><br>
+      <textarea id="address" name="address" rows="4" cols="50">{{ site.address}}</textarea>
+  </p>  
+  <p>
+    <label for="lat">Lat:</label><br>
+    <textarea id="lat" name="lat" rows="2" cols="50">{{ site.lat}}</textarea>
+</p> 
+<p>
+  <label for="lng">Lng:</label><br>
+  <textarea id="lng" name="lng" rows="2" cols="50">{{ site.lng}}</textarea>
+</p> 
+    <button style="color: black; background-color: rgb(226, 224, 224);"class = "menu-button" type="submit">Save & Update</button>
+</form>
+</div>
+</body>
+<script>
+  function toggleEnlarged(image) {
+    image.classList.toggle('enlarged');
+  }
+</script>
+{% endblock %}

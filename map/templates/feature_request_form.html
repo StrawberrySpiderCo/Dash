@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Feature Request{% endblock %}
+{% block template %}
+<div>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+</form>
+<button onclick="redirectToOpenRequest()">View Submitted Requests</button>
+
+</div>
+<script>
+function redirectToOpenRequest(){
+    window.location.href = "{% url 'user_feature_requests' %}"
+}
+</script>
+{% endblock %}

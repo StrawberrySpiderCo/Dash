@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Purrception{% endblock %}
+{% block template %}
+<div>
+  <p style="font-size: 20px; text-align: right;">Total Clients on Network: {{ org.client_count}}</p>
+</div>
+<div class="search-container">
+  <div style="text-align: center; position: relative;">
+    <!-- <div style="display: inline-block; font-size: 50px; text-align: center;">
+        /\_/\ <br>
+        (=^.^=)
+    </div>
+  -->
+    <div style="display: inline-block; vertical-align: bottom; margin-left: 10px;">
+        <H3 style="font-size: 50px; margin: 0; "> <i class="icon solid fa-cat"></i> Purrception <:3 )~~</H3>
+
+  <form id="clone-form" action="{% url 'purrception_results' %}" method="post">
+    {% csrf_token %}
+    <br><label for="address" style="font-size: 25px; font-weight: bolder;">Enter IP or Mac Address</label>
+    <br><input type="text" id="address" name="address" required><br>
+    <button id="clone-button" type="submit" class="button button3">
+      <a style="color: rgb(0, 0, 0) !important; text-decoration: none;">Submit</a>
+    </button>
+  </form>
+</div>
+</div>
+{% endblock %}

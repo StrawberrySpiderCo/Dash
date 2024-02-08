@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Create User{% endblock %}
+{% block template %}
+<style>
+.alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    background-color: red;
+    color: white;
+    z-index:1001;
+  }
+
+  .alert strong {
+    font-weight: bold;
+  }
+.alert button {
+    border: none;
+    background: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+  }
+</style>
+<h1>Account Creation</h1>
+
+{% if messages %}
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>{{ messages }}</strong>
+    <button type="button" id="close" data-bs-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
+
+<form action="{% url 'create_user' %}" method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit" class="button">
+</form>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-pzjw8f+ua7Kw1TIqca4DR7HXXs3xyzsSk9C2x6xuP/+M7f/8iif4+KQ6v2UvWxV" crossorigin="anonymous">
+
+<!-- Bootstrap JavaScript -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-pzjw8f+ua7Kw1TIqca4DR7HXXs3xyzsSk9C2x6xuP/+M7f/8iif4+KQ6v2UvWxV" crossorigin="anonymous"></script>
+
+<script>
+    document.querySelector('.close').addEventListener('click', function() {
+        document.querySelector('.alert').style.display = 'none';
+    });
+</script>
+{% endblock %}
+
+

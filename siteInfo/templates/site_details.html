@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}{{ site.name }}{% endblock %}
+{% block template %}
+<style>
+.enlargeable {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    max-width: 200px;
+    height: auto;
+  }
+
+  .enlarged {
+    transform: scale(3);
+    max-width: none;
+    display: flex;
+  flex-direction: column;
+  padding-top: 10%;
+  padding-left: 35%;
+  padding-right: 17%;
+
+  }
+  </style>
+<div>
+<div>
+<h1>{{ site.name }}</h1>
+<p>Address: {{ site.address }}</p>
+<p>Image:</p>
+<p><img id="zoomable-image" class="enlargeable" src="{% static 'images/Site_Photos/' %}{{ site.name }}/{{ site.name }}.jpg" style="max-width: 200px; height: auto;" onclick="toggleEnlarged(this)"></p>
+<p>Wan 1 - {{ site.wanIp }}</p>
+{% if site.wan2Ip%}
+<p>Wan 2 - {{ site.wan2Ip }}</p>
+{% endif %}
+{% if site.link %}
+    <p>Link: <a  style="color: rgb(113, 104, 231) !important; text-decoration: none;" href="{{ site.link }}" target="_blank">{{ site.link }}</a></p>
+{% endif %}
+{% if site.opHr %}
+    <p>Operating Hours: {{ site.opHr }}</p>
+{% endif %}
+    <p>Cleanliness Rating: {{ site.cleanliness_rating }}</p>
+    <p>Difficulty Rating: {{ site.difficulty_rating }}</p>
+    <p>Rack Grounding: {{ site.rack_grounding }}</p>
+    <p>IDF/MDF Door Locked: {{ site.idf_mdf_door_locked }}</p>
+    <p>Air Conditioning Functioning: {{ site.air_conditioning_functioning }}</p>
+    <p>UPS Functioning: {{ site.ups_functioning }}</p>
+    <p>UPS Logic Monitor Setup: {{ site.ups_logic_monitor_setup }}</p>
+    <p>Temperature Humidity Sensors Setup: {{ site.temperature_humidity_sensors_setup }}</p>
+    <p>IDF/MDF Cable Managed: {{ site.idf_mdf_cable_managed }}</p>
+    <p>Appropriate Size Cables: {{ site.appropriate_size_cables }}</p>
+    <p>IDF/MDF Clean and Clear: {{ site.idf_mdf_clean_clear }}</p>
+    <p>Devices Labeled: {{ site.devices_labeled }}</p>
+    <p>Fiber Undamaged: {{ site.fiber_undamaged }}</p>
+    <p>Devices Dual Power: {{ site.devices_dual_power }}</p>
+    <p>Trashcan: {{ site.trashcan }}</p>
+    <p>Comments: {{ site.comments }}</p>
+    <a href="{% url 'site_update' site.id%}"><button style="color: black; background-color: rgb(226, 224, 224);"class = "button">UPDATE</button></a>
+  </div>
+</body>
+<script>
+  function toggleEnlarged(image) {
+    image.classList.toggle('enlarged');
+  }
+</script>
+
+
+{% endblock %}

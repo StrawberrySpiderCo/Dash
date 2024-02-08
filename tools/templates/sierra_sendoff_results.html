@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Sierra Searcher{% endblock %}
+{% block template %}
+{% for data in output_messages %}
+<p>{{data}}</p>
+{% endfor %}
+{% endblock %}

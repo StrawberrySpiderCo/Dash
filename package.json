@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "leaflet.animatedmarker": "^1.0.0"
+  }
+}

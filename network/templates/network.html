@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Network{% endblock %}
+{% block template %}
+<style>
+.enlargeable {
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    max-width: 200px;
+    height: auto;
+  }
+
+  .enlarged {
+    transform: scale(3);
+    max-width: none;
+    display: flex;
+  flex-direction: column;
+  padding-top: 10%;
+  padding-left: 35%;
+  padding-right: 17%;
+
+  }
+  </style>
+<div>
+<h1>Networks</h1>
+
+  {% for network in networks %}
+
+      <h2>{{ network }}</h2>
+Routers
+      <ul>
+        {% for device in device_info %}
+          {% if device.networkName == network %}
+              {% if "MX" in device.model %}
+              <li><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.name }}</a></li>
+              {% endif %}
+          {% endif %}
+          {% endfor %}
+      </ul>
+    </li>
+    Switches
+      <ul>
+        {% for device in device_info %}
+          {% if device.networkName == network %}
+              {% if "MS" in device.model %}
+              <li><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.name }}</a></li>              {% endif %}
+          {% endif %}
+        {% endfor %}
+      </ul>
+
+  {% endfor %}
+
+{% endblock %}

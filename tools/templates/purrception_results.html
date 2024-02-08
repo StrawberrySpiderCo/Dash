@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Purrception Results{% endblock %}
+{% block template %}
+<ul style="font-size: 30px;">
+  {% for data in output_messages %}
+  {% if data.error %}
+  <H1 style="font-size: 40px; max-width: 60%;">Entry Not Found</H1>
+  <div>
+  <strong style="font-size: 50px;">{{ data.error }} /ᐠ｡ꞈ｡ᐟ\</strong><br>
+</div>
+  {%else%}
+  <H1 style="font-size: 40px; max-width: 60%;">Device Found Purrception Results</H1>
+  <div class="container">
+    <table>
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>Device Name</td>
+            <td>{{ data.description }}</td>
+        </tr>
+        <tr>
+            <td>Site Name</td>
+            <td>{{ data.site_name }}</td>
+        </tr>
+        <tr>
+            <td>VLAN</td>
+            <td>{{ data.vlan }}</td>
+        </tr>
+        <tr>
+            <td>Connected to</td>
+            <td>{{ data.recentDeviceName }} on Port: {{ data.switchport }}</td>
+        </tr>
+        <tr>
+            <td>Description</td>
+            <td>{{ data.description }}</td>
+        </tr>
+        <tr>
+            <td>MAC</td>
+            <td>{{ data.mac }}</td>
+        </tr>
+        <tr>
+            <td>IP</td>
+            <td>{{ data.ip }}</td>
+        </tr>
+        <tr>
+            <td>User</td>
+            <td>{{ data.user }}</td>
+        </tr>
+        <tr>
+            <td>First Seen</td>
+            <td>{{ data.firstSeen }}</td>
+        </tr>
+        <tr>
+            <td>Last Seen</td>
+            <td>{{ data.lastSeen }}</td>
+        </tr>
+        <tr>
+            <td>Manufacturer</td>
+            <td>{{ data.manufacturer }}</td>
+        </tr>
+        <tr>
+            <td>Operating System</td>
+            <td>{{ data.os }}</td>
+        </tr>
+        <tr>
+            <td>Device Type Prediction</td>
+            <td>{{ data.deviceTypePrediction }}</td>
+        </tr>
+        <tr>
+            <td>SSID</td>
+            <td>{{ data.ssid }}</td>
+        </tr>
+        <tr>
+          <td>Recent Device Serial</td>
+          <td>{{ data.recentDeviceSerial }}</td>
+      </tr>
+      <tr>
+          <td>Recent Device MAC</td>
+          <td>{{ data.recentDeviceMac }}</td>
+      </tr>
+      <tr>
+          <td>Recent Device Connection</td>
+          <td>{{ data.recentDeviceConnection }}</td>
+      </tr>
+
+    </table>
+</div>       
+  {%endif%}
+  {% endfor %}
+</ul>
+{% endblock %}

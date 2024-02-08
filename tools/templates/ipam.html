@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}IPAM{% endblock %}
+{% block template %}
+<style>
+  .ip_scroll_list{
+    max-width: fit-content;
+      background-color: white;
+      border: 1px solid #ccc;
+      color: black;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 0;
+
+  }
+.site-list {
+  font-size: 25px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  color: rgb(211, 211, 211);
+}
+
+  .vlan-list-container {
+    max-height: 300px;
+    max-width: fit-content;
+    overflow-y: auto;
+    background-color: rgb(61, 62, 64);
+    padding: 5px;
+  }
+
+  .vlan-item {
+    margin-bottom: 15px;
+    padding: 5px;
+    border-bottom: 4px solid rgb(169, 166, 159);
+    display: flex;
+    align-items: center;
+  }
+
+  .ip-list {
+    list-style-type: none;
+    padding-left: 0;
+    overflow-x: hidden;
+  }
+
+
+  .ip-item {
+    margin: 2px;
+    padding: 2px;
+    background-color: white;
+    border: 1px solid #ccc;
+    color: black;
+  }
+
+  .usage-box {
+    width: 100px;
+    background-color: rgb(211, 211, 211);
+    height: 250px;
+    position: relative;
+    margin-right: 10px;
+    left: 17%;
+  }
+
+  .usage-bar {
+    background-color: green;
+    height: 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+  .usage-bar span {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 18px;
+    color: rgb(0, 32, 0);
+  }
+  </style>
+<body>
+  {% load static %}
+  {% for group in user.groups.all %}
+  {% if group.name == 'Admins' %}
+  <button style="z-index: 1001; width: 150px; height: 100px; position: absolute; right: 1%;" class="button button3">
+    <a  style="color: rgb(0, 0, 0) !important; text-decoration: none;" href="{% url 'update_vlan_info' %}">Update Vlan Info</a>
+  </button> 
+   {% endif %}
+{% endfor %}
+      <div>
+        <ul class="site-list">
+          {% for site in sites|dictsort:"name" %}
+            <li>
+              <h2>{{ site.name }}</h2>
+              <h3>Available IPs and Subnet Usage Percentage:</h3>
+              <ul>
+                {% for vlan_id, info in site.available.items %}
+                  {% if vlan_id != 'Default' %}
+                    <strong>VLAN ID:</strong> {{ vlan_id }}
+                    <li class="vlan-item">
+                      <div class="vlan-list-container">
+                        <ul class="ip-list">
+                          {% for ip in info.available_ips %}
+                            <li class="ip-item">{{ ip }}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                      <div class="usage-box">
+                        <div class="usage-bar" data-sub-percent="{{ info.sub_percent }}">
+                          <span>{{ info.sub_percent }}%</span>
+                        </div>
+                      </div>
+                    </li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <script>
+        // JavaScript to set the height of the usage bar based on the subnet usage percentage
+        document.addEventListener("DOMContentLoaded", function () {
+          const usageBars = document.querySelectorAll(".usage-bar");
+          usageBars.forEach((bar) => {
+            const subPercent = parseFloat(bar.getAttribute("data-sub-percent"));
+            bar.style.height = subPercent + "%";
+          });
+        });
+      </script>
+      {% endblock %}
+
+

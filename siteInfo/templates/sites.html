@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Sites{% endblock %}
+{% block template %}
+<div>
+  <h1>Site List</h1>
+  <ul>
+      {% for site in sites|dictsort:"name" %}
+      <h2><a href="{% url 'site_details' site_id=site.id %}">{{ site.name }}</a></h2>
+      <p ><a href="https://www.google.com/maps/dir/?api=1&destination={{ site.address }}" target="_blank">{{ site.address }}</a></p>
+      {% endfor %}
+      </ul>
+    </div>
+{% endblock %}

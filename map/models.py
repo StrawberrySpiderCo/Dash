@@ -1,0 +1,130 @@
+# Create your models here.
+from django.contrib.postgres.fields import JSONField
+from django.db import models
+from django.contrib.auth.models import User
+
+
+class Markers(models.Model):
+    name = models.CharField(max_length=100)
+    lat = models.DecimalField(max_digits=9, decimal_places=6)
+    lng = models.DecimalField(max_digits=9, decimal_places=6)
+    icon = models.CharField(max_length=50)
+    mplsNetwork = models.BooleanField()
+    routerIp = models.CharField(max_length=20, blank=True)
+
+
+class Site(models.Model):
+    name = models.CharField(max_length=100,blank=True)
+    networkId = models.CharField(max_length=100, default='',blank=True)
+    webex_id = models.CharField(max_length=250, default='',null=True,blank=True)
+    networkName = models.CharField(max_length=100, default='',null=True,blank=True)
+    webexName = models.CharField(max_length=100, default='',null=True,blank=True)
+    address = models.CharField(max_length=100,blank=True)
+    lat  = models.CharField(max_length=100,blank=True)
+    lng = models.CharField(max_length=100,blank=True)
+    wanIp = models.CharField(max_length=100,blank=True)
+    wan2Ip = models.CharField(max_length=100,blank=True)
+    comments = models.CharField(max_length=1000, default='Test',null=True,blank=True)
+    link = models.CharField(max_length=100,blank=True)
+    opHr = models.CharField(max_length=100,blank=True)
+    cleanliness_rating = models.IntegerField(null=True, default=1,blank=True)
+    difficulty_rating = models.IntegerField(null=True, default=1,blank=True)
+    rack_grounding = models.BooleanField(null=True,blank=True)
+    idf_mdf_door_locked = models.BooleanField(null=True,blank=True)
+    air_conditioning_functioning = models.BooleanField(null=True,blank=True)
+    ups_functioning = models.BooleanField(null=True,blank=True)
+    ups_logic_monitor_setup = models.BooleanField(null=True,blank=True)
+    temperature_humidity_sensors_setup = models.BooleanField(null=True,blank=True)
+    idf_mdf_cable_managed = models.BooleanField(null=True,blank=True)
+    appropriate_size_cables = models.BooleanField(null=True,blank=True)
+    idf_mdf_clean_clear = models.BooleanField(null=True,blank=True)
+    devices_labeled = models.BooleanField(null=True,blank=True)
+    fiber_undamaged = models.BooleanField(null=True,blank=True)
+    devices_dual_power = models.BooleanField(null=True,blank=True)
+    trashcan = models.BooleanField(null=True,blank=True)
+    router_sn = models.CharField(max_length=100, default='',blank=True)
+    vlans = models.JSONField(default=dict,blank=True)
+    clients = models.JSONField(default=dict,blank=True)
+    available = models.JSONField(default=dict,blank=True)
+    def __str__(self):
+        return self.name
+
+class Device_Info(models.Model):
+    serial = models.CharField(max_length=100)
+    mac = models.CharField(max_length=100)
+    url = models.CharField(max_length=1000)
+    networkId = models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+    firmware= models.CharField(max_length=100)
+    productType = models.CharField(max_length=100)
+    networkName = models.CharField(max_length = 100)
+
+class Client_Info(models.Model):
+    client_id = models.CharField(max_length=100)
+    mac = models.CharField(max_length=100, unique=True)
+    network_name = models.CharField(max_length=100, default='')
+    description = models.CharField(max_length=100)
+    ip = models.CharField(max_length=100, unique=True)
+    ip6 = models.CharField(max_length=100)
+    ip6Local = models.CharField(max_length=100)
+    user = models.CharField(max_length=100)
+    firstSeen = models.CharField(max_length=100)
+    lastSeen = models.CharField(max_length=100)
+    manufacturer = models.CharField(max_length=100)
+    os = models.CharField(max_length=100)
+    deviceTypePrediction = models.CharField(max_length=100)
+    recentDeviceSerial = models.CharField(max_length=100)
+    recentDeviceName = models.CharField(max_length=100)
+    recentDeviceMac = models.CharField(max_length=100)
+    recentDeviceConnection = models.CharField(max_length=100)
+    ssid = models.CharField(max_length=100)
+    vlan = models.CharField(max_length=100)
+    switchport = models.CharField(max_length=100)
+    usage = models.JSONField() 
+    status = models.CharField(max_length=100)
+    notes = models.CharField(max_length=100)
+    groupPolicy8021x = models.CharField(max_length=100)
+    adaptivePolicyGroup = models.CharField(max_length=100)
+    smInstalled = models.CharField(max_length=100)
+    pskGroup = models.CharField(max_length=100)
+class Org_Info(models.Model):
+    client_count = models.CharField(max_length=100, default='')
+    site_count = models.CharField(max_length=100, default='')
+    users = models.JSONField()
+    
+class FeatureRequest(models.Model):
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    status = models.CharField(max_length=20, default='pending')
+    created_date = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,  default=1)
+
+    def __str__(self):
+        return self.title
+
+class Employee(models.Model):
+    first_name = models.CharField(max_length=100, default='')
+    last_name = models.CharField(max_length=100, default='', null=True)
+    display_name = models.CharField(max_length=100, default='')
+    mail = models.CharField(max_length=100, null=True)
+    webex_id = models.CharField(max_length=1000, null=True)
+    azure_id = models.CharField(max_length=1000, null=True)
+    phone = models.JSONField(default=dict)
+    badge_number = models.CharField(max_length=100, default='', null=True)
+    phone_mac = models.CharField(max_length=100, default='', null=True)
+    site = models.CharField(max_length=1000, null=True)
+    title = models.CharField(max_length=1000, null=True)
+    manager = models.CharField(max_length=1000, null=True)
+    hire_date = models.CharField(max_length=1000, null=True)
+    upn = models.CharField(max_length=1000, null=True)
+    givenName = models.CharField(max_length=1000, null=True)
+    webex_last_act = models.CharField(max_length=1000, null=True)
+    extension = models.CharField(max_length=1000, null=True)
+    webex_lic = models.JSONField(default=dict)
+    webex_dev_id = models.CharField(max_length=1000, null=True)
+    webex_loc_id = models.CharField(max_length=150, default='', null=True)
+    webex_model = models.CharField(max_length=150, default='', null=True)
+    def __str__(self):
+        return self.display_name
+

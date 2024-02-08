@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+  {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Map_Photos/CSV Emblem Grey.png' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikis</title>
+</head>
+<style>
+        /* Style for the left menu */
+        #left-menu {
+          position: fixed;
+          top: 0;
+          left: 0;
+          bottom:0;
+          width: 16%;
+          height: 100%;
+          overflow: auto;
+        font-family: "Roboto Mono", SFMono-Regular, Consolas, "Liberation Mono", Menlo,
+        Courier, monospace;
+          font-feature-settings: "tnum";
+         font-variant-numeric: tabular-nums;
+          background-color: var(--color-neutral-2);
+          background-color: rgb(61,62,64);
+          border-right: 1px solid;
+          color: rgb(169,166,159);
+          z-index: 1000;
+          
+          justify-content: space-between;
+          align-items: center;
+          
+      }
+      #left-menu ul {
+        
+        list-style: none;
+        margin: 10%;
+        padding: 10%;
+          position: relative; 
+          z-index: 1000;
+
+      }
+      #left-menu li {
+        margin:10%;
+        padding:10%;
+          color: rgb(169,166,159);
+          position: relative; 
+          z-index: 1000;
+          font-size: 25px;
+          cursor: pointer;
+      }
+      #left-menu li.active {
+          background-color: rgb(61,62,64);
+          position: relative; 
+          z-index: 1000;
+          top:50px;
+      }
+      #left-menu li img {
+          width: 90px;
+          height: 90px;
+          margin-right: 0;
+          position: fixed; 
+          z-index: 1000;
+          top: 0;
+          left: 1%;
+      }
+      
+      /* Style for the top left box with the CSV PNG */
+      #top-left-box {
+          position: absolute;
+          top: 1.1%;
+          left: 5.7%;
+          width: 9%;
+          height: 7.5%;
+          background-color: rgb(61,62,64);
+          align-items: left;
+          justify-content: left;
+          color: rgb(169,166,159);
+          font-family: Arial, Helvetica, sans-serif;
+          font-size: 1.55em;
+          font-weight: lighter;
+          z-index: 1000;
+      }
+
+      .button {
+border: none;
+color: white;
+padding: 15px 32px;
+text-align: center;
+text-decoration: none;
+display: inline-block;
+font-size: 16px;
+margin: 4px 2px;
+cursor: pointer;
+}
+.menu-button {
+border: none;
+background: none;
+color: rgb(169,166,159);;
+padding: 10px 20px;
+font-size: 18px;
+cursor: pointer;
+transition: background-color 0.3s ease;
+}
+.button {
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  position: fixed;
+  right: 0%;
+  z-index: 1000;
+}
+
+.button1 {background-color: rgb(169,166,159); font-style: bold; color:rgb(61,62,64); font-size: 16px; margin: 4px 2px; cursor: pointer; position: absolute;}
+.menu-button:hover {
+background-color: rgba(255, 255, 255, 0.2);
+}
+@media screen and (max-width: 1500px) {
+#top-left-box {
+font-size: 1.1em;
+top: 1.3%;
+left: 5%;
+width: 9%;
+height: 7.5%;
+}
+#left-menu li img {
+width: 65px;
+height: 65px;
+margin-right: 0;
+position: fixed; 
+z-index: 1000;
+top: 0;
+left: 0;
+}
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  padding-left: 17%;
+  padding-right: 5%;
+  background-color: rgb(61,62,64);
+  
+}
+
+.wiki {
+  font-size: 25px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+  color: rgb(211, 211, 211);
+}
+nav ul li a {
+  color: rgb(211, 211, 211); /* set the desired color */
+  text-decoration: none; /* remove the underline */
+}
+
+</style>
+<body>
+  {% load static %}
+  <button id="toggle-wikis" class="button button1">Toggle Difficulty</button>
+  <div id="left-menu">
+    <ul>
+        
+      <li class="active"><img src="{% static 'images/Map_Photos/CSV Emblem Grey.png' %}"></li>
+      <li><a href="{% url 'map' %}"><button class="menu-button">Map</button></a></li>
+      <li><a href="{% url 'wikis' %}"><button class="menu-button">Wikis</button></a></li>
+      <li><a href="{% url 'tools' %}"><button class="menu-button">Tools</button></a></li>
+      <li><a href="{% url 'network' %}"><button class="menu-button">Network</button></a></li>
+    </ul>
+</div>
+<div id="top-left-box">
+    <h2 style = "font-weight: lighter; position:fixed;">Dashboard</h2>
+</div>  
+
+<div id = "Wiki Header">
+</div>
+<div class ="wiki" id = "entry-level wiki">
+  <header>
+    <h1>CSV Family Health Network Presentation(Entry-level)</h1>
+  </header>
+  <nav>
+    <ul >
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Current">Current Network</a></li>
+      <li><a href="#Future">Future of Network</a></li>
+      <li><a href="#Issues and Concerns">Issues and Concerns</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section id="Overview">
+      <h2>Overview</h2>
+      <p>To understand the network topology of CSV Family Health better, it's crucial to get familiar with some key terms. These terms will give you an idea of how these technologies are interconnected and used within the organization. To make it easier to understand the functionality of each item, I will use a car analogy.</p>
+      <ul>
+      <li>Router</li>
+      <li>Switch</li>
+      <li>Firewall</li>
+      <li>WAN</li>
+      <li>LAN</li>
+      <li>Internal traffic</li>
+      <li>External traffic</li>
+      <li>MPLS</li>
+      <li>IPsec</li>
+      <li>SDWAN</li>
+      <li>ISP</li>
+    </ul>
+    <h3>Router</h3>
+    <p>The Router is a network device that acts as a driver of the car, directing data packets to the appropriate destination. It can provide control and manage the flow of data in a specific direction. Just as a driver decides which route to take to reach a particular destination, the router also determines the path for data packets to travel. Routers are essential in connecting multiple networks together, such as a LAN and a WAN, enabling them to communicate with each other.</p>
+    <p><img src="{% static 'images/Map_Photos/router.png' %}"></p>
+    <h3>Switch</h3>
+    <p>In contrast, a Switch is a network device that connects multiple devices within a network. It receives data packets and then forwards them to their intended recipient. It's like the transmission of a car that directs the flow of power to the appropriate wheels. Switches can handle heavy traffic and can intelligently segment the network and forward data packets based on their destination.</p> 
+    <p><img src="{% static 'images/Map_Photos/switch.png' %}"></p>
+    <h3>Firewall</h3>
+    <p>The Firewall is a network security device that monitors and controls incoming and outgoing network traffic based on predetermined security rules. It acts as the security system of a car, ensuring that only authorized traffic is allowed to enter the network while blocking any unauthorized access, much like how a car security system prevents unauthorized access and theft of a vehicle. Firewalls can be hardware, software, or a combination of both, just like how a car security system can consist of physical components like locks and alarms, as well as software features like remote locking and GPS tracking. Firewalls are essential in protecting against various cyber threats such as malware, viruses, and hackers, just as a car security system is essential in preventing theft and vandalism of a vehicle.</p>
+    <p><img src="{% static 'images/Map_Photos/firewall.png' %}"></p>
+    <h3>WAN</h3>
+    <p>The WAN or Wide Area Network is a network that connects devices and networks over a broad geographical area, such as cities or countries. It's like a highway system that enables data to travel across different locations. WANs are typically managed by service providers and are used by businesses and organizations to connect their different offices and remote workers.</p>
+    <p><img src="{% static 'images/Map_Photos/wan.png' %}"></p>
+    <h3>LAN</h3>
+    <p>The LAN or Local Area Network, on the other hand, is a network that connects devices within a single location, such as an office or building. It's like the local streets connecting different locations within a city. LANs can be used to share resources such as printers, files, and internet connections.</p>
+    <p><img src="{% static 'images/Map_Photos/lan.png' %}"></p>
+    <h3>Internal Traffic</h3>
+    <p>Internal traffic refers to data traffic that occurs within a single location or network, such as within a LAN or a single office building. It's like the traffic within a city that is confined within its boundaries.</p>
+    <h3>External traffic</h3>
+    <p>External traffic that occurs between different locations or networks, such as between different cities or countries. It's like the traffic that moves between different cities.</p>
+    <h3>MPLS</h3>
+    <p>MPLS or Multiprotocol Label Switching is a technique used by service providers to create private networks that provide a direct and secure route between locations. It's like a private toll road that enables data to travel quickly and securely without having to rely on public roads. MPLS is commonly used by businesses and organizations that require secure and reliable connections between their different offices. These MPLS lines do not have an internet connection and just connect one office to another.</p>
+    <p><img src="{% static 'images/Map_Photos/mpls small.png' %}"></p>
+    <h3>IPsec VPN</h3>
+    <p>An IPsec VPN or Internet Protocol Security Virtual Private Network is a type of VPN that allows two or more geographically separated networks to be connected securely over the public Internet. It encrypts and authenticates all traffic between the sites, providing a secure and private connection. This type of VPN is commonly used by organizations that have multiple locations and need to share resources or communicate between sites. It's like a dedicated express lane on the highway system that connects two cities, ensuring that traffic travels securely and efficiently between them.</p>
+    <p><img src="{% static 'images/Map_Photos/ipsec small.png' %}"></p>
+    <h3>SDWAN</h3>
+    <p>SDWAN or Software-Defined Wide Area Network is a network architecture that uses software to automate and manage the network. It's like a GPS system that provides the most efficient and reliable route between locations by utilizing multiple WAN technologies and automatically rerouting traffic if a primary route is unavailable. SDWAN is becoming increasingly popular as businesses and organizations look for ways to reduce their network costs while maintaining high levels of performance and security.</p>
+    <p><img src="{% static 'images/Map_Photos/sdwan.png' %}"></p>
+    <h3>ISP</h3>
+    <p>An ISP or Internet Service Provider is a company that provides internet access to customers. It's like the gas that keeps a car going, providing the necessary bandwidth for data to travel across the network. ISPs can be divided into two categories: consumer ISPs, which provide internet access to individuals and small businesses, and business ISPs, which provide internet access to larger organizations with more significant bandwidth requirements.</p>
+    <p><img src="{% static 'images/Map_Photos/Lumen.png' %}"></p>
+  </section>
+    <section id="Current">
+      <h2>Current status of CSV Health Network</h2>
+      <li>MPLS in CSV</li>
+      <p>Now here is how those technologies relate to the network we have here at CSV family health. 
+        We currently have 19 sites plus eMedApps that are running on MPLS meaning 19 sites do not have a standard internet connection that runs to the sites. 
+        Instead, they are connected to the MPLS cloud via Lumen, as seen in the diagram below.
+         To facilitate traffic, all data that sites send out over the cloud potrayed by green lines which connect the sites to MPLS cloud is sent to our Datacenter in Shafter. 
+         This Datacenter acts as a hub, determining whether the data needs to be sent out to the internet via the left red line (external traffic), or kept within the MPLS cloud via the right red line (internal traffic). 
+         Think of the green lines as our private toll roads, connecting our sites to Shafter.
+          In this analogy Shafter would work as a traffic controller guiding traffic where it needs to go</p>
+          <p style = "font-size: 16px;"> *To provide some additional context for the image below we have the CSV sites represented by the grey 45s, we have the uplink connections running to those sites depicted by the line running to the site, and we have the clouds on the map that symbolize the connections the sites use. For the full interactive map press the left menu button labeled "Map"<img src="{% static 'images/Map_Photos/MPLS1.png' %}"> </p>
+          <div style="display: flex;">
+        <div style="flex-basis: 50%;">
+          <h3 style="text-align: left;">Pros to MPLS</h3>
+          <ul style="font-size: 16px;">
+            <li>Allows for the creation of a private and secure network that is isolated from the public internet, providing an added layer of security.</li>
+            <li>MPLS offers scalability and flexibility, allowing for easy integration with other networking technologies.</li>
+          </ul>
+        </div>
+        <div style="flex-basis: 50%;">
+          <h3 style="text-align: left;">Cons to MPLS</h3>
+          <ul style="font-size: 16px;">
+            <li>Is expensive.</li>
+            <li>Not as widely available as other networking technologies.</li>
+            <li>Is reliant on one company.</li>
+          </ul>
+        </div>
+      </div>
+      <li>IPsec in CSV</li>
+      <p>The other uplink connections that our sites have are called IPsec VPNs.
+         We have 20 of these sites and they are connected through these IPsec tunnels as seen below depicted as blue lines. 
+         These tunnels provide a secure and dedicated connection for our internal traffic, separate from the public traffic. 
+         The sites with IPsec tunnels have their own internet line, which means that externally-bound data leaves directly from the site instead of going to the Shafter Datacenter but due to the current hub and spoke model sites cannot directly communicate with each other.
+          The blue lines in the diagram represent our dedicated express lanes on the highway, ensuring a secure and efficient communication between our sites.</p>
+          <p><img src="{% static 'images/Map_Photos/IPsec.png' %}"></p>
+          <div style="display: flex;">
+            <div style="flex-basis: 50%;">
+              <h3 style="text-align: left;">Pros to IPsec</h3>
+              <ul style="font-size: 16px;">
+                <li>Uses an internet line from the ISP</li>
+                <li>Cheaper than MPLS</li>
+              </ul>
+            </div>
+            <div style="flex-basis: 50%;">
+              <h3 style="text-align: left;">Cons to IPsec</h3>
+              <ul style="font-size: 16px;">
+                <li>Requires additional hardware or software to implement on some devices or platforms</li>
+                <li>Requires additional setup</li>
+              </ul>
+            </div>
+          </div>
+      <li>Disaster Recover</li>
+      <p>In the event that the Shafter Datacenter goes down there is a Point to Point link between Shafter and Corporate and across this link the data is being mirrored between sites as a backup and will act as a redundant datacenter</p>
+    </section>
+    <section id="Future">
+      <h2>Future of the Network</h2>
+      <li>SD-WAN in CSV</li>
+      <p>CSV family health already has a couple sites that are using SD-wan and going back to our analogy sd-wan is acting like a gps within our car giving us the best route to a destination based on the traffic and congestion. 
+        The future of CSV family health is converting our existing MPLS sites into the IPsec sites and then adding a secondary ISP internet circuit to those sites for added redundancy. 
+        This increases network reliablity and stability by enabling a failover circuit if the primary fails. In addition to increased reliability and stability, the adoption of SD-WAN technology also allows for better network visibility and control. 
+        SD-WAN provides a centralized management platform, allowing IT teams to easily monitor network performance and security across all sites. 
+        This simplifies network management and troubleshooting, reducing the time and resources required to maintain the network. 
+        The migration from MPLS to IPsec also brings cost savings, as IPsec is typically less expensive than MPLS. Additionally, IPsec provides greater flexibility and scalability, allowing CSV Family Health to easily add new sites or expand existing ones as needed.
+        The adoption of SD-WAN technology and the transition to IPsec represents a major step forward for CSV Family Health's network infrastructure, providing a more robust, efficient, and cost-effective solution that can better serve its patients and healthcare providers.</p>
+      </section>
+    <section id="Issues and Concerns">
+      <h2>Issues and Concerns</h2>
+      <h3>Disorganized Facilities</h3>
+      <p>Our physical infrastructure currently lacks standardization and organization, with equipment haphazardly installed, unlabeled cables, and limited cable management across many sites. Additionally, none of the sites are regularly and have built up with dust and grime. Addressing these cosmetic issues is a crucial first step in improving our overall operational efficiency and presenting a professional image to clients and stakeholders.</p>
+      <h3>Information Overload</h3>
+      <p>Our organization is experiencing a significant information overload, with a flood of 1,185 monitoring-related emails received since my arrival, none of which have constituted an actual alert. This flood of extraneous information is further compounded by the lack of easy access to critical information when it is needed most. Addressing this issue will require a streamlined approach to information management, ensuring that only essential data is provided to personnel in a timely and accessible manner, while reducing the noise of irrelevant or non-actionable information.</p>
+      <h3>Documentation</h3>
+      <p>The clear documentation of policies and procedures is an essential component of ensuring the efficient and effective operation of our network. By thoroughly documenting all processes and setting a clear standard, we can establish consistency and accountability, reduce the risk of errors and security breaches, and ensure scalability and continuity as our organization grows. Not only will this documentation flatten the learning curve for new talent we onboard, but it will also enhance productivity and efficiency while facilitating compliance with industry standards and regulations. This comprehensive documentation sets us apart from mom and pop organizations and is vital for achieving our goals of reliability, efficiency, and sustained growth.</p>
+      <h3>Configuration Drift</h3>
+      <p>We currrently have no way of monitoring configuration drift which can lead to a range of issues that can have significant negative impacts on network stability, performance, security, and compliance. For instance, a configuration mismatch can cause network devices to function improperly, leading to instability and unpredictable network behavior. This can cause network downtime, loss of productivity, and potentially lost revenue. Configuration mismatch can also result in reduced network performance, as devices may not be able to communicate effectively or efficiently due to inconsistencies in their configurations. Furthermore, configuration mismatch can create security vulnerabilities in the network. Inconsistent or incorrect configurations may leave network devices open to attack, which can lead to data breaches, loss of confidential information, and other security incidents. Finally, many industries and organizations have specific regulatory requirements regarding network configurations. A configuration mismatch can cause non-compliance with these regulations, which can result in penalties, fines, or other legal issues. Therefore, it is crucial for organizations to implement measures to prevent and address configuration drift to avoid these negative impacts on their networks.</p>
+      <h3>Unmonitored UPS units</h3>
+      <p>We currently have no monitioring and failure to monitor UPS units can lead to issues such as battery failure, overloading, environmental and maintenance issues, and a lack of visibility, which can impact the reliability and performance of critical equipment, and increase the risk of downtime</p>
+      <h3>Security</h3>
+      <p>Most brands we have use the same username and password though convenient to us, when multiple devices in a network share the same username and password for login, it can create significant security issues. Any compromise of that login information would allow an attacker unrestricted access to that entire portion of the network, including sensitive data and critical systems. This setup also makes it difficult to track who has access to what resources, which can complicate access management and lead to potential compliance violations.</p>
+
+      <h2>Ideas to Improve</h2>
+      <h3>Disorganized Facilities</h3>
+      <p>To improve operational efficiency and present a professional image, implement a plan to address our physical infrastructure issues. This includes developing SOPs for equipment installation, labeling cables, and implementing cable management at all sites. In addition, we will conduct a thorough cleaning of all facilities, schedule regular maintenance tasks, and assign responsibility for monitoring and maintaining improvements. By taking these steps, we can reduce equipment downtime, improve efficiency, and create a professional work environment.</p>
+      <h3>Information Overload</h3>
+      <p>To address the issue of information overload, we propose implementing a comprehensive plan for streamlined information management. This will involve conducting an audit of current data sources and determining which are essential for business operations. From there, we will establish a system for delivering only critical information to personnel in a timely and accessible manner, while filtering out extraneous information that serves as noise.  By implementing this plan, we can improve operational efficiency, reduce frustration among personnel, and enable more informed decision-making.</p>
+      <h3>Documentation</h3>
+      <p>To address this, we will establish a comprehensive documentation process for all policies and procedures related to our network. This will involve identifying all critical processes, creating a clear and concise step-by-step guide for each, and ensuring that all documentation is easily accessible and up-to-date. We will establish a process for reviewing and updating this documentation on a regular basis to ensure that it remains current and relevant.</p>
+      <h3>Configuration Drift</h3>
+      <p>Implementing regular configuration backups and comparisons can help identify configuration drift and prevent issues caused by mismatched configurations. It is also important to establish clear policies and procedures for network configuration management, including change control procedures and documentation of all configuration changes. By taking these steps, organizations can effectively manage configuration drift, maintain network stability, performance, and security, and ensure compliance with industry regulations.</p>
+      <h3>Unmonitored UPS units</h3>
+      <p>We should establish a proactive monitoring and maintenance plan that includes regular inspections and testing of UPS units to ensure they are functioning correctly. The plan should also include implementing environmental monitoring to track temperature and humidity levels, which can impact the performance and lifespan of UPS batteries. The organization should also consider implementing remote monitoring tools to provide visibility into UPS performance and proactively identify potential issues before they become critical. Finally, establishing a preventative maintenance plan, including regularly scheduled UPS maintenance, will help ensure the longevity and reliability of critical equipment, minimizing the risk of downtime and its associated costs. </p>
+      <h3>Security</h3>
+      <p>By implementing an AAA (Authentication, Authorization, and Accounting) server, we can centralize user authentication and authorization, which will help ensure that only authorized individuals have access to specific network resources. This approach allows for more granular control over network access, as well as more accurate tracking of user activity.</p>
+    </section>
+  </main>
+  <footer>
+    <p>Copyright © 2023 Jacob Tomlin</p>
+  </footer>
+</div>
+
+<div class="wiki" id ="advanced-level wiki" style="display: none">
+  <header>
+    <h1>CSV Family Health Network Presentation(Advanced-level)</h1>
+  </header>
+  <nav>
+    <ul >
+      <li><a href="#Overview">Overview</a></li>
+      <li><a href="#Current">Current Network</a></li>
+      <li><a href="#Future">Future of Network</a></li>
+      <li><a href="#Issues and Concerns">Issues and Concerns</a></li>
+    </ul>
+  </nav>
+  <main>
+    <section id="Overview">
+      <h2>Overview</h2>
+      <p>These are the technologies that are used in the CSV Family Health network</p>
+      <ul>
+      <li>Router</li>
+      <li>Switch</li>
+      <li>Firewall</li>
+      <li>WAN</li>
+      <li>LAN</li>
+      <li>Internal traffic</li>
+      <li>External traffic</li>
+      <li>MPLS</li>
+      <li>IPsec</li>
+      <li>SDWAN</li>
+      <li>ISP</li>
+    </ul>
+    <h3>Router</h3>
+<p>A router is a network device that forwards data packets between computer networks. It operates at the OSI model's third layer (the network layer) and uses routing tables to direct traffic. Routers can connect LANs, WANs, and the Internet and can perform other functions such as network address translation (NAT) and virtual private network (VPN) connectivity.</p>
+<p><img src="{% static 'images/Map_Photos/router.png' %}"></p>
+<h3>Switch</h3>
+<p>A switch is a network device that connects devices together on a local area network (LAN) by using packet switching to forward and filter data to its destination. Switches operate at the OSI model's second layer (the data link layer) and can handle heavy network traffic efficiently.</p>
+<p><img src="{% static 'images/Map_Photos/switch.png' %}"></p>
+<h3>Firewall</h3>
+<p>A firewall is a network security system that monitors and controls incoming and outgoing network traffic based on predetermined security rules. Firewalls can be hardware, software, or a combination of both and are used to protect against unauthorized access to a network or device. They can also be used to filter network traffic and prevent malware from entering a network.</p>
+<p><img src="{% static 'images/Map_Photos/firewall.png' %}"></p>
+<h3>WAN</h3>
+<p>A Wide Area Network (WAN) is a network that spans a large geographical area, such as a city or country. It connects multiple local area networks (LANs) and can be used to enable communication between different sites or offices. WANs are often managed by service providers and can use various technologies such as MPLS or VPNs to ensure secure and reliable connectivity.</p>
+<p><img src="{% static 'images/Map_Photos/wan.png' %}"></p>
+<h3>LAN</h3>
+<p>A Local Area Network (LAN) is a network that connects devices within a small area such as an office, building, or campus. It can be used to share resources like printers and files and provide internet access to connected devices. LANs are usually faster and more reliable than wide area networks (WANs).</p>
+<p><img src="{% static 'images/Map_Photos/lan.png' %}"></p>
+<h3>Internal Traffic</h3>
+<p>Internal traffic refers to data traffic that occurs within a single network, such as within a LAN or a data center. It can be used to transmit data between devices and applications on the same network.</p>
+<h3>External Traffic</h3>
+<p>External traffic refers to data traffic that occurs between different networks, such as between a LAN and the Internet. It can be used to transmit data between devices and applications on different networks and may require additional security measures like firewalls or VPNs.</p>
+<h3>MPLS</h3>
+<p>Multiprotocol Label Switching (MPLS) is a a routing technology that uses labels to efficiently forward data packets through a network. Labels are added to each packet as they enter the network and are used to determine the next hop in the network.</p>
+<p><img src="{% static 'images/Map_Photos/mpls small.png' %}"></p>
+<h3>IPsec VPN</h3>
+<p>Internet Protocol Security (IPsec) Virtual Private Network (VPN) is a type of VPN that provides secure communication between geographically separated networks over the public Internet. It encrypts and authenticates all traffic between the sites, providing a secure and private connection. The IPsec VPN tunnels are established by setting up a Security Association (SA) between the two endpoints. The SA contains the security parameters used to secure the traffic, such as the encryption algorithm, authentication method, and key exchange algorithm. When a data packet is sent from one endpoint to another, the packet is encrypted and encapsulated within another packet. The encapsulated packet is then sent over the internet to the other endpoint where it is decrypted and the original packet is extracted.</p>
+<p><img src="{% static 'images/Map_Photos/ipsec small.png' %}"></p>
+<h3>SDWAN</h3>
+<p>Software-Defined Wide Area Network (SDWAN) is a network architecture that uses software to automate and manage the network. SDWAN can be used to improve network performance
+  <p><img src="{% static 'images/Map_Photos/sdwan.png' %}"></p>  
+  <h3>ISP</h3>
+  <p><p>An ISP or Internet Service Provider is a company that provides uplink access to customers</p>
+  <p><img src="{% static 'images/Map_Photos/Lumen.png' %}"></p>  
+</section>
+    <section id="Current">
+      <h2>Current status of CSV Health Network</h2>
+      <li>MPLS in CSV</li>
+      <p>CSV Family Health's network, there are 19 sites and eMedApps are connected to the MPLS cloud via Lumen, which acts as ISP for the MPLS service. 
+        Each site has a router that connects to the MPLS cloud via a Virtual Private Network (VPN) connection.
+        When a site sends data over the network, the data is encapsulated with a label that identifies the destination site. 
+        The MPLS cloud then uses this label to determine the next hop in the network, effectively creating a virtual path through the network for the data.
+        All data sent over the MPLS cloud is directed to CSV Family Health's Datacenter in Shafter. The Datacenter acts as a hub for the network, where it determines whether the data needs to be sent out to the internet or kept within the MPLS cloud. This decision is based on the destination of the data and the associated security policies.
+        In this way, MPLS allows CSV Family Health to create a private network within the larger public internet, providing secure and efficient communication between sites.</p>
+        <p style = "font-size: 16px;"> *To provide some additional context for the image below we have the CSV sites represented by the grey 45s, we have the uplink connections running to those sites depicted by the line running to the site, and we have the clouds on the map that symbolize the connections the sites use. For the full interactive map press the left menu button labeled "Map"<img src="{% static 'images/Map_Photos/MPLS1.png' %}"> </p>
+        <div style="display: flex;">
+        <div style="flex-basis: 50%;">
+          <h3 style="text-align: left;">Pros to MPLS</h3>
+          <ul style="font-size: 16px;">
+            <li>Allows for the creation of a private and secure network that is isolated from the public internet, providing an added layer of security.</li>
+            <li>MPLS offers scalability and flexibility, allowing for easy integration with other networking technologies.</li>
+          </ul>
+        </div>
+        <div style="flex-basis: 50%;">
+          <h3 style="text-align: left;">Cons to MPLS</h3>
+          <ul style="font-size: 16px;">
+            <li>Is expensive.</li>
+            <li>Not as widely available as other networking technologies.</li>
+            <li>Is reliant on one company.</li>
+          </ul>
+        </div>
+      </div>
+      
+      <li>IPsec in CSV</li>
+      <p> We have 20 sites with IPsec tunnels have their own internet lines and use these tunnels to establish secure connections with each other. The blue lines in the diagram represent these IPsec tunnels, which provide a dedicated and secure express lane for communication between the sites. As the traffic is encrypted and encapsulated, it remains secure even if it traverses the public internet.</p>
+      <p><img src="{% static 'images/Map_Photos/IPsec.png' %}"></p>    
+      <div style="display: flex;">
+            <div style="flex-basis: 50%;">
+              <h3 style="text-align: left;">Pros to IPsec</h3>
+              <ul style="font-size: 16px;">
+                <li>Uses an internet line from the ISP</li>
+                <li>Cheaper than MPLS</li>
+              </ul>
+            </div>
+            <div style="flex-basis: 50%;">
+              <h3 style="text-align: left;">Cons to IPsec</h3>
+              <ul style="font-size: 16px;">
+                <li>Requires additional hardware or software to implement on some devices or platforms</li>
+                <li>Requires additional setup</li>
+              </ul>
+            </div>
+          </div>
+      <li>Disaster Recover</li>
+      <p>At CSV Family Health, we have implemented a Point-to-Point link as a backup solution in case of any unforeseen events that may occur at our Shafter Datacenter. This link is established between our Shafter and Corporate sites and serves as a redundant datacenter in case of a disaster at the primary site.
+        The Point-to-Point link works by creating a dedicated and private communication channel between the two sites, allowing us to mirror data between them. In the event of a failure at the Shafter Datacenter, the Corporate site can take over and continue providing services to our users.
+        This link acts as a safeguard against data loss and allows us to maintain business continuity in case of any disasters or unforeseen events. </p>
+    </section>
+    <section id="Future">
+      <h2>Future of the Network</h2>
+      <li>SD-WAN in CSV</li>
+      <p>CSV family health already has a couple sites that are using SD-wan and sd-wan is acting like a gps within our network giving us the best route to destination based on the traffic and congestion. 
+        The future of CSV family health is converting our existing MPLS sites into the IPsec sites and then adding a secondary ISP internet circuit to those sites for added redundancy. 
+        This increases network reliablity and stability by enabling a failover circuit if the primary fails. In addition to increased reliability and stability, the adoption of SD-WAN technology also allows for better network visibility and control. 
+        SD-WAN provides a centralized management platform, allowing IT teams to easily monitor network performance and security across all sites. 
+        This simplifies network management and troubleshooting, reducing the time and resources required to maintain the network. 
+        The migration from MPLS to IPsec also brings cost savings, as IPsec is typically less expensive than MPLS. Additionally, IPsec provides greater flexibility and scalability, allowing CSV Family Health to easily add new sites or expand existing ones as needed.
+        The adoption of SD-WAN technology and the transition to IPsec represents a major step forward for CSV Family Health's network infrastructure, providing a more robust, efficient, and cost-effective solution that can better serve its patients and healthcare providers.</p>
+      </section>
+    <section id="Issues and Concerns">
+      <h2>Issues and Concerns</h2>
+      <h3>Disorganized Facilities</h3>
+      <p>Our physical infrastructure currently lacks standardization and organization, with equipment haphazardly installed, unlabeled cables, and limited cable management across many sites. Additionally, none of the sites are regularly and have built up with dust and grime. Addressing these cosmetic issues is a crucial first step in improving our overall operational efficiency and presenting a professional image to clients and stakeholders.</p>
+      <h3>Information Overload</h3>
+      <p>Our organization is experiencing a significant information overload, with a flood of 1,185 monitoring-related emails received since my arrival, none of which have constituted an actual alert. This flood of extraneous information is further compounded by the lack of easy access to critical information when it is needed most. Addressing this issue will require a streamlined approach to information management, ensuring that only essential data is provided to personnel in a timely and accessible manner, while reducing the noise of irrelevant or non-actionable information.</p>
+      <h3>Documentation</h3>
+      <p>The clear documentation of policies and procedures is an essential component of ensuring the efficient and effective operation of our network. By thoroughly documenting all processes and setting a clear standard, we can establish consistency and accountability, reduce the risk of errors and security breaches, and ensure scalability and continuity as our organization grows. Not only will this documentation flatten the learning curve for new talent we onboard, but it will also enhance productivity and efficiency while facilitating compliance with industry standards and regulations. This comprehensive documentation sets us apart from mom and pop organizations and is vital for achieving our goals of reliability, efficiency, and sustained growth.</p>
+      <h3>Configuration Drift</h3>
+      <p>We currrently have no way of monitoring configuration drift which can lead to a range of issues that can have significant negative impacts on network stability, performance, security, and compliance. For instance, a configuration mismatch can cause network devices to function improperly, leading to instability and unpredictable network behavior. This can cause network downtime, loss of productivity, and potentially lost revenue. Configuration mismatch can also result in reduced network performance, as devices may not be able to communicate effectively or efficiently due to inconsistencies in their configurations. Furthermore, configuration mismatch can create security vulnerabilities in the network. Inconsistent or incorrect configurations may leave network devices open to attack, which can lead to data breaches, loss of confidential information, and other security incidents. Finally, many industries and organizations have specific regulatory requirements regarding network configurations. A configuration mismatch can cause non-compliance with these regulations, which can result in penalties, fines, or other legal issues. Therefore, it is crucial for organizations to implement measures to prevent and address configuration drift to avoid these negative impacts on their networks.</p>
+      <h3>Unmonitored UPS units</h3>
+      <p>We currently have no monitioring and failure to monitor UPS units can lead to issues such as battery failure, overloading, environmental and maintenance issues, and a lack of visibility, which can impact the reliability and performance of critical equipment, and increase the risk of downtime</p>
+      <h3>Security</h3>
+      <p>Most brands we have use the same username and password though convenient to us, when multiple devices in a network share the same username and password for login, it can create significant security issues. Any compromise of that login information would allow an attacker unrestricted access to that entire portion of the network, including sensitive data and critical systems. This setup also makes it difficult to track who has access to what resources, which can complicate access management and lead to potential compliance violations.</p>
+      <h2>Ideas to Improve</h2>
+      <h3>Disorganized Facilities</h3>
+      <p>To improve operational efficiency and present a professional image, implement a plan to address our physical infrastructure issues. This includes developing SOPs for equipment installation, labeling cables, and implementing cable management at all sites. In addition, we will conduct a thorough cleaning of all facilities, schedule regular maintenance tasks, and assign responsibility for monitoring and maintaining improvements. By taking these steps, we can reduce equipment downtime, improve efficiency, and create a professional work environment.</p>
+      <h3>Information Overload</h3>
+      <p>To address the issue of information overload, we propose implementing a comprehensive plan for streamlined information management. This will involve conducting an audit of current data sources and determining which are essential for business operations. From there, we will establish a system for delivering only critical information to personnel in a timely and accessible manner, while filtering out extraneous information that serves as noise.  By implementing this plan, we can improve operational efficiency, reduce frustration among personnel, and enable more informed decision-making.</p>
+      <h3>Documentation</h3>
+      <p>To address this, we will establish a comprehensive documentation process for all policies and procedures related to our network. This will involve identifying all critical processes, creating a clear and concise step-by-step guide for each, and ensuring that all documentation is easily accessible and up-to-date. We will establish a process for reviewing and updating this documentation on a regular basis to ensure that it remains current and relevant.</p>
+      <h3>Configuration Drift</h3>
+      <p>Implementing regular configuration backups and comparisons can help identify configuration drift and prevent issues caused by mismatched configurations. It is also important to establish clear policies and procedures for network configuration management, including change control procedures and documentation of all configuration changes. By taking these steps, organizations can effectively manage configuration drift, maintain network stability, performance, and security, and ensure compliance with industry regulations.</p>
+      <h3>Unmonitored UPS units</h3>
+      <p>We should establish a proactive monitoring and maintenance plan that includes regular inspections and testing of UPS units to ensure they are functioning correctly. The plan should also include implementing environmental monitoring to track temperature and humidity levels, which can impact the performance and lifespan of UPS batteries. The organization should also consider implementing remote monitoring tools to provide visibility into UPS performance and proactively identify potential issues before they become critical. Finally, establishing a preventative maintenance plan, including regularly scheduled UPS maintenance, will help ensure the longevity and reliability of critical equipment, minimizing the risk of downtime and its associated costs. </p>
+      <h3>Security</h3>
+      <p>By implementing an AAA (Authentication, Authorization, and Accounting) server, we can centralize user authentication and authorization, which will help ensure that only authorized individuals have access to specific network resources. This approach allows for more granular control over network access, as well as more accurate tracking of user activity.</p>
+    </section>
+  </main>
+  <footer>
+    <p>Copyright © 2023 Jacob Tomlin</p>
+  </footer>
+</div>
+   <!-- 
+-->
+<script>
+  var toggleButton = document.getElementById("toggle-wikis");
+  var display1 = document.getElementById("entry-level wiki");
+  var display2 = document.getElementById("advanced-level wiki");
+  toggleButton.addEventListener("click", function() {
+    if (display1.style.display === "none") {
+      display1.style.display = "block";
+      display2.style.display = "none";
+    } else {
+      display1.style.display = "none";
+      display2.style.display = "block";
+    }
+  });
+</script>
+</body>
+</html>

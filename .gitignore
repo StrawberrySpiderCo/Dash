@@ -1,0 +1,9 @@
+logs
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
+*.pyc
+*.log
+webex_access.txt
+map/webex_access.txt
+webex_refresh.txt

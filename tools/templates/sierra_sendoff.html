@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Sierra Sendoff{% endblock %}
+{% block template %}
+<div class="search-container">
+    <div style="text-align: center; position: relative;">
+      <div style="display: inline-block; vertical-align: bottom; margin-left: 10px;">
+          <H3 style="font-size: 50px; margin: 0; "> <i class="icon solid fa-rocket"></i> Sierra Sendoff <i class="icon solid fa-rocket"></i> </H3>
+    <form id="form" action="{% url 'sierra_sendoff_results' %}" method="post">
+      {% csrf_token %}
+      <br><label for="upn" style="font-size: 25px; font-weight: bolder;">Enter UPN</label>
+      <br><input type="text" id="upn" name="upn" required><br>
+      <button id="button" type="submit" class="button button3">
+        <a style="color: rgb(0, 0, 0) !important; text-decoration: none;">Search</a>
+      </button>
+    </form>
+  </div>
+  </div>
+{% endblock %}
