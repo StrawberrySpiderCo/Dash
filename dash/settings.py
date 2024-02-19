@@ -125,7 +125,7 @@ WSGI_APPLICATION = 'dash.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 #   Open psql in the bin folder
 # C:\Program Files\PostgreSQL\16\bin>psql -U postgres 
-# CREATE DATABASE sites
+# CREATE DATABASE sbs
 # net start postgresql-x64-15 
 DATABASES = {
     'default': {
