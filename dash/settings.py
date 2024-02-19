@@ -127,16 +127,16 @@ WSGI_APPLICATION = 'dash.wsgi.application'
 # C:\Program Files\PostgreSQL\16\bin>psql -U postgres 
 # CREATE DATABASE sites
 # net start postgresql-x64-15 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql',
-#        'NAME': 'sites',
-#        'USER': 'postgres',
-#        'PASSWORD': 'postgres',
-#        'HOST': 'localhost',
-#        'PORT': '5432',
-#    }
-#}
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'sbs',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
 
 
 # Password validation
