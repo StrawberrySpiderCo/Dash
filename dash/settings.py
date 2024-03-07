@@ -21,7 +21,6 @@ celery -A dash worker -l info --pool=solo --purge
 celery -A dash beat -l info
 celery call  map.tasks.{{task}}
 """
-
 import socket
 import os
 from pathlib import Path
@@ -107,14 +106,7 @@ TEMPLATES = [
     },
 ]
 
-
-
-
-
-CSRF_TRUSTED_ORIGINS = [
-    'http://127.0.0.1',
-    'http://192.168.0.89'
-]
+CSRF_TRUSTED_ORIGINS = ['http://192.168.0.89']
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
