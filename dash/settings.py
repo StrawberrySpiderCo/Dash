@@ -106,7 +106,7 @@ TEMPLATES = [
     },
 ]
 
-CSRF_TRUSTED_ORIGINS = ['http://192.168.0.89']
+CSRF_TRUSTED_ORIGINS = ['http://192.168.0.176']
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_SECURE = True
@@ -179,6 +179,9 @@ INTERNAL_IPS = [
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'static/images/Map_Photos'),
-    os.path.join(BASE_DIR, 'static/Javascript')
+    os.path.join(BASE_DIR, 'static/Javascript'),
+    os.path.join(BASE_DIR, 'static/assets/css/'),
+    os.path.join(BASE_DIR, 'static/assets/js/'),
+    os.path.join(BASE_DIR, 'static/assets/'),
 ]
 
