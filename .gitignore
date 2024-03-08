@@ -7,3 +7,4 @@ celerybeat-schedule.dir
 webex_access.txt
 map/webex_access.txt
 webex_refresh.txt
+celerybeat-schedule
