@@ -38,6 +38,15 @@ def user_is_admin(user):
 
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
+    
+def setup(request):
+    if request.method == 'POST':
+        # Handle form submission to create admin account and fill organization info
+        # Redirect user to the login page after setup is complete
+        return redirect('login')
+    else:
+        # Render setup form
+        return render(request, 'setup.html')
 @login_required
 def getConfigDiff(request):
     if request.method == 'POST':

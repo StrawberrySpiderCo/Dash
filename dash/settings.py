@@ -78,13 +78,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'dash.ipmiddleware.LogIPMiddleware',
-    'dash.block_ip_middleware.BlockIPMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dash.ipmiddleware.CheckUserMiddleware',
+    'dash.block_ip_middleware.BlockIPMiddleware',
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 

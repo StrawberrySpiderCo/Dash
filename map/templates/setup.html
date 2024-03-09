@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Feature Request{% endblock %}
+{% block template %}
+<div>
+
+    <form method="post">
+        {% csrf_token %}
+        <!-- Form fields for creating admin account and organization info -->
+        <input type="submit" value="Setup">
+    </form>
+</div>
+
+{% endblock %}
