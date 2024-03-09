@@ -88,10 +88,12 @@ class Client_Info(models.Model):
     adaptivePolicyGroup = models.CharField(max_length=100)
     smInstalled = models.CharField(max_length=100)
     pskGroup = models.CharField(max_length=100)
+
 class Org_Info(models.Model):
     client_count = models.CharField(max_length=100, default='')
     site_count = models.CharField(max_length=100, default='')
     users = models.JSONField()
+    
     
 class FeatureRequest(models.Model):
     title = models.CharField(max_length=100)
