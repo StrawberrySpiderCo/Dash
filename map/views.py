@@ -39,14 +39,18 @@ def user_is_admin(user):
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
+from .forms import OrgInfoForm
+
 def setup(request):
     if request.method == 'POST':
-        # Handle form submission to create admin account and fill organization info
-        # Redirect user to the login page after setup is complete
-        return redirect('login')
+        form = OrgInfoForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('success')  # Redirect to a success page after form submission
     else:
-        # Render setup form
-        return render(request, 'setup.html')
+        form = OrgInfoForm()
+    return render(request, 'setup.html', {'form': form})
+
 @login_required
 def getConfigDiff(request):
     if request.method == 'POST':

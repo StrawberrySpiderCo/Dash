@@ -90,9 +90,22 @@ class Client_Info(models.Model):
     pskGroup = models.CharField(max_length=100)
 
 class Org_Info(models.Model):
-    client_count = models.CharField(max_length=100, default='')
-    site_count = models.CharField(max_length=100, default='')
-    users = models.JSONField()
+    org_name = models.CharField(max_length=200, default='')
+    client_count = models.PositiveIntegerField(default=0)
+    site_count = models.PositiveIntegerField(default=0)
+    network_device_ips = models.JSONField(default=list)
+    meraki_api_key = models.CharField(max_length=200, default='', null=True)
+    organization_address = models.TextField(max_length=200,blank=True, null=True)
+    contact_email = models.EmailField(blank=True, null=True)
+    contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    industry = models.CharField(max_length=100, blank=True, null=True)
+    organization_logo = models.ImageField(upload_to='org_logos/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+
+    def __str__(self):
+        return self.org_name
+
     
     
 class FeatureRequest(models.Model):

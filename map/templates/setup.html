@@ -1,15 +1,75 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
-{% block title %}Feature Request{% endblock %}
+{% block title %}Setup{% endblock %}
 {% block template %}
-<div>
-
-    <form method="post">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<div class="container">
+    <h1>Organization Information Form</h1>
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        <!-- Form fields for creating admin account and organization info -->
-        <input type="submit" value="Setup">
+        {{ form.non_field_errors }}
+    
+        <!-- Loop over form fields -->
+        {% for field in form.visible_fields %}
+        {% if field.name != 'csv_file' %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {% if field.name == 'network_device_ips' %}
+            <label>Select IP Input Method:</label>
+            <div>
+                <input type="radio" id="bulk_upload" name="ip_input_method" value="bulk_upload" onchange="toggleInputMethod()">
+                <label for="bulk_upload">Bulk Upload</label>
+                <input type="radio" id="manual_entry" name="ip_input_method" value="manual_entry" onchange="toggleInputMethod()">
+                <label for="manual_entry">Manual Entry</label>
+            </div>
+            <div id="bulk_upload_section" style="display: none;">
+                <input type="file" name="csv_file" id="bulk_upload_field" class="form-control-file">
+                <small class="form-text text-muted">Upload a CSV file containing IP addresses.</small>
+            </div>
+            <div id="manual_entry_section" style="display: none;">
+                <!-- Option 1: Enter IP addresses manually -->
+                <textarea class="form-control" rows="5" name="network_device_ips" id="manual_entry_field" placeholder="Enter IP addresses separated by commas or newlines"></textarea>
+                <small class="form-text text-muted">Enter IP addresses separated by commas or newlines.</small>
+            </div>
+            {% else %}
+                {{ field }}
+            {% endif %}
+            {% if field.errors %}
+            <span class="text-danger">{{ field.errors }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    
+        <input type="submit" class="btn btn-primary" value="Submit">
     </form>
+    
+    <script>
+    function toggleInputMethod() {
+        var bulkUploadField = document.getElementById("bulk_upload_section");
+        var manualEntryField = document.getElementById("manual_entry_section");
+    
+        if (document.getElementById("bulk_upload").checked) {
+            bulkUploadField.style.display = "block";
+            manualEntryField.style.display = "none";
+        } else {
+            bulkUploadField.style.display = "none";
+            manualEntryField.style.display = "block";
+        }
+    }
+    </script>
+    
+    
+    
+    
+    
+    
+    
 </div>
 
 {% endblock %}
