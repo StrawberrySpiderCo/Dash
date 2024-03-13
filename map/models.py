@@ -2,7 +2,9 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.exceptions import ValidationError
 
 class Markers(models.Model):
     name = models.CharField(max_length=100)
@@ -105,6 +107,14 @@ class Org_Info(models.Model):
 
     def __str__(self):
         return self.org_name
+    
+@receiver(post_save, sender=Org_Info)
+def ensure_single_org_info(sender, instance, **kwargs):
+    # Check if there are any existing Org_Info objects
+    existing_count = Org_Info.objects.count()
+    if existing_count > 1:
+        # Raise a validation error to prevent saving the instance
+        raise ValidationError("Only one Org can exist contact admin for help")
 
     
     

@@ -8,6 +8,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
+{% if error_message %}
+    <div class="alert alert-danger" role="alert">
+        {{ error_message }}
+    </div>
+{% endif %}
 <div class="container">
     <h1>Organization Information Form</h1>
     <form method="post" enctype="multipart/form-data">
@@ -18,9 +23,9 @@
         {% for field in form.visible_fields %}
         {% if field.name != 'csv_file' %}
         <div class="form-group">
-            {{ field.label_tag }}
+            {{ field.label_tag }} 
             {% if field.name == 'network_device_ips' %}
-            <label>Select IP Input Method:</label>
+            <label>Select IP Input Method</label>
             <div>
                 <input type="radio" id="bulk_upload" name="ip_input_method" value="bulk_upload" onchange="toggleInputMethod()">
                 <label for="bulk_upload">Bulk Upload</label>
@@ -29,12 +34,14 @@
             </div>
             <div id="bulk_upload_section" style="display: none;">
                 <input type="file" name="csv_file" id="bulk_upload_field" class="form-control-file">
-                <small class="form-text text-muted">Upload a CSV file containing IP addresses.</small>
+                <small class="form-text text-muted">Upload a CSV file containing IP addresses of the network devices you would like to add to NAAV.</small>
             </div>
             <div id="manual_entry_section" style="display: none;">
                 <!-- Option 1: Enter IP addresses manually -->
-                <textarea class="form-control" rows="5" name="network_device_ips" id="manual_entry_field" placeholder="Enter IP addresses separated by commas or newlines"></textarea>
-                <small class="form-text text-muted">Enter IP addresses separated by commas or newlines.</small>
+                <textarea class="form-control" rows="5" name="network_device_ips" id="manual_entry_field" placeholder="Enter IP addresses separated by commas or newlines i.e. 192.168.0.1,192.168.0.2,192.168.0.3 or
+                192.168.0.1
+                192.168.0.2
+                192.168.0.3"></textarea>
             </div>
             {% else %}
                 {{ field }}

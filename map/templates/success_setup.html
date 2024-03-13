@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Setup Successful{% endblock %}
+{% block template %}
+<div class="container">
+    <h1>Setup Successful</h1>
+    <p>Your setup was successful. Here are the details:</p>
+    <ul>
+        <li>Org Name: {{ org_info.org_name }}</li>
+        <li>Contact Email: {{ org_info.contact_email }}</li>
+        <li>Network IPs: {{org_info.network_device_ips}}</li>
+        <li>Meraki API Key: {{org_info.meraki_api_key}}</li>
+        <li>Address: {{org_info.organization_address}}</li>
+        <li>Email: {{org_info.contact_email}}</li>
+        <li>Phone: {{org_info.contact_phone}}</li>
+
+    </ul>
+</div>
+{% endblock %}

@@ -53,7 +53,11 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 
-
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
+    # Add any custom authentication backends here
+    # 'path.to.CustomAuthBackend',
+]
 # Application definition
 
 
@@ -108,8 +112,6 @@ TEMPLATES = [
 
 CSRF_TRUSTED_ORIGINS = ['http://192.168.0.89']
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
 
 WSGI_APPLICATION = 'dash.wsgi.application'
 

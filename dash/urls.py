@@ -33,6 +33,7 @@ from project import views as project
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('setup/', map.setup, name='setup'),
+    path('setup/success/', map.success_setup, name='success_setup'),
     path('members/', include('members.urls')),
     path('members/', include('django.contrib.auth.urls')),
     path('', map.home_view, name='home'),

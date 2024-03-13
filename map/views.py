@@ -32,6 +32,7 @@ import os
 import csv
 from django.contrib.auth.decorators import user_passes_test
 from .models import FeatureRequest
+from django.core.exceptions import ValidationError
 
 def user_is_admin(user):
     return user.groups.filter(name='Admins').exists()
@@ -45,11 +46,19 @@ def setup(request):
     if request.method == 'POST':
         form = OrgInfoForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            return redirect('success')  # Redirect to a success page after form submission
+            try:
+                form.save()
+                return redirect('success_setup')
+            except ValidationError as e:
+                    error_message = str(e)
+                    return render(request, 'setup.html', {'form': form, 'error_message': error_message})
     else:
         form = OrgInfoForm()
     return render(request, 'setup.html', {'form': form})
+
+def success_setup(request):
+    org_info = Org_Info.objects.get()  # Retrieve the single Org_Info object
+    return render(request, 'success_setup.html', {'org_info': org_info})
 
 @login_required
 def getConfigDiff(request):
