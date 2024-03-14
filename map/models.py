@@ -107,15 +107,12 @@ class Org_Info(models.Model):
 
     def __str__(self):
         return self.org_name
-    
-@receiver(post_save, sender=Org_Info)
-def ensure_single_org_info(sender, instance, **kwargs):
-    # Check if there are any existing Org_Info objects
-    existing_count = Org_Info.objects.count()
-    if existing_count > 1:
-        # Raise a validation error to prevent saving the instance
-        raise ValidationError("Only one Org can exist contact admin for help")
-
+    def save(self, *args, **kwargs):
+        # Check if there's already an existing Org_Info object
+        if Org_Info.objects.exists() and not self.pk:
+            raise ValidationError("Only one Org_Info object can exist.")
+        
+        super().save(*args, **kwargs)  # Call the original save method
     
     
 class FeatureRequest(models.Model):

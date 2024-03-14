@@ -40,21 +40,50 @@ def user_is_admin(user):
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
-from .forms import OrgInfoForm
+from .forms import OrgInfoForm, AdminCreationForm
+from django.contrib.auth.models import User
 
 def setup(request):
+    if Org_Info.objects.exists():
+        return redirect('home')
     if request.method == 'POST':
-        form = OrgInfoForm(request.POST, request.FILES)
-        if form.is_valid():
+        org_form = OrgInfoForm(request.POST, request.FILES)
+        admin_form = AdminCreationForm(request.POST)
+        
+        if org_form.is_valid() and admin_form.is_valid():
+            org_info = org_form.save(commit=False)
             try:
-                form.save()
+                username = admin_form.cleaned_data['username']
+                password = admin_form.cleaned_data['password1']
+                email = org_form.cleaned_data['contact_email']
+                csv_file = org_form.cleaned_data.get('csv_file')
+                if csv_file:
+                    try:
+                        ips = []
+                        reader = csv.reader(csv_file)
+                        for row in reader:
+                            ips.extend(row)
+                        org_info.network_device_ips = ips
+                    except Exception as e:
+                        print(e)
+                        pass
+                else:
+                    network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
+                    org_info.network_device_ips = network_device_ips
+                org_info.save()  # Save the org_info instance
+                user = User.objects.create_user(username, email=email, password=password)
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
                 return redirect('success_setup')
             except ValidationError as e:
-                    error_message = str(e)
-                    return render(request, 'setup.html', {'form': form, 'error_message': error_message})
+                error_message = str(e)
+                return render(request, 'setup.html', {'error_message': error_message})
     else:
-        form = OrgInfoForm()
-    return render(request, 'setup.html', {'form': form})
+        org_form = OrgInfoForm()
+        admin_form = AdminCreationForm()
+    
+    return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
 
 def success_setup(request):
     org_info = Org_Info.objects.get()  # Retrieve the single Org_Info object

@@ -14,13 +14,13 @@
     </div>
 {% endif %}
 <div class="container">
-    <h1>Organization Information Form</h1>
+    <h3>Organization Information Form</h3>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.non_field_errors }}
+        {{ org_form.non_field_errors }}
     
         <!-- Loop over form fields -->
-        {% for field in form.visible_fields %}
+        {% for field in org_form.visible_fields %}
         {% if field.name != 'csv_file' %}
         <div class="form-group">
             {{ field.label_tag }} 
@@ -52,7 +52,19 @@
         </div>
         {% endif %}
         {% endfor %}
-    
+        <br><br>
+        <h3>Admin Account Creation</h3>
+        {{ admin_form.non_field_errors }}
+        <!-- Render admin account creation form fields -->
+        {% for field in admin_form.visible_fields %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <span class="text-danger">{{ field.errors }}</span>
+                {% endif %}
+            </div>
+        {% endfor %}
         <input type="submit" class="btn btn-primary" value="Submit">
     </form>
     

@@ -1,7 +1,9 @@
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
 import csv
 from io import TextIOWrapper
 from .models import FeatureRequest
+from django.contrib.auth.models import User
 from .models import Org_Info
 
 class FeatureRequestForm(forms.ModelForm):
@@ -9,6 +11,10 @@ class FeatureRequestForm(forms.ModelForm):
         model = FeatureRequest
         fields = ['title', 'description']
 
+class AdminCreationForm(UserCreationForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password1', 'password2']
 class OrgInfoForm(forms.ModelForm):
     network_device_ips = forms.CharField(label='Network Device IPs', widget=forms.Textarea(attrs={'rows': 5}), required=False)
     csv_file = forms.FileField(label='Upload CSV File', required=False)
