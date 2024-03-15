@@ -93,6 +93,7 @@ class Client_Info(models.Model):
 
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
+    repo_name = models.CharField(max_length=200, default='')
     client_count = models.PositiveIntegerField(default=0)
     site_count = models.PositiveIntegerField(default=0)
     network_device_ips = models.JSONField(default=list)

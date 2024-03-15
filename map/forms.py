@@ -26,12 +26,8 @@ class OrgInfoForm(forms.ModelForm):
     def clean_network_device_ips(self):
         data = self.cleaned_data['network_device_ips']
         if data:
-            # Split the input by comma or newline
             ips = [ip.strip() for ip in data.replace(',', '\n').split('\n')]
-            # Validate each IP address (you can add more sophisticated validation logic)
             for ip in ips:
-                # Perform IP address validation
-                # For simplicity, I'm just checking if the string is non-empty
                 if not ip:
                     raise forms.ValidationError('Invalid IP address format.')
             return ips
@@ -39,10 +35,8 @@ class OrgInfoForm(forms.ModelForm):
     def clean_csv_file(self):
         data = self.cleaned_data['csv_file']
         if data:
-            # Read and parse the CSV file
             ips = []
             try:
-                # Decode the file contents to strings
                 csv_data = TextIOWrapper(data.file, encoding='utf-8')
                 reader = csv.reader(csv_data)
                 for row in reader:

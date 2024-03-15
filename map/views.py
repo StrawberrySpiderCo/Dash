@@ -46,6 +46,7 @@ from django.contrib.auth.models import User
 def setup(request):
     if Org_Info.objects.exists():
         return redirect('home')
+    
     if request.method == 'POST':
         org_form = OrgInfoForm(request.POST, request.FILES)
         admin_form = AdminCreationForm(request.POST)
@@ -57,6 +58,8 @@ def setup(request):
                 password = admin_form.cleaned_data['password1']
                 email = org_form.cleaned_data['contact_email']
                 csv_file = org_form.cleaned_data.get('csv_file')
+                
+                # Process CSV file if provided
                 if csv_file:
                     try:
                         ips = []
@@ -70,15 +73,43 @@ def setup(request):
                 else:
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
+                
                 org_info.save()  # Save the org_info instance
+                
+                # Create Django user
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
+                
+                # Create GitHub repository
+                github_token = os.getenv('GITHUB_TOKEN')
+                print("GitHub Token:", github_token)
+                if github_token:
+                    repo_name = org_info.org_name.lower().replace(" ", "-")
+                    headers = {'Authorization': f'token {github_token}'}
+                    payload = {
+                        'name': repo_name+'-dash',
+                        'private': True 
+                    }
+                    response = requests.post(
+                        'https://api.github.com/user/repos',
+                        json=payload,
+                        headers=headers
+                        
+                    )
+                    if response.status_code != 201:
+                        error_message = f"Failed to create repository on GitHub: {response.text}"
+                        return render(request, 'setup.html', {'error_message': error_message})
+                else:
+                    error_message = "GitHub credentials not configured properly"
+                    return render(request, 'setup.html', {'error_message': error_message})
+                
                 return redirect('success_setup')
             except ValidationError as e:
                 error_message = str(e)
                 return render(request, 'setup.html', {'error_message': error_message})
+    
     else:
         org_form = OrgInfoForm()
         admin_form = AdminCreationForm()
