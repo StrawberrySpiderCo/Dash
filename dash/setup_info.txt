@@ -1,5 +1,5 @@
-Org Name: Hammer Test
-Site Count: 1
+Org Name: Hamster University
+Site Count: 0
 Contact Email: jtomlin2001@gmail.com
 Contact Phone: 6612059590
 Network Device IPs:
