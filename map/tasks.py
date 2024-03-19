@@ -22,6 +22,8 @@ def setup_github_repo(org_info_id):
     
     # Create GitHub repository
     github_token = os.getenv('GITHUB_TOKEN')
+
+    
     if github_token:
         repo_name = org_info.org_name.lower().replace(" ", "-")
         org_info.repo_name = f"{repo_name}-dash"
@@ -40,9 +42,6 @@ def setup_github_repo(org_info_id):
             return f"Failed to create repository on GitHub: {response.text}"
         
         new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
-        subprocess.run(['git', 'config', '--global', 'user.name', org_info.org_name])
-        subprocess.run(['git', 'config', '--global', 'user.email', org_info.contact_email])
-        subprocess.run(['git', 'config', '--global', 'url."git@github.com:"', 'insteadOf', '"https://github.com/"'])
         # Change the remote URL
         remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
         if remote_change.returncode != 0:
@@ -54,7 +53,7 @@ def setup_github_repo(org_info_id):
             return "Failed to rename the default branch to 'main'."
 
         # Push changes to the new repository
-        push_changes = subprocess.run(['git', 'push', '-u', 'origin', 'main'])
+        push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'])
         if push_changes.returncode != 0:
             return "Failed to push changes to the new repository."
         
