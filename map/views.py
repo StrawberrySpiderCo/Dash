@@ -101,6 +101,25 @@ def setup(request):
                     if response.status_code != 201:
                         error_message = f"Failed to create repository on GitHub: {response.text}"
                         return render(request, 'setup.html', {'error_message': error_message})
+                    new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
+                    # Change the remote URL
+                    remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
+                    if remote_change.returncode != 0:
+                        error_message = "Failed to change remote URL."
+                        return render(request, 'setup.html', {'error_message': error_message})
+
+                    # Rename the default branch to 'main'
+                    branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
+                    if branch_rename.returncode != 0:
+                        error_message = "Failed to rename the default branch to 'main'."
+                        return render(request, 'setup.html', {'error_message': error_message})
+
+                    # Push changes to the new repository
+                    push_changes = subprocess.run(['git', 'push', '-u', 'origin', 'main'])
+                    if push_changes.returncode != 0:
+                        error_message = "Failed to push changes to the new repository."
+                        return render(request, 'setup.html', {'error_message': error_message})
+
                 else:
                     error_message = "GitHub credentials not configured properly"
                     return render(request, 'setup.html', {'error_message': error_message})
