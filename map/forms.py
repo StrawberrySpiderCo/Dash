@@ -21,7 +21,7 @@ class OrgInfoForm(forms.ModelForm):
 
     class Meta:
         model = Org_Info
-        fields = ['org_name', 'contact_email', 'contact_phone', 'site_count', 'organization_logo','meraki_api_key']
+        fields = ['org_name', 'contact_email', 'contact_phone', 'site_count','meraki_api_key']
 
     def clean_network_device_ips(self):
         data = self.cleaned_data['network_device_ips']
