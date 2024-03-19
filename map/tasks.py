@@ -42,6 +42,7 @@ def setup_github_repo(org_info_id):
         new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
         subprocess.run(['git', 'config', '--global', 'user.name', org_info.org_name])
         subprocess.run(['git', 'config', '--global', 'user.email', org_info.contact_email])
+        subprocess.run(['git', 'config', '--global', 'url."git@github.com:"', 'insteadOf', '"https://github.com/"'])
         # Change the remote URL
         remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
         if remote_change.returncode != 0:
