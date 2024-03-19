@@ -21,6 +21,8 @@ def setup_github_repo(org_info_id):
     github_token = os.getenv('GITHUB_TOKEN')
     if github_token:
         repo_name = org_info.org_name.lower().replace(" ", "-")
+        org_info.repo_name = f"{repo_name}-dash"
+        org_info.save()
         headers = {'Authorization': f'token {github_token}'}
         payload = {
             'name': repo_name+'-dash',

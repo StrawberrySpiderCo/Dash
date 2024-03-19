@@ -25,7 +25,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import update_vlan_info_task, update_device_info_task
+from map.tasks import update_vlan_info_task, update_device_info_task, setup_github_repo
 from time import sleep
 import json
 import os
@@ -73,75 +73,8 @@ def setup(request):
                 else:
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
-                
-
-                
-                # Create GitHub repository
-                github_token = os.getenv('GITHUB_TOKEN')
-                print("GitHub Token:", github_token)
-                if github_token:
-                    repo_name = org_info.org_name.lower().replace(" ", "-")
-                    headers = {'Authorization': f'token {github_token}'}
-                    payload = {
-                        'name': repo_name+'-dash',
-                        'private': True 
-                    }
-                    response = requests.post(
-                        'https://api.github.com/user/repos',
-                        json=payload,
-                        headers=headers
-                        
-                    )
-                    if response.status_code != 201:
-                        error_message = f"Failed to create repository on GitHub: {response.text}"
-                        return render(request, 'setup.html', {'error_message': error_message})
-                    new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
-                    # Change the remote URL
-                    remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
-                    if remote_change.returncode != 0:
-                        error_message = "Failed to change remote URL."
-                        return render(request, 'setup.html', {'error_message': error_message})
-
-                    # Rename the default branch to 'main'
-                    branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
-                    if branch_rename.returncode != 0:
-                        error_message = "Failed to rename the default branch to 'main'."
-                        return render(request, 'setup.html', {'error_message': error_message})
-
-                    # Push changes to the new repository
-                    push_changes = subprocess.run(['git', 'push', '-u', 'origin', 'main'])
-                    if push_changes.returncode != 0:
-                        error_message = "Failed to push changes to the new repository."
-                        return render(request, 'setup.html', {'error_message': error_message})
-                    file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
-                    with open(file_path, 'w') as file:
-                        file.write(f"Org Name: {org_info.org_name}\n")
-                        file.write(f"Site Count: {org_info.site_count}\n")
-                        file.write(f"Contact Email: {email}\n")
-                        file.write(f"Contact Phone: {org_info.contact_phone}\n")
-                        file.write("Network Device IPs:\n")
-                        for ip in org_info.network_device_ips:
-                            file.write(f"- {ip}\n")
-                    # Add the text file to the Git repository
-                    add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
-                    if add_file.returncode != 0:
-                        print("Failed to add the file to the Git repository.")
-
-                    # Commit the changes
-                    commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
-                    if commit_changes.returncode != 0:
-                        print("Failed to commit the changes.")
-
-                    # Push the changes to the remote repository
-                    push_changes = subprocess.run(['git', 'push'])
-                    if push_changes.returncode != 0:
-                        print("Failed to push changes to the remote repository.")
-
-                else:
-                    error_message = "GitHub credentials not configured properly"
-                    return render(request, 'setup.html', {'error_message': error_message})
-                org_info.repo_name = f"{repo_name}-dash"
                 org_info.save()
+                setup_github_repo.delay(org_info.id)
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
