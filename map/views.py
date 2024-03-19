@@ -119,7 +119,6 @@ def setup(request):
                         file.write(f"Site Count: {org_info.site_count}\n")
                         file.write(f"Contact Email: {email}\n")
                         file.write(f"Contact Phone: {org_info.contact_phone}\n")
-                        file.write(f"Organization Address: {org_info.organization_address}\n")
                         file.write("Network Device IPs:\n")
                         for ip in org_info.network_device_ips:
                             file.write(f"- {ip}\n")
