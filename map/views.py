@@ -113,6 +113,32 @@ def setup(request):
                     if push_changes.returncode != 0:
                         error_message = "Failed to push changes to the new repository."
                         return render(request, 'setup.html', {'error_message': error_message})
+                                                        # Create text file with saved information
+                    file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
+                    with open(file_path, 'w') as file:
+                        file.write(f"Org Name: {org_info.org_name}\n")
+                        file.write(f"Client Count: {org_info.client_count}\n")
+                        file.write(f"Site Count: {org_info.site_count}\n")
+                        file.write(f"Contact Email: {email}\n")
+                        file.write(f"Contact Phone: {org_info.phone}\n")
+                        file.write(f"Organization Address: {org_info.address}\n")
+                        file.write("Network Device IPs:\n")
+                        for ip in org_info.network_device_ips:
+                            file.write(f"- {ip}\n")
+                    # Add the text file to the Git repository
+                    add_file = subprocess.run(['git', 'add', 'setup_info.txt'])
+                    if add_file.returncode != 0:
+                        print("Failed to add the file to the Git repository.")
+
+                    # Commit the changes
+                    commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
+                    if commit_changes.returncode != 0:
+                        print("Failed to commit the changes.")
+
+                    # Push the changes to the remote repository
+                    push_changes = subprocess.run(['git', 'push'])
+                    if push_changes.returncode != 0:
+                        print("Failed to push changes to the remote repository.")
 
                 else:
                     error_message = "GitHub credentials not configured properly"
