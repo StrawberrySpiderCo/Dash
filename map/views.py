@@ -140,7 +140,7 @@ def setup(request):
                 else:
                     error_message = "GitHub credentials not configured properly"
                     return render(request, 'setup.html', {'error_message': error_message})
-                org_info.repo_name = repo_name
+                org_info.repo_name = f"{repo_name}-dash"
                 org_info.save()
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
