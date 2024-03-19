@@ -124,7 +124,7 @@ def setup(request):
                         for ip in org_info.network_device_ips:
                             file.write(f"- {ip}\n")
                     # Add the text file to the Git repository
-                    add_file = subprocess.run(['git', 'add', 'setup_info.txt'])
+                    add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
                     if add_file.returncode != 0:
                         print("Failed to add the file to the Git repository.")
 
