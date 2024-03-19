@@ -11,6 +11,9 @@ from django.db import IntegrityError
 from time import sleep
 import subprocess
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 @shared_task
 def setup_github_repo(org_info_id):
