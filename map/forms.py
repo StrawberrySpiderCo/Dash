@@ -22,6 +22,9 @@ class OrgInfoForm(forms.ModelForm):
     class Meta:
         model = Org_Info
         fields = ['org_name', 'contact_email', 'contact_phone', 'site_count','meraki_api_key']
+    def __init__(self, *args, **kwargs):
+       super(OrgInfoForm, self).__init__(*args, **kwargs)
+       self.fields['meraki_api_key'].required = False  # Set the Meraki API key field as not required
 
     def clean_network_device_ips(self):
         data = self.cleaned_data['network_device_ips']
