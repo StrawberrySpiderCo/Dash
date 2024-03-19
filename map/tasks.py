@@ -9,6 +9,75 @@ from map.models import Site
 from map.models import Device_Info, Client_Info, Org_Info, Employee
 from django.db import IntegrityError
 from time import sleep
+import subprocess
+import os
+
+@shared_task
+def setup_github_repo(org_info_id):
+    # Retrieve Org_Info instance
+    org_info = Org_Info.objects.get(pk=org_info_id)
+    
+    # Create GitHub repository
+    github_token = os.getenv('GITHUB_TOKEN')
+    if github_token:
+        repo_name = org_info.org_name.lower().replace(" ", "-")
+        headers = {'Authorization': f'token {github_token}'}
+        payload = {
+            'name': repo_name+'-dash',
+            'private': True 
+        }
+        response = requests.post(
+            'https://api.github.com/user/repos',
+            json=payload,
+            headers=headers
+        )
+        if response.status_code != 201:
+            return f"Failed to create repository on GitHub: {response.text}"
+        
+        new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
+
+        # Change the remote URL
+        remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
+        if remote_change.returncode != 0:
+            return "Failed to change remote URL."
+
+        # Rename the default branch to 'main'
+        branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
+        if branch_rename.returncode != 0:
+            return "Failed to rename the default branch to 'main'."
+
+        # Push changes to the new repository
+        push_changes = subprocess.run(['git', 'push', '-u', 'origin', 'main'])
+        if push_changes.returncode != 0:
+            return "Failed to push changes to the new repository."
+        
+        # Write setup info to a file
+        file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
+        with open(file_path, 'w') as file:
+            file.write(f"Org Name: {org_info.org_name}\n")
+            file.write(f"Site Count: {org_info.site_count}\n")
+            file.write(f"Contact Email: {org_info.contact_email}\n")
+            file.write(f"Contact Phone: {org_info.contact_phone}\n")
+            file.write("Network Device IPs:\n")
+            for ip in org_info.network_device_ips:
+                file.write(f"- {ip}\n")
+        
+        # Add, commit, and push the file to the repository
+        add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
+        if add_file.returncode != 0:
+            return "Failed to add the file to the Git repository."
+
+        commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
+        if commit_changes.returncode != 0:
+            return "Failed to commit the changes."
+
+        push_changes = subprocess.run(['git', 'push'])
+        if push_changes.returncode != 0:
+            return "Failed to push changes to the remote repository."
+
+        return "Setup completed successfully."
+    else:
+        return "GitHub credentials not configured properly"
 
 @shared_task
 def update_vlan_info_task():
