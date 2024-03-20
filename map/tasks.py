@@ -12,6 +12,7 @@ from time import sleep
 import subprocess
 import os
 from dotenv import load_dotenv
+from dash.get_ip import get_system_ip
 load_dotenv()
 
 @shared_task
@@ -63,11 +64,12 @@ def setup_github_repo(org_info_id):
         push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'])
         if push_changes.returncode != 0:
             return "Failed to push changes to the new repository."
-        
+        server_ip = get_system_ip()
         # Write setup info to a file
         file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
         with open(file_path, 'w') as file:
             file.write(f"Org Name: {org_info.org_name}\n")
+            file.write(f"Website IP: {server_ip}\n")
             file.write(f"Site Count: {org_info.site_count}\n")
             file.write(f"Contact Email: {org_info.contact_email}\n")
             file.write(f"Contact Phone: {org_info.contact_phone}\n")
