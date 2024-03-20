@@ -92,8 +92,12 @@ class Client_Info(models.Model):
     pskGroup = models.CharField(max_length=100)
 
 class NetworkDevice(models.Model):
-    ip_address = models.CharField(max_length=15)
-    model = models.CharField(max_length=100)
+    ip_address = models.CharField(max_length=200)
+    model = models.CharField(max_length=200, default='', null=True)
+    hostname = models.CharField(max_length=200, default='', null=True)
+    make = models.CharField(max_length=200, default='', null=True)
+    serial_number = models.CharField(max_length=200, default='', null=True)
+    
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
 
