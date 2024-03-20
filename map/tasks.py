@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee
+from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice
 from django.db import IntegrityError
 from time import sleep
 import subprocess
@@ -14,6 +14,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+@shared_task
+def setup_network_devices(org_info_id):
+    org_info = Org_Info.objects.get(pk=org_info_id)
+    network_ips = org_info.network_device_ips
+    for ip in network_ips:
+        device = NetworkDevice.objects.create(ip_address=ip, model='', username=org_info.ssh_username, password=org_info.ssh_password)
+        device.save()
 
 @shared_task
 def setup_github_repo(org_info_id):

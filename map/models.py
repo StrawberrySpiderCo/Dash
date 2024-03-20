@@ -91,6 +91,15 @@ class Client_Info(models.Model):
     smInstalled = models.CharField(max_length=100)
     pskGroup = models.CharField(max_length=100)
 
+class NetworkDevice(models.Model):
+    ip_address = models.CharField(max_length=15)
+    model = models.CharField(max_length=100)
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.ip_address
+
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
     repo_name = models.CharField(max_length=200, default='')
@@ -103,6 +112,8 @@ class Org_Info(models.Model):
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
     industry = models.CharField(max_length=100, blank=True, null=True)
     organization_logo = models.ImageField(upload_to='org_logos/', blank=True, null=True)
+    ssh_username = models.CharField(max_length=200, default='', null=True)
+    ssh_password = models.CharField(max_length=200, default='', null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
