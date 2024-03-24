@@ -101,6 +101,7 @@ class NetworkDevice(models.Model):
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
     enable_password = models.CharField(max_length=100, default='', null=True)
+    device_type = models.CharField(max_length=200, default='', null=True)
 
     def __str__(self):
         return self.ip_address
