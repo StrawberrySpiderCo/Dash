@@ -1,0 +1,10 @@
+Org Name: Hamster Cafe
+Website IP: 192.168.0.88
+Site Count: 3
+Contact Email: jtomlin2001@gmail.com
+Contact Phone: 6612059590
+Network Device IPs:
+- 192.168.0.51
+- 192.168.0.52
+- 192.168.0.53
+- 192.168.0.54
