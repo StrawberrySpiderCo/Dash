@@ -20,7 +20,12 @@ def setup_network_devices(org_info_id):
     org_info = Org_Info.objects.get(pk=org_info_id)
     network_ips = org_info.network_device_ips
     for ip in network_ips:
-        device = NetworkDevice.objects.create(ip_address=ip, model='', username=org_info.ssh_username, password=org_info.ssh_password)
+        result = subprocess.call(['ping',  ip, '-n', '1', '-w', '100'])
+        if result == 1:
+            online = False
+        elif result == 0:
+            online = True
+        device = NetworkDevice.objects.create(ip_address=ip, model='', username=org_info.ssh_username, password=org_info.ssh_password, enable_password=org_info.ssh_enable_password, online=online )
         device.save()
 
 @shared_task
