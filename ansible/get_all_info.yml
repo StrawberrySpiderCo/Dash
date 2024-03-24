@@ -1,0 +1,16 @@
+---
+- name: Gather Cisco device information
+  hosts: network_devices
+  gather_facts: no
+
+  tasks:
+    - name: Gather facts from Cisco devices
+      ios_facts:
+
+    - name: Print device information
+      debug:
+        msg: |
+          Hostname: {{ ansible_net_hostname }}
+          Model: {{ ansible_net_model }}
+          Serial Number: {{ ansible_net_serialnum }}
+          Firmware Version: {{ ansible_net_version }}

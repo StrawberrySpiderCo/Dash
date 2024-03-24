@@ -14,6 +14,8 @@ import os
 from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 load_dotenv()
+playbook_dir = '/home/sbs/Dash/ansible'
+
 
 @shared_task
 def setup_network_devices(org_info_id):
