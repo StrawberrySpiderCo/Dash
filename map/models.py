@@ -97,7 +97,7 @@ class NetworkDevice(models.Model):
     hostname = models.CharField(max_length=200, default='', null=True)
     make = models.CharField(max_length=200, default='', null=True)
     serial_number = models.CharField(max_length=200, default='', null=True)
-    
+    online = models.BooleanField(default=False)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
 
@@ -118,6 +118,7 @@ class Org_Info(models.Model):
     organization_logo = models.ImageField(upload_to='org_logos/', blank=True, null=True)
     ssh_username = models.CharField(max_length=200, default='', null=True)
     ssh_password = models.CharField(max_length=200, default='', null=True)
+    ssh_enable_password = models.CharField(max_length=200, default='', null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
