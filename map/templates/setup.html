@@ -43,6 +43,9 @@
                 192.168.0.2
                 192.168.0.3"></textarea>
             </div>
+            {% elif field.name == 'ssh_password' %}
+            <label>If only one SSH password is applicable, it should be used for both this field and the SSH enable password field below.</label>
+            {{ field }}
             {% else %}
                 {{ field }}
             {% endif %}

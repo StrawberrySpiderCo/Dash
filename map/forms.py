@@ -21,7 +21,7 @@ class OrgInfoForm(forms.ModelForm):
 
     class Meta:
         model = Org_Info
-        fields = ['org_name', 'contact_email', 'contact_phone', 'site_count','meraki_api_key','ssh_username', 'ssh_password']
+        fields = ['org_name', 'contact_email', 'contact_phone', 'site_count','meraki_api_key','ssh_username', 'ssh_password', 'ssh_enable_password']
     def __init__(self, *args, **kwargs):
        super(OrgInfoForm, self).__init__(*args, **kwargs)
        self.fields['meraki_api_key'].required = False  # Set the Meraki API key field as not required
