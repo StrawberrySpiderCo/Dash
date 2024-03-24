@@ -20,7 +20,8 @@ def setup_network_devices(org_info_id):
     org_info = Org_Info.objects.get(pk=org_info_id)
     network_ips = org_info.network_device_ips
     for ip in network_ips:
-        result = subprocess.call(['ping',  ip, '-n', '1', '-w', '100'])
+        print(ip)
+        result = subprocess.call(['ping',  ip, '-c', '2'])
         if result == 1:
             online = False
         elif result == 0:
