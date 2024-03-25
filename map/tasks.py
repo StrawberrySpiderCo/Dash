@@ -14,22 +14,41 @@ import os
 from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 load_dotenv()
-playbook_dir = '/home/sbs/Dash/ansible'
 
 
 @shared_task
 def setup_network_devices(org_info_id):
     org_info = Org_Info.objects.get(pk=org_info_id)
     network_ips = set(org_info.network_device_ips)
-    for ip in network_ips:
-        print(ip)
-        result = subprocess.call(['ping',  ip, '-c', '2'])
-        if result == 1:
-            online = False
-        elif result == 0:
-            online = True
-        device = NetworkDevice.objects.create(ip_address=ip, model='', username=org_info.ssh_username, password=org_info.ssh_password, enable_password=org_info.ssh_enable_password, online=online )
-        device.save()
+    playbook_dir = '/home/sbs/Dash/ansible'
+    host_file_path = f"{playbook_dir}/hosts.ini"
+    if os.path.exists(host_file_path):
+        os.remove(host_file_path)
+    with open(host_file_path, 'w') as host_file:
+        host_file.write("[network_devices]\n")
+        for ip in network_ips:
+            print(ip)
+            result = subprocess.call(['ping', ip, '-c', '2'])
+            online = result == 0
+            device = NetworkDevice.objects.create(
+                ip_address=ip,
+                model='',
+                username=org_info.ssh_username,
+                password=org_info.ssh_password,
+                enable_password=org_info.ssh_enable_password,
+                online=online
+            )
+            device.save()
+            host_file.write(f"switch{ip.split('.')[-1]} ansible_host={ip}\n")
+        
+        host_file.write("\n[network_devices:vars]\n")
+        host_file.write("ansible_network_os=ios\n")
+        host_file.write("ansible_connection=network_cli\n")
+        host_file.write(f"ansible_user={org_info.ssh_username}\n")
+        host_file.write(f"ansible_ssh_pass={org_info.ssh_password}\n")
+        host_file.write("ansible_become=yes\n")
+        host_file.write("ansible_become_method=enable\n")
+        host_file.write(f"ansible_become_pass={org_info.ssh_enable_password}\n")
 
 @shared_task
 def setup_github_repo(org_info_id):
