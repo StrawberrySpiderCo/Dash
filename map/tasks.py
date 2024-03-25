@@ -50,6 +50,14 @@ def setup_network_devices(org_info_id):
         host_file.write("ansible_become_method=enable\n")
         host_file.write(f"ansible_become_pass={org_info.ssh_enable_password}\n")
 
+        commit_changes = subprocess.run(['git', 'commit', '-m', 'Added new hosts file'])
+        if commit_changes.returncode != 0:
+            return "Failed to commit the changes."
+
+        push_changes = subprocess.run(['git', 'push'])
+        if push_changes.returncode != 0:
+            return "Failed to push changes to the remote repository."
+
 @shared_task
 def setup_github_repo(org_info_id):
     # Retrieve Org_Info instance
