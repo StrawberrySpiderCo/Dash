@@ -9,3 +9,4 @@ map/webex_access.txt
 webex_refresh.txt
 celerybeat-schedule
 .env
+ansible/hosts.ini
