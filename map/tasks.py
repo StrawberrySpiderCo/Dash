@@ -10,6 +10,8 @@ from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevic
 from django.db import IntegrityError
 from time import sleep
 import subprocess
+from subprocess import run, PIPE
+import json
 import os
 from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
@@ -41,17 +43,58 @@ def setup_network_devices(org_info_id):
                 }
             )
             device.save()
-            host_file.write(f"switch{ip.split('.')[-1]} ansible_host={ip}\n")
+            host_file.write(f"{ip} ansible_host={ip}\n")
         
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
-        host_file.write(f"ansible_user={org_info.ssh_username}\n")
-        host_file.write(f"ansible_ssh_pass={org_info.ssh_password}\n")
-        host_file.write("ansible_become=yes\n")
-        host_file.write("ansible_become_method=enable\n")
-        host_file.write(f"ansible_become_pass={org_info.ssh_enable_password}\n")
+    ansible_config = {
+        'ansible_network_os': 'ios',
+        'ansible_connection': 'network_cli',
+        'ansible_user': org_info.ssh_username,  # Use user from Django model
+        'ansible_ssh_pass': org_info.ssh_password,  # Use password from Django model
+        'ansible_become': 'yes',
+        'ansible_become_method': 'enable',
+        'ansible_become_pass': org_info.ssh_enable_password,  # Use password from Django model,
+    }
+    
+    # Convert ansible_config to JSON string
+    extra_vars = json.dumps(ansible_config)
 
+    ansible_command = ['/home/sbs/.local/bin/ansible-playbook', '/home/sbs/Dash/ansible/get_all_info.yml', '-i', '/home/sbs/Dash/ansible/hosts.ini', '-e', extra_vars]
+    # Run Ansible playbook command
+    result = subprocess.run(ansible_command, capture_output=True, text=True)
+    
+    # Check the return code of the Ansible command
+    if result.returncode == 0 or result.returncode == 2:
+        # Process output to filter lines containing "msg"
+        ansible_output_lines = result.stdout.split('\n')
+        msg_lines = [line for line in ansible_output_lines if '"msg"' in line]
+    
+        # Print filtered "msg" lines
+        for line in msg_lines:
+            print(line)
+        devices_info = json.loads(result)
+        for device_info in devices_info:
+            ip_address = device_info['ansible_host']
+            facts = device_info['ansible_facts']  # Extract ansible_facts dictionary
+            hostname = facts['net_hostname']  # Extract hostname
+            model = facts['net_model']  # Extract model
+            serial_number = facts['net_serialnum']  # Extract serial number
+            firmware_version = facts['net_version']  # Extract firmware version
+            print(f"test",ip_address, hostname, model, serial_number, firmware_version)
+            NetworkDevice.objects.update_or_create(
+                ip_address=ip_address,
+                defaults={
+                    'hostname': hostname,
+                    'model': model,
+                    'serial_number': serial_number,
+                    'firmware_version': firmware_version,
+                }
+            )
+    else:
+        print("Failed to execute Ansible playbook")
+        #print(result.stdout)
 
 @shared_task
 def setup_github_repo(org_info_id):

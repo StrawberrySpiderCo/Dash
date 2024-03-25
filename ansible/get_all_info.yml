@@ -10,7 +10,7 @@
     - name: Print device information
       debug:
         msg: |
-          Hostname: {{ ansible_net_hostname }}
-          Model: {{ ansible_net_model }}
-          Serial Number: {{ ansible_net_serialnum }}
-          Firmware Version: {{ ansible_net_version }}
+          Hostname: {{ ansible_facts.net_hostname }}
+          Model: {{ ansible_facts.net_model }}
+          IOS Version: {{ ansible_facts.net_version }}
+          Serial Number: {{ ansible_facts.net_serialnum }}
