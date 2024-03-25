@@ -30,13 +30,15 @@ def setup_network_devices(org_info_id):
             print(ip)
             result = subprocess.call(['ping', ip, '-c', '2'])
             online = result == 0
-            device = NetworkDevice.objects.create(
+            device, created = NetworkDevice.objects.update_or_create(
                 ip_address=ip,
-                model='',
-                username=org_info.ssh_username,
-                password=org_info.ssh_password,
-                enable_password=org_info.ssh_enable_password,
-                online=online
+                defaults={
+                    'model': '',
+                    'username': org_info.ssh_username,
+                    'password': org_info.ssh_password,
+                    'enable_password': org_info.ssh_enable_password,
+                    'online': online
+                }
             )
             device.save()
             host_file.write(f"switch{ip.split('.')[-1]} ansible_host={ip}\n")
