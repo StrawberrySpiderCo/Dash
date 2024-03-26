@@ -6,7 +6,7 @@ from django.contrib.staticfiles.views import serve
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
-from map.models import Device_Info
+from map.models import NetworkDevice
 from map.tasks import update_device_info_task
 from django.contrib.auth.decorators import user_passes_test
 
@@ -19,7 +19,7 @@ class IpForm(forms.Form):
 
 @login_required
 def device_details(request, device_id):
-    device = get_object_or_404(Device_Info, pk=device_id)
+    device = get_object_or_404(NetworkDevice, pk=device_id)
     return render(request, 'device_details.html', {'device': device})
 
 
@@ -30,11 +30,11 @@ def update_device_info(request):
     return redirect('network')
 @login_required
 def network_view(request):
-    device_info = Device_Info.objects.all()
-    unique_networks = set(device.networkName for device in device_info)
-    sorted_networks = sorted(unique_networks)
+    device_info = NetworkDevice.objects.all()
+    unique_networks = set(device.hostname for device in device_info)
+    #sorted_networks = sorted(unique_networks)
     context = {
-            'networks': sorted_networks,
+            #'networks': sorted_networks,
             'device_info': device_info
         }
     return render(request, 'network.html', context)

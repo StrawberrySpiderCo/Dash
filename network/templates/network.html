@@ -3,27 +3,15 @@
 {% csrf_token %}
 {% block title %}Network{% endblock %}
 {% block template %}
-<style>
-.enlargeable {
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    max-width: 200px;
-    height: auto;
-  }
-
-  .enlarged {
-    transform: scale(3);
-    max-width: none;
-    display: flex;
-  flex-direction: column;
-  padding-top: 10%;
-  padding-left: 35%;
-  padding-right: 17%;
-
-  }
-  </style>
 <div>
-<h1>Networks</h1>
+{% for device in device_info %}
+{% if device.hostname %}
+<li><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></li>
+{% endif %}
+{% endfor %}
+</div>
+
+<!-- MERAKI INFO DONT DELETE<h1>Networks</h1>
 
   {% for network in networks %}
 
@@ -49,6 +37,6 @@ Routers
         {% endfor %}
       </ul>
 
-  {% endfor %}
+  {% endfor %}-->
 
 {% endblock %}

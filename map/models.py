@@ -100,6 +100,7 @@ class NetworkDevice(models.Model):
     online = models.BooleanField(default=False)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
+    firmware_version = models.CharField(max_length=200, default='', null=True)
     enable_password = models.CharField(max_length=100, default='', null=True)
     device_type = models.CharField(max_length=200, default='', null=True)
 

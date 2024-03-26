@@ -9,7 +9,7 @@
 		<link rel="stylesheet" href="{% static 'assets/css/main.css' %}" />	
 		<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-zoom/1.7.21/jquery.zoom.min.js"></script>
-		<link rel="icon" type="image/x-icon" href="{% static 'images/Map_Photos/CSV_Grey_Logo.png' %}" />
+		<!--<link rel="icon" type="image/x-icon" href="{% static 'images/Map_Photos/CSV_Grey_Logo.png' %}" />-->
 	</head>
 	<body class="is-preload">
 
@@ -27,8 +27,8 @@
 									{% if user.is_authenticated %}
 									<p class="button top-button-right-mid" onclick="redirectToLogout()">Logout <i class="icon solid fa-user-slash"></i></p>
 									<p class="button top-button-right" onclick="history.back()">Back <i class="icon solid fa-backward"></i></a></p>
-									<ul class="icons">
-										<li><a href="https://github.com/Jtomlin2001/Public_CSV_Code" class="icon brands fa-github"><span class="label">Github</span></a></li>
+									<!--<ul class="icons">
+										<li><a href="https://github.com/Jtomlin2001/Public_CSV_Code" class="icon brands fa-github"><span class="label">Github</span></a></li>-->
 									{% else %}
 									<p class="button top-button-left-mid" onclick="redirectToLogin()">Login <i class="icon solid fa-key"></i></p>
 									<p class="button top-button-right" onclick="history.back()">Back <i class="icon solid fa-backward"></i></a></p>
