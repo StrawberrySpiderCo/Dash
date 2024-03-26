@@ -69,29 +69,36 @@ def setup_network_devices(org_info_id):
     if result.returncode == 0 or result.returncode == 2:
         # Process output to filter lines containing "msg"
         ansible_output_lines = result.stdout.split('\n')
+        print(ansible_output_lines)
         msg_lines = [line for line in ansible_output_lines if '"msg"' in line]
-    
+        print(msg_lines)
         # Print filtered "msg" lines
         for line in msg_lines:
-            print(line)
-        devices_info = json.loads(result)
-        for device_info in devices_info:
-            ip_address = device_info['ansible_host']
-            facts = device_info['ansible_facts']  # Extract ansible_facts dictionary
-            hostname = facts['net_hostname']  # Extract hostname
-            model = facts['net_model']  # Extract model
-            serial_number = facts['net_serialnum']  # Extract serial number
-            firmware_version = facts['net_version']  # Extract firmware version
-            print(f"test",ip_address, hostname, model, serial_number, firmware_version)
-            NetworkDevice.objects.update_or_create(
-                ip_address=ip_address,
-                defaults={
-                    'hostname': hostname,
-                    'model': model,
-                    'serial_number': serial_number,
-                    'firmware_version': firmware_version,
-                }
-            )
+            try:
+                line = line.replace("\\", "")
+                line = line.split('"msg": ')[-1].strip('"')
+                device_message = json.loads(line)
+                ip_address = device_message['Ip']
+                hostname = device_message['Hostname']  # Extract h
+                model = device_message['Model']  # Extract model
+                serial_number = device_message['Serial Number']  # Ext
+                firmware_version = device_message['IOS Version']  # Ex
+                NetworkDevice.objects.update_or_create(
+                    ip_address=ip_address,
+                    defaults={
+                        'hostname': hostname,
+                        'model': model,
+                        'serial_number': serial_number,
+                        'firmware_version': firmware_version,
+                    }
+                )
+            except json.JSONDecodeError as e:
+                print("JSON parsing error occurred:", e)
+                print("Input line:", line)
+            except Exception as e:
+                print("Error occurred:", e)
+                print("Input line:", line)
+
     else:
         print("Failed to execute Ansible playbook")
         #print(result.stdout)

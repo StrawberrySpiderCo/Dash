@@ -10,7 +10,4 @@
     - name: Print device information
       debug:
         msg: |
-          Hostname: {{ ansible_facts.net_hostname }}
-          Model: {{ ansible_facts.net_model }}
-          IOS Version: {{ ansible_facts.net_version }}
-          Serial Number: {{ ansible_facts.net_serialnum }}
+          "{"Ip": "{{ ansible_host }}", "Hostname": "{{ ansible_facts.net_hostname }}", "Model": "{{ ansible_facts.net_model }}", "IOS Version": "{{ ansible_facts.net_version }}", "Serial Number": "{{ ansible_facts.net_serialnum }}"}"
