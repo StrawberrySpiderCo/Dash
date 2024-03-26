@@ -32,7 +32,7 @@ def setup_network_devices(org_info_id):
             print(ip)
             result = subprocess.call(['ping', ip, '-c', '2'])
             online = result == 0
-            device = NetworkDevice.objects.update_or_create(
+            device, created = NetworkDevice.objects.update_or_create(
                 ip_address=ip,
                 defaults={
                     'model': '',
