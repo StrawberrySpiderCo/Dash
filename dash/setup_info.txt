@@ -1,7 +1,7 @@
-Org Name: testere
+Org Name: Hamster tester
 Website IP: 192.168.0.88
 Site Count: 2
-Contact Email: jtomlin2001@gmail.com
+Contact Email: Hammy@gmail.com
 Contact Phone: 6612059590
 Network Device IPs:
 - 192.168.0.51
