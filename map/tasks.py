@@ -32,7 +32,7 @@ def setup_network_devices(org_info_id):
             print(ip)
             result = subprocess.call(['ping', ip, '-c', '2'])
             online = result == 0
-            device, created = NetworkDevice.objects.update_or_create(
+            device = NetworkDevice.objects.update_or_create(
                 ip_address=ip,
                 defaults={
                     'model': '',
@@ -51,11 +51,11 @@ def setup_network_devices(org_info_id):
     ansible_config = {
         'ansible_network_os': 'ios',
         'ansible_connection': 'network_cli',
-        'ansible_user': org_info.ssh_username,  # Use user from Django model
-        'ansible_ssh_pass': org_info.ssh_password,  # Use password from Django model
+        'ansible_user': org_info.ssh_username,
+        'ansible_ssh_pass': org_info.ssh_password,
         'ansible_become': 'yes',
         'ansible_become_method': 'enable',
-        'ansible_become_pass': org_info.ssh_enable_password,  # Use password from Django model,
+        'ansible_become_pass': org_info.ssh_enable_password,
     }
     
     # Convert ansible_config to JSON string
@@ -82,17 +82,16 @@ def setup_network_devices(org_info_id):
                         print(f"{ip} - {fatal_line}")
         except:
             print("No Errors")
-        # Print filtered "msg" lines
         for line in msg_lines:
             try:
                 line = line.replace("\\", "")
                 line = line.split('"msg": ')[-1].strip('"')
                 device_message = json.loads(line)
                 ip_address = device_message['Ip']
-                hostname = device_message['Hostname']  # Extract h
-                model = device_message['Model']  # Extract model
-                serial_number = device_message['Serial Number']  # Ext
-                firmware_version = device_message['IOS Version']  # Ex
+                hostname = device_message['Hostname']
+                model = device_message['Model'] 
+                serial_number = device_message['Serial Number'] 
+                firmware_version = device_message['IOS Version']
                 NetworkDevice.objects.update_or_create(
                     ip_address=ip_address,
                     defaults={
