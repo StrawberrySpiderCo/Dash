@@ -69,9 +69,19 @@ def setup_network_devices(org_info_id):
     if result.returncode == 0 or result.returncode == 2:
         # Process output to filter lines containing "msg"
         ansible_output_lines = result.stdout.split('\n')
-        print(ansible_output_lines)
         msg_lines = [line for line in ansible_output_lines if '"msg"' in line]
-        print(msg_lines)
+        fatal_lines = [line for line in ansible_output_lines if 'fatal' in line]
+        try:
+            for fatal_line in fatal_lines:
+                for ip in network_ips:
+                    if ip in fatal_line:
+                        fatal_line = fatal_line.replace("\\", "")
+                        fatal_line = fatal_line.split('"msg": ')[-1].strip('"')
+                        fatal_line = fatal_line.replace('"', "")
+                        fatal_line = fatal_line.replace('}','')
+                        print(f"{ip} - {fatal_line}")
+        except:
+            print("No Errors")
         # Print filtered "msg" lines
         for line in msg_lines:
             try:
@@ -93,8 +103,7 @@ def setup_network_devices(org_info_id):
                     }
                 )
             except json.JSONDecodeError as e:
-                print("JSON parsing error occurred:", e)
-                print("Input line:", line)
+                pass
             except Exception as e:
                 print("Error occurred:", e)
                 print("Input line:", line)
