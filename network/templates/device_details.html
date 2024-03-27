@@ -3,24 +3,25 @@
 {% csrf_token %}
 {% block title %}Network{% endblock %}
 {% block template %}
-<button>
-  <a  style="color: rgb(0, 0, 0) !important; text-decoration: none;" href="{% url 'update_device_info' %}">Update Device Info</a>
-</button>
+<div>
 
-<h1>{{device.hostname}} Details</h1>
+
+<h1>{{device.hostname}} Details:</h1>
+<p>Device IP: {{device.ip_address }}</p>
 <p>Device SN: {{device.serial_number }}</p>
-<p>Device Mac: {{device.mac }}</p>
+<p>Device Firmware: {{device.firmware_version}}</p>
+<p>Device Online {{device.online}}</p>
+<p>Device Model: {{device.model }}</p>
 <!-- MERAKI
   {% if device.url %}
     <p>Device Link: <a  style="color: rgb(113, 104, 231) !important; text-decoration: none;" href="{{ device.url }}" target="_blank">{{ device.url }}</a></p>
 {% endif %}
 <p>Device Network ID: {{device.networkId }}</p>
 -->
-<p>Device Model: {{device.model }}</p>
-<p>Device Firmware: {{device.firmware}}</p>
-<p>Device Product Type: {{device.productType }}</p>
-<p>Device Network Name: {{device.networkName}}</p>
 
 
-</body>
-</html>
+</div>
+<button>
+  <a href="{% url 'update_device_info' %}">Update Device Info</a>
+</button>
+{% endblock %}
