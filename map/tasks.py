@@ -121,6 +121,8 @@ def setup_github_repo(org_info_id):
 
     
     if github_token:
+        git_update = subprocess.run(['git', 'pull', f'https://x-access-token:{github_token}/StrawberrySpiderCo/Dash'])
+        migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
         repo_name = org_info.org_name.lower().replace(" ", "-")
         org_info.repo_name = f"{repo_name}-dash"
         org_info.save()
