@@ -15,6 +15,7 @@ import json
 import os
 from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
+from dash.ansible_methods import run_ansible_playbook
 load_dotenv()
 
 
@@ -48,68 +49,97 @@ def setup_network_devices(org_info_id):
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
-    ansible_config = {
-        'ansible_network_os': 'ios',
-        'ansible_connection': 'network_cli',
-        'ansible_user': org_info.ssh_username,
-        'ansible_ssh_pass': org_info.ssh_password,
-        'ansible_become': 'yes',
-        'ansible_become_method': 'enable',
-        'ansible_become_pass': org_info.ssh_enable_password,
-    }
-    
-    # Convert ansible_config to JSON string
-    extra_vars = json.dumps(ansible_config)
-
-    ansible_command = ['/home/sbs/.local/bin/ansible-playbook', '/home/sbs/Dash/ansible/get_all_info.yml', '-i', '/home/sbs/Dash/ansible/hosts.ini', '-e', extra_vars]
-    # Run Ansible playbook command
-    result = subprocess.run(ansible_command, capture_output=True, text=True)
-    
-    # Check the return code of the Ansible command
-    if result.returncode == 0 or result.returncode == 2:
-        # Process output to filter lines containing "msg"
-        ansible_output_lines = result.stdout.split('\n')
-        msg_lines = [line for line in ansible_output_lines if '"msg"' in line]
-        fatal_lines = [line for line in ansible_output_lines if 'fatal' in line]
-        try:
-            for fatal_line in fatal_lines:
-                for ip in network_ips:
-                    if ip in fatal_line:
-                        fatal_line = fatal_line.replace("\\", "")
-                        fatal_line = fatal_line.split('"msg": ')[-1].strip('"')
-                        fatal_line = fatal_line.replace('"', "")
-                        fatal_line = fatal_line.replace('}','')
-                        print(f"{ip} - {fatal_line}")
-        except:
-            print("No Errors")
-        for line in msg_lines:
-            try:
-                line = line.replace("\\", "")
-                line = line.split('"msg": ')[-1].strip('"')
-                device_message = json.loads(line)
-                ip_address = device_message['Ip']
-                hostname = device_message['Hostname']
-                model = device_message['Model'] 
-                serial_number = device_message['Serial Number'] 
-                firmware_version = device_message['IOS Version']
-                NetworkDevice.objects.update_or_create(
+    ansible_results = run_ansible_playbook('get_setup_info')
+    ansible_results = json.dumps(ansible_results)
+    for runners_on_ok in ansible_results['runner_on_ok']:
+        ip_address = (runners_on_ok['hostname'])
+        ansible_data = runners_on_ok['task_result']['ansible_facts']
+        hostname = ansible_data['ansible_net_hostname']
+        model = ansible_data['ansible_net_model']
+        firmware_version = ansible_data['ansible_net_version']
+        serial_number = ansible_data['ansible_net_serialnum']
+        image = ansible_data['ansible_net_image']
+        NetworkDevice.objects.update_or_create(
                     ip_address=ip_address,
                     defaults={
                         'hostname': hostname,
                         'model': model,
                         'serial_number': serial_number,
                         'firmware_version': firmware_version,
+                        'image': image,
+                        'ansible_status': 'runner_on_ok'
                     }
                 )
-            except json.JSONDecodeError as e:
-                pass
-            except Exception as e:
-                print("Error occurred:", e)
-                print("Input line:", line)
 
-    else:
-        print("Failed to execute Ansible playbook")
-        #print(result.stdout)
+    for runners_on_failed in ansible_results['runner_on_failed']:
+        NetworkDevice.objects.update_or_create(
+                    ip_address=ip_address,
+                    defaults={
+                        'ansible_status': 'runner_on_failed'
+                    }
+                )
+    #ansible_config = {
+    #    'ansible_network_os': 'ios',
+    #    'ansible_connection': 'network_cli',
+    #    'ansible_user': org_info.ssh_username,
+    #    'ansible_ssh_pass': org_info.ssh_password,
+    #    'ansible_become': 'yes',
+    #    'ansible_become_method': 'enable',
+    #    'ansible_become_pass': org_info.ssh_enable_password,
+    #}
+    #
+    ## Convert ansible_config to JSON string
+    #extra_vars = json.dumps(ansible_config)
+#
+    #ansible_command = ['/home/sbs/.local/bin/ansible-playbook', '/home/sbs/Dash/ansible/get_all_info.yml', '-i', '/home/sbs/Dash/ansible/hosts.ini', '-e', extra_vars]
+    ## Run Ansible playbook command
+    #result = subprocess.run(ansible_command, capture_output=True, text=True)
+    #
+    ## Check the return code of the Ansible command
+    #if result.returncode == 0 or result.returncode == 2:
+    #    # Process output to filter lines containing "msg"
+    #    ansible_output_lines = result.stdout.split('\n')
+    #    msg_lines = [line for line in ansible_output_lines if '"msg"' in line]
+    #    fatal_lines = [line for line in ansible_output_lines if 'fatal' in line]
+    #    try:
+    #        for fatal_line in fatal_lines:
+    #            for ip in network_ips:
+    #                if ip in fatal_line:
+    #                    fatal_line = fatal_line.replace("\\", "")
+    #                    fatal_line = fatal_line.split('"msg": ')[-1].strip('"')
+    #                    fatal_line = fatal_line.replace('"', "")
+    #                    fatal_line = fatal_line.replace('}','')
+    #                    print(f"{ip} - {fatal_line}")
+    #    except:
+    #        print("No Errors")
+    #    for line in msg_lines:
+    #        try:
+    #            line = line.replace("\\", "")
+    #            line = line.split('"msg": ')[-1].strip('"')
+    #            device_message = json.loads(line)
+    #            ip_address = device_message['Ip']
+    #            hostname = device_message['Hostname']
+    #            model = device_message['Model'] 
+    #            serial_number = device_message['Serial Number'] 
+    #            firmware_version = device_message['IOS Version']
+    #            NetworkDevice.objects.update_or_create(
+    #                ip_address=ip_address,
+    #                defaults={
+    #                    'hostname': hostname,
+    #                    'model': model,
+    #                    'serial_number': serial_number,
+    #                    'firmware_version': firmware_version,
+    #                }
+    #            )
+    #        except json.JSONDecodeError as e:
+    #            pass
+    #        except Exception as e:
+    #            print("Error occurred:", e)
+    #            print("Input line:", line)
+#
+    #else:
+    #    print("Failed to execute Ansible playbook")
+    #    #print(result.stdout)
 
 @shared_task
 def setup_github_repo(org_info_id):

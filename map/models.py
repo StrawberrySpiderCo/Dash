@@ -92,17 +92,19 @@ class Client_Info(models.Model):
     pskGroup = models.CharField(max_length=100)
 
 class NetworkDevice(models.Model):
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    enable_password = models.CharField(max_length=100, default='', null=True)
     ip_address = models.CharField(max_length=200)
     model = models.CharField(max_length=200, default='', null=True)
     hostname = models.CharField(max_length=200, default='', null=True)
     make = models.CharField(max_length=200, default='', null=True)
     serial_number = models.CharField(max_length=200, default='', null=True)
     online = models.BooleanField(default=False)
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
     firmware_version = models.CharField(max_length=200, default='', null=True)
-    enable_password = models.CharField(max_length=100, default='', null=True)
     device_type = models.CharField(max_length=200, default='', null=True)
+    image = models.CharField(max_length=200, default='', null=True)
+    ansible_status = models.CharField(max_length=200, default='', null=True)
 
     def __str__(self):
         return self.ip_address
