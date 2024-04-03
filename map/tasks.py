@@ -50,10 +50,9 @@ def setup_network_devices(org_info_id):
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
     ansible_results = run_ansible_playbook('get_setup_info')
-    ansible_results = json.dumps(ansible_results)
-    for runners_on_ok in ansible_results['runner_on_ok']:
-        ip_address = (runners_on_ok['hostname'])
-        ansible_data = runners_on_ok['task_result']['ansible_facts']
+    for runner_on_ok in ansible_results['runner_on_ok']:
+        ip_address = (runner_on_ok['hostname'])
+        ansible_data = runner_on_ok['task_result']['ansible_facts']
         hostname = ansible_data['ansible_net_hostname']
         model = ansible_data['ansible_net_model']
         firmware_version = ansible_data['ansible_net_version']
@@ -71,11 +70,14 @@ def setup_network_devices(org_info_id):
                     }
                 )
 
-    for runners_on_failed in ansible_results['runner_on_failed']:
+    for runner_on_failed in ansible_results['runner_on_failed']:
+        ip_address = (runner_on_failed['hostname'])
+        ansible_data = runner_on_failed['task_result']
+        error_msg = ansible_data['msg']
         NetworkDevice.objects.update_or_create(
                     ip_address=ip_address,
                     defaults={
-                        'ansible_status': 'runner_on_failed'
+                        'ansible_status': error_msg
                     }
                 )
     #ansible_config = {

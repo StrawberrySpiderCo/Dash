@@ -33,7 +33,7 @@ def run_ansible_playbook(playbook):
             inventory='/home/sbs/Dash/ansible/hosts.ini',
             quiet=True,
             extravars=ansible_config,
-            suppress_env_files=True
+            suppress_env_files=True,
         )
         for i in r.events:
             if i['event'] == 'runner_on_ok':
