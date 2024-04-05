@@ -86,22 +86,26 @@ def setup_network_devices(org_info_id):
                 config_text=running_config
             )
         for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
-            # Create a NetworkInterface object
-            NetworkInterface.objects.create(
-                device=net_device,
+            defaults = {
+                'device': net_device,
+                'description': interface_data['description'],
+                'mac_address': interface_data['macaddress'],
+                'mtu': interface_data['mtu'],
+                'bandwidth': interface_data['bandwidth'],
+                'media_type': interface_data['mediatype'],
+                'duplex': interface_data['duplex'],
+                'line_protocol': interface_data['lineprotocol'],
+                'oper_status': interface_data['operstatus'],
+                'interface_type': interface_data['type'],
+                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
+                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+            }
+            # Create or update the NetworkInterface object
+            obj, created = NetworkInterface.objects.update_or_create(
                 name=interface_name,
-                description=interface_data['description'],
-                mac_address=interface_data['macaddress'],
-                mtu=interface_data['mtu'],
-                bandwidth=interface_data['bandwidth'],
-                media_type=interface_data['mediatype'],
-                duplex=interface_data['duplex'],
-                line_protocol=interface_data['lineprotocol'],
-                oper_status=interface_data['operstatus'],
-                interface_type=interface_data['type'],
-                ipv4_address=interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
-                ipv4_subnet=interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+                defaults=defaults
             )
+        
     for runner_on_failed in ansible_results['runner_on_failed']:
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
