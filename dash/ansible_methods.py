@@ -1,6 +1,7 @@
 import ansible_runner
 import json
 from map.models import Org_Info
+import shutil
 
 class AnsiblePlaybookRunError(Exception):
     pass
@@ -52,6 +53,7 @@ def run_ansible_playbook(playbook):
                 output["runner_on_failed"].append(failed_task)
             elif i['event'] == 'warning' and '[WARNING]: Could not match supplied host pattern, ignoring: network_devices' in i['stdout']:
                 raise AnsiblePlaybookRunError("Host Pattern Not Found")
+        cleanup_artifacts_folder()
         return(output)
     except FileNotFoundError as fnf_err:
         raise AnsiblePlaybookRunError(f"File not found error: {str(fnf_err)}")
@@ -59,3 +61,14 @@ def run_ansible_playbook(playbook):
         raise e
     except Exception as e:
         raise AnsiblePlaybookRunError(f"An error occurred: {str(e)}")
+
+
+def cleanup_artifacts_folder():
+    artifacts_folder = '/home/sbs/Dash/ansible/artifacts'
+    try:
+        # Delete the entire artifacts folder and its contents
+        shutil.rmtree(artifacts_folder)
+        print("Artifacts folder deleted successfully.")
+    except Exception as e:
+        print(f"Error deleting artifacts folder: {e}")
+

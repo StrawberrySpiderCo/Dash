@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice
+from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig
 from django.db import IntegrityError
 from time import sleep
 import subprocess
@@ -18,6 +18,22 @@ from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 load_dotenv()
 
+@shared_task
+def gather_all_running_configs():
+    ansible_results = run_ansible_playbook('get_all')
+    for runner_on_ok in ansible_results['runner_on_ok']:
+        ip_address = (runner_on_ok['hostname'])
+        ansible_data = runner_on_ok['task_result']['ansible_facts']
+        running_config = ansible_data['ansible_net_config']
+        device = NetworkDevice.objects.get(ip_address=ip_address)
+        RunningConfig.objects.create(
+            device=device,
+            config_text=running_config
+        )
+    for runner_on_failed in ansible_results['runner_on_failed']:
+        ip_address = (runner_on_failed['hostname'])
+        ansible_data = runner_on_failed['task_result']
+        error_msg = ansible_data['msg']
 
 @shared_task
 def setup_network_devices(org_info_id):
@@ -48,7 +64,7 @@ def setup_network_devices(org_info_id):
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
-    ansible_results = run_ansible_playbook('get_setup_info')
+    ansible_results = run_ansible_playbook('get_all')
     for runner_on_ok in ansible_results['runner_on_ok']:
         ip_address = (runner_on_ok['hostname'])
         ansible_data = runner_on_ok['task_result']['ansible_facts']
@@ -57,17 +73,19 @@ def setup_network_devices(org_info_id):
         firmware_version = ansible_data['ansible_net_version']
         serial_number = ansible_data['ansible_net_serialnum']
         image = ansible_data['ansible_net_image']
-        NetworkDevice.objects.update_or_create(
-                    ip_address=ip_address,
-                    defaults={
-                        'hostname': hostname,
-                        'model': model,
-                        'serial_number': serial_number,
-                        'firmware_version': firmware_version,
-                        'image': image,
-                        'ansible_status': 'runner_on_ok'
-                    }
-                )
+        running_config = ansible_data['ansible_net_config']
+        net_device = NetworkDevice.objects.get(ip_address=ip_address)
+        net_device.hostname = hostname
+        net_device.model = model
+        net_device.serial_number = serial_number
+        net_device.firmware_version = firmware_version
+        net_device.image = image
+        net_device.ansible_status = 'runner_on_ok'
+        net_device.save()
+        RunningConfig.objects.create(
+                device=net_device,
+                config_text=running_config
+            )
     for runner_on_failed in ansible_results['runner_on_failed']:
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']

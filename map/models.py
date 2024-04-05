@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class Markers(models.Model):
     name = models.CharField(max_length=100)
@@ -108,6 +109,37 @@ class NetworkDevice(models.Model):
 
     def __str__(self):
         return self.ip_address
+    
+
+class RunningConfig(models.Model):
+    """
+    Model to store the running configuration of a network device.
+    """
+
+    # Foreign key to link each configuration to its corresponding device
+    device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='running_configs')
+
+    # Text field to store the actual configuration content
+    config_text = models.TextField()
+
+    # Timestamp to track when the configuration was created
+    created_at = models.DateTimeField(default=timezone.now)
+    
+    class Meta:
+        """
+        Meta class to define additional properties for the model.
+        """
+        # Name for the database table
+        db_table = 'running_configs'
+
+        # Ordering of instances by creation time, with most recent first
+        ordering = ['-created_at']
+
+    def __str__(self):
+        """
+        Method to represent instances of this model as strings.
+        """
+        return f"Configuration for {self.device} created at {self.created_at}"
 
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
