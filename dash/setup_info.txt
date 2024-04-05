@@ -1,8 +1,8 @@
-Org Name: Hotdog Grill
+Org Name: Test Tester
 Website IP: 192.168.0.88
-Site Count: 4
-Contact Email: Hamsterman@gmail.com
-Contact Phone: 66120535950
+Site Count: 2
+Contact Email: test@gmail.com
+Contact Phone: 6612059590
 Network Device IPs:
 - 192.168.0.51
 - 192.168.0.52
