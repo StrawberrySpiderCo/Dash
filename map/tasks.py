@@ -102,10 +102,11 @@ def setup_network_devices(org_info_id):
             }
             # Create or update the NetworkInterface object
             obj, created = NetworkInterface.objects.update_or_create(
+                device=net_device,
                 name=interface_name,
                 defaults=defaults
             )
-        
+
     for runner_on_failed in ansible_results['runner_on_failed']:
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
