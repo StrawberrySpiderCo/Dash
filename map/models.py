@@ -110,6 +110,23 @@ class NetworkDevice(models.Model):
     def __str__(self):
         return self.ip_address
     
+class NetworkInterface(models.Model):
+    device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='interfaces')
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=255, null=True, blank=True)
+    mac_address = models.CharField(max_length=17, null=True, blank=True) 
+    mtu = models.PositiveIntegerField()
+    bandwidth = models.PositiveIntegerField()
+    media_type = models.CharField(max_length=50, null=True, blank=True)
+    duplex = models.CharField(max_length=50, null=True, blank=True)
+    line_protocol = models.CharField(max_length=50, null=True, blank=True)
+    oper_status = models.CharField(max_length=50, null=True, blank=True)
+    interface_type = models.CharField(max_length=50, null=True, blank=True)
+    ipv4_address = models.CharField(max_length=50, null=True, blank=True)
+    ipv4_subnet = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.device} - {self.name}"
 
 class RunningConfig(models.Model):
     """
@@ -124,7 +141,7 @@ class RunningConfig(models.Model):
 
     # Timestamp to track when the configuration was created
     created_at = models.DateTimeField(default=timezone.now)
-    
+
     class Meta:
         """
         Meta class to define additional properties for the model.

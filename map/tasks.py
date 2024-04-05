@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig
+from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig, NetworkInterface
 from django.db import IntegrityError
 from time import sleep
 import subprocess
@@ -60,7 +60,6 @@ def setup_network_devices(org_info_id):
             )
             device.save()
             host_file.write(f"{ip} ansible_host={ip}\n")
-        
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
@@ -85,6 +84,23 @@ def setup_network_devices(org_info_id):
         RunningConfig.objects.create(
                 device=net_device,
                 config_text=running_config
+            )
+        for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+            # Create a NetworkInterface object
+            NetworkInterface.objects.create(
+                device=net_device,
+                name=interface_name,
+                description=interface_data['description'],
+                mac_address=interface_data['macaddress'],
+                mtu=interface_data['mtu'],
+                bandwidth=interface_data['bandwidth'],
+                media_type=interface_data['mediatype'],
+                duplex=interface_data['duplex'],
+                line_protocol=interface_data['lineprotocol'],
+                oper_status=interface_data['operstatus'],
+                interface_type=interface_data['type'],
+                ipv4_address=interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
+                ipv4_subnet=interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
             )
     for runner_on_failed in ansible_results['runner_on_failed']:
         ip_address = (runner_on_failed['hostname'])
