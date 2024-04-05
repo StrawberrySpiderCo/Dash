@@ -7,11 +7,11 @@
 */
 :root {
   --header-color: #3d4449;
-  --text-color: #7f888f;
+  --text-color: #EFF1F2;
   --border-color: #587667;
   --background-color: #ffffff;
-  --left-menu-color: #e8bb06;
-  --left-menu-header-color: #7f888f;
+  --left-menu-color: #F5F6F7;
+  --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
   --font-family: 'Quicksand', sans-serif;
 }
@@ -1210,7 +1210,7 @@ input[type="radio"] + label:before {
     text-rendering: auto;
     line-height: 1;
     text-transform: none !important;
-    font-family: var(--font-family);
+    font-family: 'Font Awesome 5 Free';
     font-weight: 400; }
   .icon > .label {
     display: none; }
@@ -1219,7 +1219,7 @@ input[type="radio"] + label:before {
   .icon.solid:before {
     font-weight: 900; }
   .icon.brands:before {
-    font-family: var(--font-family); }
+    font-family: 'Font Awesome 5 Brands'; }
 
 /* Image */
 .image {
@@ -1387,7 +1387,7 @@ ul.contact {
       text-rendering: auto;
       line-height: 1;
       text-transform: none !important;
-      font-family: var(--font-family);
+      font-family: 'Font Awesome 5 Free';
       font-weight: 400; }
     ul.contact li:before {
       color: var(--border-color);
@@ -1920,7 +1920,7 @@ button,
     text-rendering: auto;
     line-height: 1;
     text-transform: none !important;
-    font-family: var(--font-family);
+    font-family: 'Font Awesome 5 Free';
     font-weight: 900; }
   #search form:before {
     -moz-transform: scaleX(-1);
@@ -2013,7 +2013,7 @@ button,
       text-rendering: auto;
       line-height: 1;
       text-transform: none !important;
-      font-family: var(--font-family);
+      font-family: 'Font Awesome 5 Free';
       font-weight: 900; }
     #sidebar .toggle:before {
       content: '\f0c9';
@@ -2267,7 +2267,7 @@ button,
         text-rendering: auto;
         line-height: 1;
         text-transform: none !important;
-        font-family: var(--font-family);
+        font-family: 'Font Awesome 5 Free';
         font-weight: 900; }
       #menu ul a.opener:before, #menu ul span.opener:before {
         -moz-transition: color 0.2s ease-in-out, -moz-transform 0.2s ease-in-out;
