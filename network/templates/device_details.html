@@ -3,25 +3,91 @@
 {% csrf_token %}
 {% block title %}{{device.hostname}}{% endblock %}
 {% block template %}
-<div>
+<style>
+.switch {
+    width: 300px;
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.ports {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.port {
+    width: 70px;
+    height: 70px;
+    background-color: #ccc;
+    border: 1px solid #999;
+    border-radius: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+}
+
+.port:hover {
+    background-color: #ddd;
+}
+
+/* Top ports */
+.port-top {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Bottom ports */
+.port-bottom {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+/* Styling for port names */
+.port-name {
+    transform: rotate(-90deg);
+}
 
 
-<h1>{{device.hostname}} Details:</h1>
-<p>Device IP: {{device.ip_address }}</p>
-<p>Device SN: {{device.serial_number }}</p>
-<p>Device Firmware: {{device.firmware_version}}</p>
-<p>Device Online {{device.online}}</p>
-<p>Device Model: {{device.model }}</p>
-<!-- MERAKI
-  {% if device.url %}
-    <p>Device Link: <a  style="color: rgb(113, 104, 231) !important; text-decoration: none;" href="{{ device.url }}" target="_blank">{{ device.url }}</a></p>
-{% endif %}
-<p>Device Network ID: {{device.networkId }}</p>
--->
+</style>
+<header>
+  <h1>{{ device.hostname }} - {{ device.ip_address }}</h1>
+</header>
 
-
+<div class="switch">
+  <div class="ports">
+      {% for interface in device_interfaces %}
+          <div class="port {% if forloop.counter <= 4 %}port-top{% else %}port-bottom{% endif %}">
+              <span class="port-name">{{ interface.name }}</span>
+          </div>
+      {% endfor %}
+  </div>
 </div>
-<button>
-  <a href="{% url 'update_device_info' %}">Update Device Info</a>
-</button>
+
+
+
+<div id="device-details">
+  <h2>Device Details</h2>
+  <table>
+      <tr>
+          <th>Model:</th>
+          <td>{{ device.model }}</td>
+      </tr>
+      <tr>
+          <th>Firmware:</th>
+          <td>{{ device.firmware_version }}</td>
+      </tr>
+      <tr>
+          <th>Serial:</th>
+          <td>{{ device.serial_number }}</td>
+      </tr>
+      <tr>
+          <th>Image:</th>
+          <td>{{ device.image }}</td>
+      </tr>
+      <!-- Add more details as needed -->
+  </table>
+</div>
 {% endblock %}

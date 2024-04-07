@@ -6,7 +6,7 @@ from django.contrib.staticfiles.views import serve
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
-from map.models import NetworkDevice
+from map.models import NetworkDevice, NetworkInterface
 from map.tasks import update_device_info_task
 from django.contrib.auth.decorators import user_passes_test
 
@@ -20,7 +20,8 @@ class IpForm(forms.Form):
 @login_required
 def device_details(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
-    return render(request, 'device_details.html', {'device': device})
+    device_interfaces = NetworkInterface.objects.filter(device=device)
+    return render(request, 'device_details.html', {'device': device, 'device_interfaces':device_interfaces})
 
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
