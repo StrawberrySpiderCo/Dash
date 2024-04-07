@@ -3,13 +3,64 @@
 {% csrf_token %}
 {% block title %}Network{% endblock %}
 {% block template %}
-<div>
-{% for device in device_info %}
-{% if device.hostname %}
-<li><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></li>
-{% endif %}
-{% endfor %}
-</div>
+<!-- Include jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<!-- Include DataTables CSS -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+
+<!-- Include DataTables JavaScript -->
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.js"></script>
+
+<h2>Network</h2>
+
+<table id="routersTable">
+  <thead>
+    <tr>
+      <th>Routers</th>
+      <th>Status</th>
+      <th>IP</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for device in device_info %}
+    <tr>
+      {% if device.hostname %}
+      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></td>
+      <td>{% if device.online %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
+      <td>{{ device.ip_address }}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </tbody>
+</table>
+
+<table id="switchesTable">
+  <thead>
+    <tr>
+      <th>Switches</th>
+      <th>Status</th>
+      <th>IP</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for device in device_info %}
+    <tr>
+      <td>{{ device.hostname }}</td>
+      <td>{% if device.online %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
+      <td>{{ device.ip_address }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  $(document).ready( function () {
+      $('#routersTable').DataTable();
+      $('#switchesTable').DataTable();
+  });
+  </script>
+  
 
 <!-- MERAKI INFO DONT DELETE<h1>Networks</h1>
 

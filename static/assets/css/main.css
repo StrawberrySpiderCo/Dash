@@ -7,13 +7,13 @@
 */
 :root {
   --header-color: #3d4449;
-  --text-color: #EFF1F2;
+  --text-color: #7f888f;
   --border-color: #587667;
   --background-color: #ffffff;
   --left-menu-color: #F5F6F7;
   --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
-  --font-family: 'Quicksand', sans-serif;
+  --font-family: "Roboto Slab", serif;
 }
 
 html, body, div, span, applet, object,

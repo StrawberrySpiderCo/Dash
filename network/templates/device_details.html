@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
-{% block title %}Network{% endblock %}
+{% block title %}{{device.hostname}}{% endblock %}
 {% block template %}
 <div>
 
