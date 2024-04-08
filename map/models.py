@@ -124,6 +124,7 @@ class NetworkInterface(models.Model):
     interface_type = models.CharField(max_length=50, null=True, blank=True)
     ipv4_address = models.CharField(max_length=50, null=True, blank=True)
     ipv4_subnet = models.CharField(max_length=50, null=True, blank=True)
+    short_name = models.CharField(max_length=17, null=True, blank=True)
 
     def __str__(self):
         return f"{self.device} - {self.name}"

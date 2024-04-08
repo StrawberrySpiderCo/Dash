@@ -16,6 +16,7 @@ import os
 from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
+from netutils.interface import abbreviated_interface_name
 load_dotenv()
 
 @shared_task
@@ -86,6 +87,7 @@ def setup_network_devices(org_info_id):
                 config_text=running_config
             )
         for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+            short_name = abbreviated_interface_name(interface_name)
             defaults = {
                 'device': net_device,
                 'description': interface_data['description'],
@@ -99,6 +101,7 @@ def setup_network_devices(org_info_id):
                 'interface_type': interface_data['type'],
                 'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
                 'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+                'short_name': short_name
             }
             # Create or update the NetworkInterface object
             obj, created = NetworkInterface.objects.update_or_create(

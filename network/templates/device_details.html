@@ -16,39 +16,53 @@
     flex-wrap: wrap;
     gap: 10px;
 }
+/* Styles for the port details pop-up */
+.port-details {
+    display: none;
+    position: relative;
+    bottom: 0%;
+    left: 0%;
+    width: 100%;
+    background-color: white;
+    border: 1px solid black;
+    padding: 20px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 9999; /* Ensure the pop-up appears on top */
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+}
+
 
 .port {
     width: 70px;
     height: 70px;
     background-color: #ccc;
     border: 1px solid #999;
+    color: black;
     border-radius: 5px;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 12px;
 }
+.port.up {
+    background-color: green;
+}
+
+.port.down {
+    background-color: red;
+}
 
 .port:hover {
     background-color: #ddd;
+    cursor: pointer;
 }
 
-/* Top ports */
-.port-top {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-}
-
-/* Bottom ports */
-.port-bottom {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-}
-
-/* Styling for port names */
-.port-name {
-    transform: rotate(-90deg);
-}
 
 
 </style>
@@ -57,15 +71,37 @@
 </header>
 
 <div class="switch">
-  <div class="ports">
-      {% for interface in device_interfaces %}
-          <div class="port {% if forloop.counter <= 4 %}port-top{% else %}port-bottom{% endif %}">
-              <span class="port-name">{{ interface.name }}</span>
-          </div>
-      {% endfor %}
-  </div>
+    <div class="ports">
+        {% for interface in device_interfaces %}
+            {% if forloop.counter0|divisibleby:2 %}
+                <div class="port-row">
+            {% endif %}
+            <div class="port {% if interface.oper_status == 'up' %}up{% else %}down{% endif %}" data-port-id="{{ interface.id }}">{{ interface.short_name }}</div>
+            {% if forloop.counter|divisibleby:2 or forloop.last %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
 </div>
 
+{% for interface in device_interfaces %}
+<div id="port-details-{{ interface.id }}" class="port-details" style="display: none;">
+    <!-- Port details content goes here -->
+    <p>Name: {{ interface.name }}</p>
+    <p>Description: {{ interface.description }}</p>
+    <p>MAC Address: {{ interface.mac_address }}</p>
+    <p>MTU: {{ interface.mtu }}</p>
+    <p>Bandwidth: {{ interface.bandwidth }}</p>
+    <p>Media Type: {{ interface.media_type }}</p>
+    <p>Duplex: {{ interface.duplex }}</p>
+    <p>Line Protocol: {{ interface.line_protocol }}</p>
+    <p>Operational Status: {{ interface.oper_status }}</p>
+    <p>Interface Type: {{ interface.interface_type }}</p>
+    <p>IPv4 Address: {{ interface.ipv4_address }}</p>
+    <p>IPv4 Subnet: {{ interface.ipv4_subnet }}</p>
+    <button class="close-btn">Close</button>
+</div>
+{% endfor %}
 
 
 <div id="device-details">
@@ -90,4 +126,35 @@
       <!-- Add more details as needed -->
   </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ports = document.querySelectorAll('.port');
+
+    ports.forEach(port => {
+        port.addEventListener('click', function() {
+            const portId = this.dataset.portId;
+            const portDetails = document.getElementById(`port-details-${portId}`);
+
+            // Toggle the visibility of the port details
+            if (portDetails.style.display === 'none') {
+                portDetails.style.display = 'block';
+            } else {
+                portDetails.style.display = 'none';
+            }
+        });
+    });
+
+    // Close button functionality
+    const closeButtons = document.querySelectorAll('.close-btn');
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const portDetails = this.parentElement;
+            portDetails.style.display = 'none';
+        });
+    });
+});
+
+</script>
 {% endblock %}
