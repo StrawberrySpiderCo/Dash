@@ -5,24 +5,29 @@
 {% block template %}
 <style>
 .switch {
-    width: 300px;
+    width: auto;
     background-color: #f0f0f0;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 10px;flex-wrap: wrap;
 }
 
 .ports {
     display: flex;
     flex-wrap: wrap;
+    display: grid; /* Use CSS Grid instead of Flexbox */
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Set column width */
     gap: 10px;
+    max-width: calc(60px * 52 + 10px * 51); /* Calculate maximum width for 52 ports */
 }
 /* Styles for the port details pop-up */
 .port-details {
     display: none;
-    position: relative;
-    bottom: 0%;
-    left: 0%;
-    width: 100%;
+    position: absolute;
+    top: auto;
+    bottom: auto;
+    overflow-y: scroll;
+    width: 50vh;
+    height:50vh;
     background-color: white;
     border: 1px solid black;
     padding: 20px;
@@ -39,11 +44,11 @@
 
 
 .port {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     background-color: #ccc;
     border: 1px solid #999;
-    color: black;
+    color: rgb(255, 255, 255);
     border-radius: 5px;
     display: flex;
     justify-content: center;
@@ -52,10 +57,12 @@
 }
 .port.up {
     background-color: green;
+    color: rgb(135, 224, 99);
 }
 
 .port.down {
     background-color: red;
+    color: rgb(220, 176, 176);
 }
 
 .port:hover {
@@ -103,7 +110,7 @@
 </div>
 {% endfor %}
 
-
+<br><br>
 <div id="device-details">
   <h2>Device Details</h2>
   <table>
