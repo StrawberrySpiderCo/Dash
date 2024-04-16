@@ -29,6 +29,13 @@ def device_details(request, device_id):
 def update_device_info(request):
     update_device_info_task.delay()
     return redirect('network')
+
+@login_required
+def port_view(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    device_interfaces = NetworkInterface.objects.filter(device=device)
+    return render(request, 'port_view.html', {'device': device, 'device_interfaces':device_interfaces})
+
 @login_required
 def network_view(request):
     device_info = NetworkDevice.objects.all()

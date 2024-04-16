@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Network{% endblock %}
+{% block template %}
+<h2>Port View</h2>
+<table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>MAC Address</th>
+        <th>MTU</th>
+        <th>Bandwidth</th>
+        <th>Media Type</th>
+        <th>Duplex</th>
+        <th>Line Protocol</th>
+        <th>Operational Status</th>
+        <th>Interface Type</th>
+        <th>IPv4 Address</th>
+        <th>IPv4 Subnet</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for interface in device_interfaces %}
+      <tr>
+        <td>{{ interface.name }}</td>
+        <td>{{ interface.description }}</td>
+        <td>{{ interface.mac_address }}</td>
+        <td>{{ interface.mtu }}</td>
+        <td>{{ interface.bandwidth }}</td>
+        <td>{{ interface.media_type }}</td>
+        <td>{{ interface.duplex }}</td>
+        <td>{{ interface.line_protocol }}</td>
+        <td>{{ interface.oper_status }}</td>
+        <td>{{ interface.interface_type }}</td>
+        <td>{{ interface.ipv4_address }}</td>
+        <td>{{ interface.ipv4_subnet }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
