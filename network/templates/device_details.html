@@ -5,11 +5,12 @@
 {% block template %}
 <style>
 .switch {
-    width: auto;
     background-color: #f0f0f0;
     padding: 20px;
     border-radius: 10px;
-    overflow-x: auto;
+    overflow-x: auto; /* Enable horizontal scrolling if content overflows */
+    width: fit-content; /* Adjust width to fit content */
+    max-width: 100%; /* Ensure the width does not exceed the container */
 }
 
 

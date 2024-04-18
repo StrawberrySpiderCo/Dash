@@ -1865,12 +1865,11 @@ button,
   display: -moz-flex;
   display: -webkit-flex;
   display: -ms-flex;
-  display: flex;
-  -moz-flex-direction: row-reverse;
-  -webkit-flex-direction: row-reverse;
-  -ms-flex-direction: row-reverse;
-  flex-direction: row-reverse;
-  min-height: 100vh; }
+  display: inline-flex;
+  min-height: 100vh; 
+  width: 90vw
+ }
+
 
 /* Main */
 #main {
@@ -1882,7 +1881,7 @@ button,
   -webkit-flex-shrink: 1;
   -ms-flex-shrink: 1;
   flex-shrink: 1;
-  width: 100%; }
+  width: 50%; }
   #main > .inner {
     padding: 0 6em 0.1em 6em ;
     margin: 0 auto;
