@@ -4,8 +4,6 @@
 {% block title %}Network{% endblock %}
 {% block template %}
 <h2>Port View</h2>
-<button onclick="selectAll()">Select All</button>
-<button onclick="unselectAll()">Unselect All</button>
 <form id="editForm" action="{% url 'edit_ports' %}" method="post">
   {% csrf_token %}
   <input type="hidden" name="selected_ports" id="selectedPorts">
@@ -14,7 +12,7 @@
 <table>
     <thead>
       <tr>
-        <th>Select</th>
+        <th><input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)"></th>
         <th>Name</th>
         <th>Description</th>
         <th>MAC Address</th>
@@ -51,19 +49,11 @@
   </table>
 {% endblock %}
 <script>
-  function selectAll() {
+  function toggleSelectAll(checkbox) {
     var checkboxes = document.querySelectorAll('input[name="port"]');
     checkboxes.forEach(function(checkbox) {
-      checkbox.checked = true;
-    });
-    updateSelectedPorts();
-  }
-
-  function unselectAll() {
-    var checkboxes = document.querySelectorAll('input[name="port"]');
-    checkboxes.forEach(function(checkbox) {
-      checkbox.checked = false;
-    });
+      checkbox.checked = this.checked;
+    }, checkbox);
     updateSelectedPorts();
   }
 

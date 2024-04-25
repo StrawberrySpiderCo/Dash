@@ -36,6 +36,18 @@ def port_view(request, device_id):
     device_interfaces = NetworkInterface.objects.filter(device=device)
     return render(request, 'port_view.html', {'device': device, 'device_interfaces':device_interfaces})
 
+def edit_ports(request):
+    if request.method == 'POST':
+        selected_ports = request.POST.getlist('selected_ports')
+        vlan = request.POST.get('vlan')
+        description = request.POST.get('description')
+
+        #bulk_update_ports_task.delay(selected_ports, vlan, description)
+
+        return render(request, 'port_edit_success.html')
+    else:
+        return render(request, 'port_edit_failure.html')
+
 @login_required
 def network_view(request):
     device_info = NetworkDevice.objects.all()
