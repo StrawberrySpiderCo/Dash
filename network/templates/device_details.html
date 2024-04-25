@@ -5,15 +5,18 @@
 {% block template %}
 <style>
 .switch {
-    width: 100%;
     background-color: #f0f0f0;
     padding: 20px;
     border-radius: 10px;
-    overflow-x: auto;
+    overflow-x: auto; /* Enable horizontal scrolling if content overflows */
+    width: fit-content; /* Adjust width to fit content */
+    max-width: 100%; /* Ensure the width does not exceed the container */
 }
 
+
 .ports {
-    gap: 0.4vw;
+    gap: 10px;
+    
     display: flex;
 }
 /* Styles for the port details pop-up */
@@ -66,12 +69,32 @@
     background-color: #ddd;
     cursor: pointer;
 }
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px; /* Adjust padding as needed */
 
+}
+
+.header-left {
+    flex-grow: 1; /* Grow to occupy remaining space */
+}
+
+.header-right {
+    margin-left: 10px; /* Optional: Add some space between the header content and the button */
+}
 
 
 </style>
-<header>
-  <h1>{{ device.hostname }} - {{ device.ip_address }}</h1>
+<header class="header">
+    <div class="header-left">
+        <h1>{{ device.hostname }} - {{ device.ip_address }}</h1>
+    </div>
+    <div class="header-right">
+        <!-- Button to redirect to port view page -->
+        <a href="{% url 'port_view' device.id %}" class="button">Port View</a>
+    </div>
 </header>
 
 <div class="switch">
@@ -132,53 +155,52 @@
 </div>
 
 <script>
-
-
-document.addEventListener('DOMContentLoaded', function() {
-    const ports = document.querySelectorAll('.port');
-    let tempDetails = null;
-    ports.forEach(port => {
-        port.addEventListener('click', function() {
-            const portId = this.dataset.portId;
-            const portDetails = document.getElementById(`port-details-${portId}`);
-            
-            // Toggle the visibility of the port details
-            if (portDetails.style.display === 'none') {
-                portDetails.style.display = 'block';
-                if (tempDetails == portDetails){
+    document.addEventListener('DOMContentLoaded', function() {
+        const ports = document.querySelectorAll('.port');
+    
+        let tempDetails = null;
+        ports.forEach(port => {
+            port.addEventListener('click', function() {
+                const portId = this.dataset.portId;
+                const portDetails = document.getElementById(`port-details-${portId}`);
+    
+                
+                // Toggle the visibility of the port details
+                if (portDetails.style.display === 'none') {
+                    portDetails.style.display = 'block';
+    
+                    if (tempDetails == portDetails){
+                        tempDetails = 'undefined'
+                    }
+                } 
+                else if (portDetails == tempDetails){
+                    portDetails.style.display = 'none';
                     tempDetails = 'undefined'
+                } 
+                else {
+                    portDetails.style.display = 'none';
                 }
-            } 
-            else if (portDetails == tempDetails){
-                portDetails.style.display = 'none';
-                tempDetails = 'undefined'
-            } 
-            else {
-                portDetails.style.display = 'none';
-            }
-            
-            try{
-            if (typeof tempDetails !== 'undefined'){
-                    tempDetails.style.display = 'none'
+    
+                try{
+                if (typeof tempDetails !== 'undefined'){
+                        tempDetails.style.display = 'none'
+                    }
+                } catch (error) {
+                    console.log(error)
                 }
-            } catch (error) {
-                console.log(error)
-            }
-
-            tempDetails = portDetails
+    
+                tempDetails = portDetails
+            });
+        });
+    
+        // Close button functionality
+        const closeButtons = document.querySelectorAll('.close-btn');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const portDetails = this.parentElement;
+                portDetails.style.display = 'none';
+            });
         });
     });
-
-    // Close button functionality
-    const closeButtons = document.querySelectorAll('.close-btn');
-
-    closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const portDetails = this.parentElement;
-            portDetails.style.display = 'none';
-        });
-    });
-});
-
-</script>
+    </script>
 {% endblock %}

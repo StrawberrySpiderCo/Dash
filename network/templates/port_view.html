@@ -4,9 +4,17 @@
 {% block title %}Network{% endblock %}
 {% block template %}
 <h2>Port View</h2>
+<button onclick="selectAll()">Select All</button>
+<button onclick="unselectAll()">Unselect All</button>
+<form id="editForm" action="{% url 'edit_ports' %}" method="post">
+  {% csrf_token %}
+  <input type="hidden" name="selected_ports" id="selectedPorts">
+  <input type="submit" value="Edit Selected">
+</form>
 <table>
     <thead>
       <tr>
+        <th>Select</th>
         <th>Name</th>
         <th>Description</th>
         <th>MAC Address</th>
@@ -24,6 +32,7 @@
     <tbody>
       {% for interface in device_interfaces %}
       <tr>
+        <td><input type="checkbox" name="port" value="{{ interface.id }}"></td>
         <td>{{ interface.name }}</td>
         <td>{{ interface.description }}</td>
         <td>{{ interface.mac_address }}</td>
@@ -41,3 +50,29 @@
     </tbody>
   </table>
 {% endblock %}
+<script>
+  function selectAll() {
+    var checkboxes = document.querySelectorAll('input[name="port"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = true;
+    });
+    updateSelectedPorts();
+  }
+
+  function unselectAll() {
+    var checkboxes = document.querySelectorAll('input[name="port"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.checked = false;
+    });
+    updateSelectedPorts();
+  }
+
+  function updateSelectedPorts() {
+    var selectedPorts = [];
+    var checkboxes = document.querySelectorAll('input[name="port"]:checked');
+    checkboxes.forEach(function(checkbox) {
+      selectedPorts.push(checkbox.value);
+    });
+    document.getElementById('selectedPorts').value = JSON.stringify(selectedPorts);
+  }
+</script>
