@@ -111,7 +111,7 @@ TEMPLATES = [
     },
 ]
 
-CSRF_TRUSTED_ORIGINS = ['http://192.168.0.88']
+CSRF_TRUSTED_ORIGINS = ['http://192.168.0.89']
 
 
 WSGI_APPLICATION = 'dash.wsgi.application'
