@@ -59,7 +59,7 @@ def edit_ports(request):
 
         #bulk_update_ports_task.delay(selected_ports, vlan, description)
 
-        return render(request, 'port_edit_success.html')
+        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports})
     else:
         return render(request, 'port_edit_failure.html')
 

@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% csrf_token %}
 {% block title %}Network{% endblock %}
 {% block template %}
 <h2>Port View</h2>
@@ -8,15 +7,22 @@
 <form id="editForm" action="{% url 'edit_ports' %}" method="post">
   {% csrf_token %}
   <input type="hidden" name="selected_ports" id="selectedPorts">
-  <input type="submit" value="Edit Selected">
+  <input type="button" value="Edit Selected" onclick="openPopup()">
 </form>
 
-<table >
+<div id="popup" style="display: none;">
+  <h2>Additional Information</h2>
+  <!-- Additional fields for user input -->
+  <input type="text" name="additional_field" id="additionalField" placeholder="Enter additional information">
+  <button onclick="submitForm()">Submit</button>
+</div>
+
+<table>
   <thead>
     <tr>
       <th>
-        <input type="checkbox" id="selectAllCheckbox" >
-        <label for="selectAllCheckbox" onclick="toggleSelectAll(this)"> 
+        <input type="checkbox" id="selectAllCheckbox">
+        <label for="selectAllCheckbox" onclick="toggleSelectAll()"> 
         Select/Deselect All
       </label>
       </th>
@@ -36,7 +42,7 @@
   <tbody>
     {% for interface in device_interfaces %}
     <tr>
-      <td><input type="checkbox" id="port{{ interface.id }}" name="port" value="{{ interface.id }}">
+      <td><input type="checkbox" id="port{{ interface.id }}" name="port" value="{{ interface.id }}" onchange="updateSelectedPorts()">
           <label for="port{{ interface.id }}">{{ interface.name }}</label></td>
       <td>{{ interface.description }}</td>
       <td>{{ interface.mac_address }}</td>
@@ -55,14 +61,17 @@
 </table>
 
 <script>
-  function toggleSelectAll(checkbox) {
+  function openPopup() {
+    document.getElementById('popup').style.display = 'block';
+  }
+
+  function toggleSelectAll() {
     var checkboxes = document.querySelectorAll('input[name="port"]');
     checkboxes.forEach(function(checkbox) {
       checkbox.checked = !checkbox.checked;
     });
     updateSelectedPorts();
   }
-
 
   function updateSelectedPorts() {
     var selectedPorts = [];
@@ -72,9 +81,17 @@
     });
     document.getElementById('selectedPorts').value = JSON.stringify(selectedPorts);
   }
+
+  function submitForm() {
+    // Get the value from the additional field
+    var additionalData = document.getElementById('additionalField').value;
+
+    // Set the value to a hidden input field in the form
+    document.getElementById('selectedPorts').value = additionalData;
+
+    // Submit the form
+    document.getElementById('editForm').submit();
+  }
 </script>
 
-
 {% endblock %}
-
-
