@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import user_passes_test
 def user_is_admin(user):
     return user.groups.filter(name='Admins').exists()
 
+
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
 

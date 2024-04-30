@@ -15,10 +15,10 @@
   <thead>
     <tr>
       <th>
-        <label>
-          <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)">
-          Select/Deselect All
-        </label>
+        <input type="checkbox" id="selectAllCheckbox" >
+        <label for="selectAllCheckbox" onclick="toggleSelectAll(this)"> 
+        Select/Deselect All
+      </label>
       </th>
       <th>Description</th>
       <th>MAC Address</th>
@@ -53,15 +53,16 @@
     {% endfor %}
   </tbody>
 </table>
-{% endblock %}
+
 <script>
   function toggleSelectAll(checkbox) {
     var checkboxes = document.querySelectorAll('input[name="port"]');
     checkboxes.forEach(function(checkbox) {
-      checkbox.checked = this.checked;
-    }, checkbox);
+      checkbox.checked = !checkbox.checked;
+    });
     updateSelectedPorts();
   }
+
 
   function updateSelectedPorts() {
     var selectedPorts = [];
@@ -72,3 +73,8 @@
     document.getElementById('selectedPorts').value = JSON.stringify(selectedPorts);
   }
 </script>
+
+
+{% endblock %}
+
+
