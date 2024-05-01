@@ -3,6 +3,7 @@ import json
 from map.models import Org_Info
 import shutil
 from typing import Literal, Union, Optional
+import os
 
 ## FROM Dirar's Ansible Method ##
 playbookPath = r'/home/sbs/Dash/ansible/'
@@ -51,9 +52,10 @@ def setShut(ansibleHost: str,
                            playbook=rf'{playbookPath}set_interfaceShut.yml',
                            inventory=inventory_path,
                            quiet=True,
-                           extravars=(ansible_config)
+                           extravars=(ansible_config),
+                           suppress_env_files=True
     )
-    #cleanup_artifacts_folder()
+    cleanup_artifacts_folder()
 
 
 def l2interface(hostname: str, 
@@ -230,10 +232,15 @@ def run_ansible_playbook(playbook):
 
 def cleanup_artifacts_folder():
     artifacts_folder = '/home/sbs/Dash/ansible/artifacts'
+    env_path = '/home/sbs/Dash/ansible/env/extravars'
     try:
         # Delete the entire artifacts folder and its contents
         shutil.rmtree(artifacts_folder)
         print("Artifacts folder deleted successfully.")
     except Exception as e:
         print(f"Error deleting artifacts folder: {e}")
+    try:
+        os.remove(env_path)
+    except Exception as e:
+        print(f"Error deleting env file: {e}")
 

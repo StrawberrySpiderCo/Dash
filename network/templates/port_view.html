@@ -41,8 +41,8 @@
 </style>
 <h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
-<input type="button" value="Edit Selected" onclick="openPopup()"><br><br>
-
+<input type="button" value="Edit Selected" onclick="togglePopup()"><br><br>
+ 
 <div id="popup" style="display: none;" class="popup">
   <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
   <form id="editForm" action="{% url 'edit_ports' %}" method="post">
@@ -107,12 +107,26 @@
 </table>
 
 <script>
-  function openPopup() {
+var popupOpen = false;
+
+function togglePopup() {
+    if (popupOpen) {
+        closePopup();
+    } else {
+        openPopup();
+    }
+}
+
+function openPopup() {
     document.getElementById('popup').style.display = 'block';
-  }
-  function closePopup() {
+    displaySelectedPorts();
+    popupOpen = true;
+}
+
+function closePopup() {
     document.getElementById('popup').style.display = 'none';
-  }
+    popupOpen = false;
+}
 
   function toggleSelectAll() {
     var checkboxes = document.querySelectorAll('input[name="port"]');
