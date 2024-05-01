@@ -5,7 +5,7 @@
 	Editorial by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
-
+GREEN DEFAULTS##########################################################################
   {
   --header-color: #3d4449;
   --text-color: #7f888f;
@@ -14,11 +14,11 @@
   --left-menu-color: #F5F6F7;
   --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
-  --font-family: "Thunderman", sans-serif;
+  --font-family: "Roboto Slab", serif;
 }
 
-*/
-:root{
+PINK DEFAULTS##########################################################################
+{
   --header-color: #ef6351;
   --text-color: #780000;
   --border-color: #f38375;
@@ -27,6 +27,20 @@
   --left-menu-header-color: #e1c2be;
   --left-menu-line-color: #f7a399;
   --font-family: "Thunderman", sans-serif;
+}
+
+
+
+*/
+:root{
+  --header-color: #3d4449;
+  --text-color: #7f888f;
+  --border-color: #587667;
+  --background-color: #ffffff;
+  --left-menu-color: #F5F6F7;
+  --left-menu-header-color: #EFF1F2;
+  --left-menu-line-color: #D2D7D9BF;
+  --font-family: "Roboto Slab", serif;
 }
 
 

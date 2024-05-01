@@ -53,6 +53,7 @@ def setShut(ansibleHost: str,
                            quiet=True,
                            extravars=(ansible_config)
     )
+    cleanup_artifacts_folder()
 
 
 def l2interface(hostname: str, 
