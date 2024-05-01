@@ -59,9 +59,9 @@ def edit_ports(request):
         selected_ports = json.loads(selected_ports_str)
         host = request.POST.get('ip_address')
         desired_state = request.POST.get('desiredState')
-        port_list = [get_object_or_404(NetworkInterface, pk=int(port)).name for port in selected_ports]
-        set_interface.delay(host, port_list, desired_state)
-        return render(request, 'port_edit_success.html', {'selected_ports': port_list, 'host': host, 'desired_state': desired_state})
+        #port_list = [get_object_or_404(NetworkInterface, name=(port)).name for port in selected_ports]
+        set_interface.delay(host, selected_ports, desired_state)
+        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state})
     else:
         return render(request, 'port_edit_failure.html')
 

@@ -10,7 +10,7 @@
     bottom: auto;
     overflow-y: auto;
     width: 50vh;
-    height:50vh;
+    height:fit-content;
     background-color: var(--left-menu-color);
     border: 1px solid black;
     padding: 20px;
@@ -28,17 +28,13 @@
   border: 0;
   box-shadow: inset 0 0 0 2px var(--border-color);
   color: var(--border-color) !important;
-  cursor: pointer;
   display: inline-block;
   font-family: var(--font-family);
   font-size: 0.8em;
   font-weight: 700;
-  letter-spacing: 0.075em;
-  line-height: 3.5em;
   padding: 0 1em .25em;
   text-align: center;
   text-decoration: none;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -48,16 +44,21 @@
 <input type="button" value="Edit Selected" onclick="openPopup()"><br><br>
 
 <div id="popup" style="display: none;" class="popup">
-  <h2>Bulk Edit Information</h2>
+  <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
   <form id="editForm" action="{% url 'edit_ports' %}" method="post">
     {% csrf_token %}
+    <h3>Selected Ports:</h3>
+    <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
+    <br>
     <input type="hidden" name="selected_ports" id="selectedPorts">
     <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
     <input type="radio" name="desiredState" id="shutState" value="shut">
     <label for="shutState">Disable Ports</label>
     <input type="radio" name="desiredState" id="noshutState" value="noshut">
     <label for="noshutState">Enable Ports</label>
-    <button style="background-color: var(--background-color);" onclick="submitForm()">Submit</button>
+    <br>
+    <button style="background-color: var(--background-color); float: right;" onclick="submitForm()">Submit</button>
+    <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
   </form>
 
 </div>
@@ -87,7 +88,7 @@
   <tbody>
     {% for interface in device_interfaces %}
     <tr>
-      <td><input type="checkbox" id="port{{ interface.id }}" name="port" value="{{ interface.id }}" onchange="updateSelectedPorts()">
+      <td><input type="checkbox" id="port{{ interface.id }}" name="port" value="{{ interface.name }}" onchange="updateSelectedPorts()">
           <label for="port{{ interface.id }}">{{ interface.name }}</label></td>
       <td>{{ interface.description }}</td>
       <td>{{ interface.mac_address }}</td>
@@ -109,6 +110,9 @@
   function openPopup() {
     document.getElementById('popup').style.display = 'block';
   }
+  function closePopup() {
+    document.getElementById('popup').style.display = 'none';
+  }
 
   function toggleSelectAll() {
     var checkboxes = document.querySelectorAll('input[name="port"]');
@@ -125,6 +129,17 @@
       selectedPorts.push(checkbox.value);
     });
     document.getElementById('selectedPorts').value = JSON.stringify(selectedPorts);
+    displaySelectedPorts();
+  }
+
+  function displaySelectedPorts() {
+    var selectedPortsDisplay = document.getElementById("selectedPortsDisplay");
+    selectedPortsDisplay.innerHTML = "";
+    var selectedPorts = JSON.parse(document.getElementById('selectedPorts').value);
+
+    selectedPorts.forEach(function(port) {
+      selectedPortsDisplay.innerHTML += "<p style='margin: 0; font-size: 0.8em;'>" + port + "</p>";
+    });
   }
 
   function submitForm() {
