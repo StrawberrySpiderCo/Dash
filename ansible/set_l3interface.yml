@@ -1,0 +1,93 @@
+- name: Layer 3 interface configuration
+  hosts: "{{ hostname }}"
+  gather_facts: no
+
+  tasks:
+    - name: IPv4 IP Address Config
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            ipv4:
+              - address: "{{ ipv4['address'] }}/{{ ipv4['mask'] }}"
+                secondary: "{{ ipv4['is_secondIP'] }}"
+      when:
+        - ipv4['address'] != none
+        - ipv4['mask'] != none
+        - ipv4['is_ipv4'] == true
+
+    - name: IPv4 DHCP Config
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            ipv4:
+              - dhcp:
+                  enable: "{{ ipv4['is_dhcp'] }}"
+                  client_id: "{{ ipv4['client_id'] | default(omit) }}"
+                  hostname: "{{ ipv4['hostname'] | default(omit) }}"
+      when:
+        - ipv4['is_dhcp'] == true
+        - ipv4['is_ipv4'] == true
+
+    - name: IPv6 Pre Address Config
+      cisco.ios.ios_config:
+        lines:
+          - no ipv6 address dhcp 
+        parents: ["interface {{ interface_name }}"]
+      when:
+        - ipv6['is_dhcp'] == false
+        - ipv6['is_ipv6'] != none
+        - ipv6['mask'] != none
+
+    - name: IPv6 Post Address Config
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            ipv6:
+              - address: >-
+                  {{ 
+                    [ipv6['address'], ipv6['mask'] | default(omit)]
+                    | select('defined') 
+                    | select('!=', None) 
+                    | join('/') 
+                    | default(omit, true) 
+                  }}
+                anycast: "{{ ipv6['is_anycast'] | default(omit, true) }}"
+      when:
+        - ipv6['is_dhcp'] == false
+        - ipv6['is_ipv6'] != none
+        - ipv6['mask'] != none
+
+    - name: IPv6 DHCP Config
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            ipv6:
+              - dhcp:
+                  enable: "{{ ipv6['is_dhcp'] | default(omit, true) }}"
+                  rapid_commit: "{{ ipv6['is_rapidCommit'] | default(omit, true) }}"
+      when:
+        - ipv6['is_dhcp'] == true
+        - ipv6['is_ipv6'] == true
+            
+
+    - name: IPv6 Address
+      cisco.ios.ios_l3_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            ipv6:
+              - 
+                autoconfig:
+                  default: "{{ ipv6['is_autoconfigDefault'] | default(omit, true) }}"
+                  enable: "{{ ipv6['is_autoconfigEnable'] | default(omit, true) }}"
+                cga: "{{ ipv6['is_cga'] | default(omit, true) }}"
+                eui: "{{ ipv6['is_eui'] | default(omit, true) }}"
+                link_local: "{{ ipv6['is_linkLocal'] | default(omit, true) }}"
+                segment_routing:
+                  default: "{{ ipv6['is_srDefault'] | default(omit, true) }}"
+                  enable: "{{ ipv6['is_srEnable'] | default(omit, true) }}"
+                  ipv6_sr: "{{ ipv6['is_ipv6sr'] | default(omit, true) }}"
+        state: merged
+      when:
+        - ipv6['is_ipv6'] == true
+
+

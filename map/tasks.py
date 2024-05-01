@@ -17,7 +17,55 @@ from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
+from dash.ansible_methods import run_ansible_playbook, l2interface, l3interface, setShut
+from typing import Literal, Union, Optional
 load_dotenv()
+
+
+@shared_task
+def set_interface(ansibleHost: str,
+            interface: Union[list, str],
+            isShut: Literal['shut','noshut']):
+    setShut(ansibleHost, interface, isShut)
+
+@shared_task
+def set_l2interface(hostname: str, 
+                interface: list, 
+                mode: Literal['access', 'trunk', 'delete'], 
+                vlan: Optional[int] = 'None', 
+                voice_vlan: Optional[int] = 'None',
+                native_vlan: Optional[int] = 'None',
+                allowed_vlan: Optional[list] = 'None',
+                encapsulation: Literal['dot1q', 'isl', 'negotiate'] = 'dot1q'):
+    l2interface(hostname, interface, mode, vlan, voice_vlan, native_vlan, allowed_vlan, encapsulation)
+
+@shared_task
+def set_l3interface(hostname: str = '',
+                interface: list = [],
+                ipv4: dict = {
+                    "ip_address": None,
+                    "mask": None,
+                    "is_ipv4": False,
+                    "is_secondIP": False,
+                    "is_dhcp": False,
+                    "client_id": None,
+                    "hostname": None,},
+                ipv6: dict = {
+                    "address": None,
+                    "mask": None,
+                    "is_anycast": None,
+                    "is_autoconfigDefault": None,
+                    "is_autoconfigEnable": None, 
+                    "is_dhcp": None,
+                    "is_rapidCommit": None,
+                    "is_cga": None,
+                    "is_eui": None,
+                    "is_linkLocal": None,
+                    "is_srDefault": None,
+                    "is_srEnable": None,
+                    "is_ipv6sr": None,
+                    },):
+    l3interface(hostname, interface, ipv4, ipv6)
 
 @shared_task
 def gather_all_running_configs():

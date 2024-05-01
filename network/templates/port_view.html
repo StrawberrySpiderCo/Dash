@@ -2,19 +2,59 @@
 {% load static %}
 {% block title %}Network{% endblock %}
 {% block template %}
-<h2>Port View</h2>
+<style>
+.popup {
+    display: none;
+    position: absolute;
+    top: auto;
+    bottom: auto;
+    overflow-y: auto;
+    width: 50vh;
+    height:50vh;
+    background-color: var(--left-menu-color);
+    border: 1px solid black;
+    padding: 20px;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 9999; 
+    -moz-appearance: none;
+  -webkit-appearance: none;
+  -ms-appearance: none;
+  appearance: none;
+  -moz-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  border-radius: 0.375em;
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--border-color);
+  color: var(--border-color) !important;
+  cursor: pointer;
+  display: inline-block;
+  font-family: var(--font-family);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.075em;
+  line-height: 3.5em;
+  padding: 0 1em .25em;
+  text-align: center;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-<form id="editForm" action="{% url 'edit_ports' %}" method="post">
-  {% csrf_token %}
-  <input type="hidden" name="selected_ports" id="selectedPorts">
-  <input type="button" value="Edit Selected" onclick="openPopup()">
-</form>
+</style>
+<h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
-<div id="popup" style="display: none;">
-  <h2>Additional Information</h2>
-  <!-- Additional fields for user input -->
-  <input type="text" name="additional_field" id="additionalField" placeholder="Enter additional information">
-  <button onclick="submitForm()">Submit</button>
+<input type="button" value="Edit Selected" onclick="openPopup()"><br><br>
+
+<div id="popup" style="display: none;" class="popup">
+  <h2>Bulk Edit Information</h2>
+  <form id="editForm" action="{% url 'edit_ports' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="selected_ports" id="selectedPorts">
+    <button style="background-color: var(--background-color);" onclick="submitForm()">Submit</button>
+  </form>
+
 </div>
 
 <table>

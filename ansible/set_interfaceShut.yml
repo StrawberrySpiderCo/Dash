@@ -1,0 +1,23 @@
+---
+- name: Update Interface State
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  vars:
+    action: "{{ input_action }}"
+
+  tasks:
+    - name: Turn interface on
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item }}"
+            enabled: true
+      loop: "{{ interface_name }}"
+      when: action == 'noshut'
+
+    - name: Turn interface off
+      cisco.ios.ios_interfaces:
+        config:
+          - name: "{{ item }}"
+            enabled: false
+      loop: "{{ interface_name }}"
+      when: action == 'shut'

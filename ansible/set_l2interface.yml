@@ -1,0 +1,87 @@
+- name: Layer 2 interface configuration
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  vars:
+    mode: "{{ switchport_mode }}"
+
+  tasks:
+    - name: Access Mode Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            mode: access
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'access'
+
+    - name: Access Vlan Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            access:
+              vlan: "{{ vlan_id }}"
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'access'
+        - vlan_id != "None"
+
+    - name: Voice Vlan Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            voice:
+              vlan: "{{ voice_vlan }}"
+      loop: "{{ interface_name }}"
+      when:
+        - mode == 'access'
+        - voice_vlan != "None"
+
+    - name: Delete Interface Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+        state: deleted
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'delete'
+
+    - name: Trunk Encapsulation Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            trunk:
+              encapsulation: "{{ encapsulation }}"
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'trunk'
+
+    - name: Trunk Mode Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            mode: trunk
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'trunk'
+
+    - name: Trunk Native Vlan Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            trunk:
+              native_vlan: "{{ native_vlan }}"
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'trunk'
+        - native_vlan != 'None'
+
+    - name: Trunk Allowed Vlan Config
+      cisco.ios.ios_l2_interfaces:
+        config:
+          - name: "{{ item }}"
+            trunk:
+              allowed_vlans: "{{ allowed_vlans }}"
+      loop: "{{ interface_name }}"
+      when: 
+        - mode == 'trunk'
+        - allowed_vlans !- "None"
