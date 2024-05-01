@@ -52,6 +52,11 @@
   <form id="editForm" action="{% url 'edit_ports' %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="selected_ports" id="selectedPorts">
+    <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
+    <input type="radio" name="desiredState" id="shutState" value="shut">
+    <label for="shutState">Disable Ports</label>
+    <input type="radio" name="desiredState" id="noshutState" value="noshut">
+    <label for="noshutState">Enable Ports</label>
     <button style="background-color: var(--background-color);" onclick="submitForm()">Submit</button>
   </form>
 
@@ -124,10 +129,12 @@
 
   function submitForm() {
     // Get the value from the additional field
-    var additionalData = document.getElementById('additionalField').value;
+    document.getElementById('ip_address').value;
 
     // Set the value to a hidden input field in the form
-    document.getElementById('selectedPorts').value = additionalData;
+    document.getElementById('selectedPorts').value;
+
+    document.getElementById('desiredState').value;
 
     // Submit the form
     document.getElementById('editForm').submit();

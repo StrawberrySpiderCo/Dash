@@ -7,8 +7,9 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface
-from map.tasks import update_device_info_task
+from map.tasks import update_device_info_task, set_interface
 from django.contrib.auth.decorators import user_passes_test
+import json
 
 
 def user_is_admin(user):
@@ -52,14 +53,15 @@ def sort_ports(interface):
     
 
 def edit_ports(request):
+    port_list = []
     if request.method == 'POST':
-        selected_ports = request.POST.getlist('selected_ports')
-        vlan = request.POST.get('vlan')
-        description = request.POST.get('description')
-
-        #bulk_update_ports_task.delay(selected_ports, vlan, description)
-
-        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports})
+        selected_ports_str = request.POST.get('selected_ports')
+        selected_ports = json.loads(selected_ports_str)
+        host = request.POST.get('ip_address')
+        desired_state = request.POST.get('desiredState')
+        port_list = [get_object_or_404(NetworkInterface, pk=int(port)).name for port in selected_ports]
+        set_interface.delay(host, port_list, desired_state)
+        return render(request, 'port_edit_success.html', {'selected_ports': port_list, 'host': host, 'desired_state': desired_state})
     else:
         return render(request, 'port_edit_failure.html')
 

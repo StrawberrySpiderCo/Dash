@@ -4,6 +4,8 @@
 {% block title %}Network{% endblock %}
 {% block template %}
 <h2>Port View</h2>
+<p>{{desired_state}}</p>
+<p>{{ host }}</p>
 {% for port in selected_ports %}
 <p>{{port}}</p>
 {% endfor %}
