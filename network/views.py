@@ -59,11 +59,22 @@ def edit_ports(request):
         selected_ports = json.loads(selected_ports_str)
         host = request.POST.get('ip_address')
         desired_state = request.POST.get('desiredState')
+        mode = request.POST.get('mode')
+        vlan = request.POST.get('vlan')
+        voice_vlan = request.POST.get('')
         #port_list = [get_object_or_404(NetworkInterface, name=(port)).name for port in selected_ports]
         set_interface.delay(host, selected_ports, desired_state)
         return render(request, 'port_edit_success.html', {'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state})
     else:
         return render(request, 'port_edit_failure.html')
+    
+  #var mode = document.querySelector('input[name="mode"]:checked').value;
+  #
+  #var vlan = document.getElementById('vlan').value;
+  #var voiceVlan = document.getElementById('voiceVlan').value;
+  #var nativeVlan = document.getElementById('nativeVlan').value;
+  #var allowedVlans = document.getElementById('allowedVlans').value;
+  #var encapsulation = document.getElementById('encapsulation').value;
 
 @login_required
 def network_view(request):

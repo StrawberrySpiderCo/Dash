@@ -50,18 +50,48 @@
     <h3>Selected Ports:</h3>
     <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
     <br>
+
+    <input type="radio" name="mode" id="accessMode" value="access" onclick="toggleFields()">
+    <label for="accessMode">Access</label>
+    <input type="radio" name="mode" id="trunkMode" value="trunk" onclick="toggleFields()">
+    <label for="trunkMode">Trunk</label>
+    <input type="radio" name="mode" id="deleteMode" value="delete" onclick="toggleFields()">
+    <label for="deleteMode">Delete</label>
+    <br>
+    <div id="vlanFields" style="display: none;">
+      <label for="vlan">VLAN:</label>
+      <input type="text" name="vlan" id="vlan"><br>
+      <label for="voiceVlan">Voice VLAN:</label>
+      <input type="text" name="voiceVlan" id="voiceVlan">
+      <br>
+    </div>
+    <div id="trunkFields" style="display: none;">
+      <label for="nativeVlan">Native VLAN:</label>
+      <input type="text" name="nativeVlan" id="nativeVlan"><br>
+      <label for="allowedVlans">Allowed VLANs:</label>
+      <input type="text" name="allowedVlans" id="allowedVlans"><br>
+      <label for="encapsulation">Encapsulation:</label>
+      <select name="encapsulation" id="encapsulation">
+        <option value="dot1q">Dot1Q</option>
+        <option value="isl">ISL</option>
+        <option value="negotiate">Negotiate</option>
+      </select>
+      <br>
+    </div>
     <input type="hidden" name="selected_ports" id="selectedPorts">
     <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
     <input type="radio" name="desiredState" id="shutState" value="shut">
     <label for="shutState">Disable Ports</label>
-    <input type="radio" name="desiredState" id="noshutState" value="noshut">
+    <input type="radio" name="desiredState" id="noshutState" value="noshut" checked>
     <label for="noshutState">Enable Ports</label>
     <br>
-    <button style="background-color: var(--background-color); float: right;" onclick="submitForm()">Submit</button>
+    <button style="background-color: var(--background-color); float: right;" onclick="return submitForm()">Submit</button>
     <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
+    <br>
   </form>
-
 </div>
+
+
 
 <table>
   <thead>
@@ -107,6 +137,24 @@
 </table>
 
 <script>
+    function toggleFields() {
+    var accessMode = document.getElementById("accessMode");
+    var trunkMode = document.getElementById("trunkMode");
+    var deleteMode = document.getElementById("deleteMode");
+    var vlanFields = document.getElementById("vlanFields");
+    var trunkFields = document.getElementById("trunkFields");
+
+    if (accessMode.checked) {
+      vlanFields.style.display = "block";
+      trunkFields.style.display = "none";
+    } else if (trunkMode.checked) {
+      vlanFields.style.display = "none";
+      trunkFields.style.display = "block";
+    } else if (deleteMode.checked) {
+      vlanFields.style.display = "none";
+      trunkFields.style.display = "none";
+    }
+  }
 var popupOpen = false;
 
 function togglePopup() {
@@ -157,17 +205,48 @@ function closePopup() {
   }
 
   function submitForm() {
-    // Get the value from the additional field
-    document.getElementById('ip_address').value;
+  // Get the values from the additional fields
+  var ipAddress = document.getElementById('ip_address').value;
+  var selectedPorts = document.getElementById('selectedPorts').value;
+  var desiredState = document.querySelector('input[name="desiredState"]:checked').value;
+  var mode = document.querySelector('input[name="mode"]:checked').value;
+  
+  var vlan = document.getElementById('vlan').value;
+  var voiceVlan = document.getElementById('voiceVlan').value;
+  var nativeVlan = document.getElementById('nativeVlan').value;
+  var allowedVlans = document.getElementById('allowedVlans').value;
+  var encapsulation = document.getElementById('encapsulation').value;
 
-    // Set the value to a hidden input field in the form
-    document.getElementById('selectedPorts').value;
-
-    document.getElementById('desiredState').value;
-
-    // Submit the form
-    document.getElementById('editForm').submit();
+  // Check if all required fields are filled
+  if (!ipAddress || !selectedPorts || !desiredState || !mode) {
+    alert("Please fill out all required fields.");
+    return false; // Prevent form submission if any required field is empty
   }
+
+  // If mode is access, check VLAN and Voice VLAN values
+  if (mode === "access") {
+    if (!vlan || !voiceVlan) {
+      alert("Please fill out all required fields.");
+      return false; // Prevent form submission if any required field is empty
+    }
+  }
+  // If mode is trunk, check Native VLAN, Allowed VLANs, and Encapsulation values
+  else if (mode === "trunk") {
+    if (!nativeVlan || !allowedVlans || !encapsulation) {
+      alert("Please fill out all required fields.");
+      return false; // Prevent form submission if any required field is empty
+    }
+  }
+
+  // Set the values to hidden input fields in the form
+  document.getElementById('ip_address').value = ipAddress;
+  document.getElementById('selectedPorts').value = selectedPorts;
+  document.getElementById('desiredState').value = desiredState;
+
+  // Submit the form
+  document.getElementById('editForm').submit();
+}
+
 </script>
 
 {% endblock %}
