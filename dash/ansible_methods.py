@@ -129,9 +129,18 @@ def setShut(ansibleHost: str,
                            playbook=rf'{playbookPath}set_interfaceShut.yml',
                            inventory=inventory_path,
                            quiet=True,
-                           extravars=getAnsibleConfig({'hostname':ansibleHost,
-                                      'input_action':isShut,
-                                      'interface_name':interface,}))
+                           extravars={
+                                    'ansible_network_os': 'ios',
+                                    'ansible_connection': 'network_cli',
+                                    'ansible_user': org_info.ssh_username,
+                                    'ansible_ssh_pass': org_info.ssh_password,
+                                    'ansible_become': 'yes',
+                                    'ansible_become_method': 'enable',
+                                    'ansible_become_pass': org_info.ssh_enable_password,
+                                    'hostname':ansibleHost,
+                                    'input_action':isShut,
+                                    'interface_name':interface,})
+    cleanup_artifacts_folder()
                                       
     
 def l2interface(hostname: str, 
@@ -143,38 +152,47 @@ def l2interface(hostname: str,
                 allowed_vlan: Optional[list] = 'None',
                 encapsulation: Literal['dot1q', 'isl', 'negotiate'] = 'dot1q'):
 
-    ## Parameter Checking Start ## 
-    if type(interface) != list:
-        if type(interface) == str:
-            interface = [interface]
-        else:
-            raise ValueError(f'Parameter must be type list\nValue: {interface}\nType: {type(interface)}')
-    if mode not in ['access', 'trunk', 'delete']:
-        return json.dumps({'Error': f'Mode was not set to one of the define values. Mode = {mode}'})
-    paramList_int = [vlan, voice_vlan, native_vlan]
-    for i in paramList_int:
-        if i != "None" and not isinstance(i, int):
-            raise ValueError(f'Parameter must be "None" or type int\nValue: {i}\nType: {type(i)}')
-    if not isinstance(allowed_vlan, list) and allowed_vlan != 'None':
-        raise ValueError(f'Parameter must be "None" or type list\nValue: {allowed_vlan}\nType: {type(allowed_vlan)}')
-    elif isinstance(allowed_vlan, list):
-        for i in allowed_vlan:
-            if not isinstance(i, str):
-                raise ValueError(f'Parameter must be "None" or type str\nValue: {i}\nType: {type(i)}')
-    ## Parameter Checking End ##
-
+    ### Parameter Checking Start ## 
+    #if type(interface) != list:
+    #    if type(interface) == str:
+    #        interface = [interface]
+    #    else:
+    #        raise ValueError(f'Parameter must be type list\nValue: {interface}\nType: {type(interface)}')
+    #if mode not in ['access', 'trunk', 'delete']:
+    #    return json.dumps({'Error': f'Mode was not set to one of the define values. Mode = {mode}'})
+    #paramList_int = [vlan, voice_vlan, native_vlan]
+    #for i in paramList_int:
+    #    if i != "None" and not isinstance(i, int):
+    #        raise ValueError(f'Parameter must be "None" or type int\nValue: {i}\nType: {type(i)}')
+    #if not isinstance(allowed_vlan, list) and allowed_vlan != 'None':
+    #    raise ValueError(f'Parameter must be "None" or type list\nValue: {allowed_vlan}\nType: {type(allowed_vlan)}')
+    #elif isinstance(allowed_vlan, list):
+    #    for i in allowed_vlan:
+    #        if not isinstance(i, str):
+    #            raise ValueError(f'Parameter must be "None" or type str\nValue: {i}\nType: {type(i)}')
+    ### Parameter Checking End ##
+    org_info = Org_Info.objects.get()
     r = ansible_runner.run(private_data_dir=private_data_path,
                            playbook=rf'{playbookPath}set_l2interface.yml',
                            inventory=inventory_path,
                            quiet=True,
-                           extravars=getAnsibleConfig({'hostname': hostname,
-                                      'interface_name': interface,
-                                      'switchport_mode': mode,
-                                      'vlan_id': vlan,
-                                      'voice_vlan': voice_vlan,
-                                      'native_vlan': native_vlan,
-                                      'allowed_vlan': allowed_vlan,
-                                      'encapsulation': encapsulation}))
+                           extravars={
+                                    'ansible_network_os': 'ios',
+                                    'ansible_connection': 'network_cli',
+                                    'ansible_user': org_info.ssh_username,
+                                    'ansible_ssh_pass': org_info.ssh_password,
+                                    'ansible_become': 'yes',
+                                    'ansible_become_method': 'enable',
+                                    'ansible_become_pass': org_info.ssh_enable_password,
+                                    'hostname': hostname,
+                                    'interface_name': interface,
+                                    'switchport_mode': mode,
+                                    'vlan_id': vlan,
+                                    'voice_vlan': voice_vlan,
+                                    'native_vlan': native_vlan,
+                                    'allowed_vlan': allowed_vlan,
+                                    'encapsulation': encapsulation})
+    cleanup_artifacts_folder()
 def l3interface(hostname: str = '',
                 interface: list = [],
                 ipv4: dict = {

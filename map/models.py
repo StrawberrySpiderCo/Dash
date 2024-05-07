@@ -112,6 +112,12 @@ class NetworkDevice(models.Model):
     
 class NetworkInterface(models.Model):
     device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='interfaces')
+    mode = models.CharField(max_length=100, null=True, blank=True)
+    vlan = models.CharField(max_length=100, null=True, blank=True)
+    voice_vlan = models.CharField(max_length=100, null=True, blank=True)
+    native_vlan = models.CharField(max_length=100, null=True, blank=True)
+    allowed_vlans = models.CharField(max_length=1000, null=True, blank=True)
+    encapsulation = models.CharField(max_length=100, null=True, blank=True)
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=255, null=True, blank=True)
     mac_address = models.CharField(max_length=17, null=True, blank=True) 

@@ -60,16 +60,15 @@
     <br>
     <div id="vlanFields" style="display: none;">
       <label for="vlan">VLAN:</label>
-      <input type="text" name="vlan" id="vlan"><br>
+      <input type="number" pattern="[0-9]*" name="vlan" id="vlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br>
       <label for="voiceVlan">Voice VLAN:</label>
-      <input type="text" name="voiceVlan" id="voiceVlan">
-      <br>
+      <input type="number" pattern="[0-9]*" name="voiceVlan" id="voiceVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br> <br>
     </div>
     <div id="trunkFields" style="display: none;">
       <label for="nativeVlan">Native VLAN:</label>
-      <input type="text" name="nativeVlan" id="nativeVlan"><br>
+      <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br>
       <label for="allowedVlans">Allowed VLANs:</label>
-      <input type="text" name="allowedVlans" id="allowedVlans"><br>
+      <input type="number" pattern="[0-9]*" name="allowedVlans" id="allowedVlans" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br>
       <label for="encapsulation">Encapsulation:</label>
       <select name="encapsulation" id="encapsulation">
         <option value="dot1q">Dot1Q</option>

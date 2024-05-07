@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface
-from map.tasks import update_device_info_task, set_interface
+from map.tasks import update_device_info_task, set_interface, set_l2interface
 from django.contrib.auth.decorators import user_passes_test
 import json
 
@@ -61,20 +61,35 @@ def edit_ports(request):
         desired_state = request.POST.get('desiredState')
         mode = request.POST.get('mode')
         vlan = request.POST.get('vlan')
-        voice_vlan = request.POST.get('')
-        #port_list = [get_object_or_404(NetworkInterface, name=(port)).name for port in selected_ports]
+        voice_vlan = request.POST.get('voiceVlan')
+        native_vlan = request.POST.get('nativeVlan')
+        allowed_vlans = request.POST.get('allowedVlans')
+
+        try:
+            vlan = int(vlan) if vlan else None
+        except ValueError:
+            vlan = None
+
+        try:
+            voice_vlan = int(voice_vlan) if voice_vlan else None
+        except ValueError:
+            voice_vlan = None
+
+        try:
+            native_vlan = int(native_vlan) if native_vlan else None
+        except ValueError:
+            native_vlan = None
+
+        try:
+            allowed_vlan = int(allowed_vlans) if allowed_vlans else None
+        except ValueError:
+            allowed_vlan = None
+        encapsulation = request.POST.get('encapsulation')
         set_interface.delay(host, selected_ports, desired_state)
-        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state})
+        set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlan, encapsulation)
+        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state, 'mode':mode, 'vlan':vlan, 'voice_vlan':voice_vlan})
     else:
         return render(request, 'port_edit_failure.html')
-    
-  #var mode = document.querySelector('input[name="mode"]:checked').value;
-  #
-  #var vlan = document.getElementById('vlan').value;
-  #var voiceVlan = document.getElementById('voiceVlan').value;
-  #var nativeVlan = document.getElementById('nativeVlan').value;
-  #var allowedVlans = document.getElementById('allowedVlans').value;
-  #var encapsulation = document.getElementById('encapsulation').value;
 
 @login_required
 def network_view(request):
