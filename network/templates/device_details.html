@@ -5,18 +5,15 @@
 {% block template %}
 <style>
 .switch {
+    width: 100%;
     background-color: #f0f0f0;
     padding: 20px;
     border-radius: 10px;
-    overflow-x: auto; /* Enable horizontal scrolling if content overflows */
-    width: fit-content; /* Adjust width to fit content */
-    max-width: 100%; /* Ensure the width does not exceed the container */
+    overflow-x: auto;
 }
 
-
 .ports {
-    gap: 10px;
-    
+    gap: 0.4vw;
     display: flex;
 }
 /* Styles for the port details pop-up */
@@ -34,14 +31,29 @@
     box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
     z-index: 9999; /* Ensure the pop-up appears on top */
 }
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    cursor: pointer;
+.port-details > p {
+    margin: 0;
 }
-
+.port-details > p:first-child{
+    margin-top: 2em;
+    margin-bottom: 0;
+}
+.port-details > p:nth-child(odd){
+    background-color: lightgreen;
+    
+}
+.port-details > p:last-child{
+    margin: bottom 0;
+}
+.container-btn{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+.container-btn > button{
+    width: 6em;
+}
 
 .port {
     width: 3.2rem;
@@ -69,32 +81,12 @@
     background-color: #ddd;
     cursor: pointer;
 }
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 20px; /* Adjust padding as needed */
 
-}
-
-.header-left {
-    flex-grow: 1; /* Grow to occupy remaining space */
-}
-
-.header-right {
-    margin-left: 10px; /* Optional: Add some space between the header content and the button */
-}
 
 
 </style>
-<header class="header">
-    <div class="header-left">
-        <h1>{{ device.hostname }} - {{ device.ip_address }}</h1>
-    </div>
-    <div class="header-right">
-        <!-- Button to redirect to port view page -->
-        <a href="{% url 'port_view' device.id %}" class="button">Port View</a>
-    </div>
+<header>
+  <h1>{{ device.hostname }} - {{ device.ip_address }}</h1>
 </header>
 
 <div class="switch">
@@ -114,7 +106,16 @@
 {% for interface in device_interfaces %}
 <div id="port-details-{{ interface.id }}" class="port-details" style="display: none;">
     <!-- Port details content goes here -->
+    <div class="container-btn">
+        <button class="edit-btn">Edit</button>
+        <button class="close-btn">Close</button>
+    </div>
+    <label class="shut_noshut">
+        <input type="checkbox">
+        <span class="slider round"></span>
+    </label>
     <p>Name: {{ interface.name }}</p>
+    <p>Vlan: {{ interface.vlan}}</p>
     <p>Description: {{ interface.description }}</p>
     <p>MAC Address: {{ interface.mac_address }}</p>
     <p>MTU: {{ interface.mtu }}</p>
@@ -126,7 +127,9 @@
     <p>Interface Type: {{ interface.interface_type }}</p>
     <p>IPv4 Address: {{ interface.ipv4_address }}</p>
     <p>IPv4 Subnet: {{ interface.ipv4_subnet }}</p>
-    <button class="close-btn">Close</button>
+    <div class="container-btn">
+        <button class="save-btn">Save</button>
+    </div>
 </div>
 {% endfor %}
 
@@ -155,52 +158,53 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const ports = document.querySelectorAll('.port');
-    
-        let tempDetails = null;
-        ports.forEach(port => {
-            port.addEventListener('click', function() {
-                const portId = this.dataset.portId;
-                const portDetails = document.getElementById(`port-details-${portId}`);
-    
-                
-                // Toggle the visibility of the port details
-                if (portDetails.style.display === 'none') {
-                    portDetails.style.display = 'block';
-    
-                    if (tempDetails == portDetails){
-                        tempDetails = 'undefined'
-                    }
-                } 
-                else if (portDetails == tempDetails){
-                    portDetails.style.display = 'none';
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const ports = document.querySelectorAll('.port');
+    let tempDetails = null;
+    ports.forEach(port => {
+        port.addEventListener('click', function() {
+            const portId = this.dataset.portId;
+            const portDetails = document.getElementById(`port-details-${portId}`);
+            
+            // Toggle the visibility of the port details
+            if (portDetails.style.display === 'none') {
+                portDetails.style.display = 'block';
+                if (tempDetails == portDetails){
                     tempDetails = 'undefined'
-                } 
-                else {
-                    portDetails.style.display = 'none';
                 }
-    
-                try{
-                if (typeof tempDetails !== 'undefined'){
-                        tempDetails.style.display = 'none'
-                    }
-                } catch (error) {
-                    console.log(error)
-                }
-    
-                tempDetails = portDetails
-            });
-        });
-    
-        // Close button functionality
-        const closeButtons = document.querySelectorAll('.close-btn');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const portDetails = this.parentElement;
+            } 
+            else if (portDetails == tempDetails){
                 portDetails.style.display = 'none';
-            });
+                tempDetails = 'undefined'
+            } 
+            else {
+                portDetails.style.display = 'none';
+            }
+            
+            try{
+            if (typeof tempDetails !== 'undefined'){
+                    tempDetails.style.display = 'none'
+                }
+            } catch (error) {
+                console.log(error)
+            }
+
+            tempDetails = portDetails
         });
     });
-    </script>
+
+    // Close button functionality
+    const closeButtons = document.querySelectorAll('.close-btn');
+
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const portDetails = this.parentElement.parentElement;
+            portDetails.style.display = 'none';
+        });
+    });
+});
+
+</script>
 {% endblock %}
