@@ -68,7 +68,7 @@
       <label for="nativeVlan">Native VLAN:</label>
       <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br>
       <label for="allowedVlans">Allowed VLANs:</label>
-      <input type="number" pattern="[0-9]*" name="allowedVlans" id="allowedVlans" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br>
+      <input type="text" name="allowedVlans" id="allowedVlans" placeholder="Enter VLANs separated by commas (e.g., 1, 2, 3)"><br>
       <label for="encapsulation">Encapsulation:</label>
       <select name="encapsulation" id="encapsulation">
         <option value="dot1q">Dot1Q</option>
@@ -224,7 +224,7 @@ function closePopup() {
 
   // If mode is access, check VLAN and Voice VLAN values
   if (mode === "access") {
-    if (!vlan || !voiceVlan) {
+    if (!vlan) {
       alert("Please fill out all required fields.");
       return false; // Prevent form submission if any required field is empty
     }

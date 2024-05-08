@@ -64,7 +64,8 @@ def edit_ports(request):
         voice_vlan = request.POST.get('voiceVlan')
         native_vlan = request.POST.get('nativeVlan')
         allowed_vlans = request.POST.get('allowedVlans')
-
+        if allowed_vlans:
+            allowed_vlan_list = [(vlan.strip()) for vlan in allowed_vlans.split(',')]
         try:
             vlan = int(vlan) if vlan else None
         except ValueError:
@@ -79,15 +80,10 @@ def edit_ports(request):
             native_vlan = int(native_vlan) if native_vlan else None
         except ValueError:
             native_vlan = None
-
-        try:
-            allowed_vlan = int(allowed_vlans) if allowed_vlans else None
-        except ValueError:
-            allowed_vlan = None
         encapsulation = request.POST.get('encapsulation')
         set_interface.delay(host, selected_ports, desired_state)
-        set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlan, encapsulation)
-        return render(request, 'port_edit_success.html', {'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state, 'mode':mode, 'vlan':vlan, 'voice_vlan':voice_vlan})
+        set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlan_list, encapsulation)
+        return render(request, 'port_edit_success.html', {'allowed_vlan': allowed_vlan_list, 'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state, 'mode':mode, 'vlan':vlan, 'voice_vlan':voice_vlan})
     else:
         return render(request, 'port_edit_failure.html')
 

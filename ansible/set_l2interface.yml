@@ -84,4 +84,4 @@
       loop: "{{ interface_name }}"
       when: 
         - mode == 'trunk'
-        - allowed_vlans !- "None"
+        - allowed_vlans != "None"

@@ -190,7 +190,7 @@ def l2interface(hostname: str,
                                     'vlan_id': vlan,
                                     'voice_vlan': voice_vlan,
                                     'native_vlan': native_vlan,
-                                    'allowed_vlan': allowed_vlan,
+                                    'allowed_vlans': allowed_vlan,
                                     'encapsulation': encapsulation})
     cleanup_artifacts_folder()
 def l3interface(hostname: str = '',
