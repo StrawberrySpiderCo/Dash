@@ -41,7 +41,39 @@
 </style>
 <h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
-<input type="button" value="Edit Selected" onclick="togglePopup()"><br><br>
+<input type="button" value="Edit Selected" onclick="togglePopup()">
+<input type="button" value="Toggle Columns" onclick="toggleColumnPopup()">
+<br><br>
+
+<div id="columnPopup" style="display: none;" class="popup">
+  <h2>Toggle Columns <span style="float: right; cursor: pointer;" onclick="closeColumnPopup()">X</span></h2>
+  <form id="columnForm">
+    <input type="checkbox" id="descriptionToggle" checked onchange="toggleColumn('description')">
+    <label for="descriptionToggle">Description</label><br>
+    <input type="checkbox" id="macAddressToggle" checked onchange="toggleColumn('macAddress')">
+    <label for="macAddressToggle">MAC Address</label><br>
+    <input type="checkbox" id="mtuToggle" checked onchange="toggleColumn('mtu')">
+    <label for="mtuToggle">MTU</label><br>
+    <input type="checkbox" id="bandwidthToggle" checked onchange="toggleColumn('bandwidth')">
+    <label for="bandwidthToggle">Bandwidth</label><br>
+    <input type="checkbox" id="mediaTypeToggle" checked onchange="toggleColumn('mediaType')">
+    <label for="mediaTypeToggle">Media Type</label><br>
+    <input type="checkbox" id="duplexToggle" checked onchange="toggleColumn('duplex')">
+    <label for="duplexToggle">Duplex</label><br>
+    <input type="checkbox" id="lineProtocolToggle" checked onchange="toggleColumn('lineProtocol')">
+    <label for="lineProtocolToggle">Line Protocol</label><br>
+    <input type="checkbox" id="operationalStatusToggle" checked onchange="toggleColumn('operationalStatus')">
+    <label for="operationalStatusToggle">Operational Status</label><br>
+    <input type="checkbox" id="interfaceTypeToggle" checked onchange="toggleColumn('interfaceType')">
+    <label for="interfaceTypeToggle">Interface Type</label><br>
+    <input type="checkbox" id="ipv4AddressToggle" checked onchange="toggleColumn('ipv4Address')">
+    <label for="ipv4AddressToggle">IPv4 Address</label><br>
+    <input type="checkbox" id="ipv4SubnetToggle" checked onchange="toggleColumn('ipv4Subnet')">
+    <label for="ipv4SubnetToggle">IPv4 Subnet</label><br>
+  </form>
+</div>
+
+
  
 <div id="popup" style="display: none;" class="popup">
   <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
@@ -50,7 +82,7 @@
     <h3>Selected Ports:</h3>
     <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
     <br>
-
+    <br>
     <input type="radio" name="mode" id="accessMode" value="access" onclick="toggleFields()">
     <label for="accessMode">Access</label>
     <input type="radio" name="mode" id="trunkMode" value="trunk" onclick="toggleFields()">
@@ -64,6 +96,7 @@
       <label for="voiceVlan">Voice VLAN:</label>
       <input type="number" pattern="[0-9]*" name="voiceVlan" id="voiceVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br> <br>
     </div>
+
     <div id="trunkFields" style="display: none;">
       <label for="nativeVlan">Native VLAN:</label>
       <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br>
@@ -83,7 +116,7 @@
     <label for="shutState">Disable Ports</label>
     <input type="radio" name="desiredState" id="noshutState" value="noshut" checked>
     <label for="noshutState">Enable Ports</label>
-    <br>
+    <br><br>
     <button style="background-color: var(--background-color); float: right;" onclick="return submitForm()">Submit</button>
     <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
     <br>
@@ -92,7 +125,7 @@
 
 
 
-<table>
+<table id="portTable">
   <thead>
     <tr>
       <th>
@@ -101,17 +134,17 @@
         Select/Deselect All
       </label>
       </th>
-      <th>Description</th>
-      <th>MAC Address</th>
-      <th>MTU</th>
-      <th>Bandwidth</th>
-      <th>Media Type</th>
-      <th>Duplex</th>
-      <th>Line Protocol</th>
-      <th>Operational Status</th>
-      <th>Interface Type</th>
-      <th>IPv4 Address</th>
-      <th>IPv4 Subnet</th>
+      <th id="descriptionHeader">Description</th>
+      <th id="macAddressHeader">MAC Address</th>
+      <th id="mtuHeader">MTU</th>
+      <th id="bandwidthHeader">Bandwidth</th>
+      <th id="mediaTypeHeader">Media Type</th>
+      <th id="duplexHeader">Duplex</th>
+      <th id="lineProtocolHeader">Line Protocol</th>
+      <th id="operationalStatusHeader">Operational Status</th>
+      <th id="interfaceTypeHeader">Interface Type</th>
+      <th id="ipv4AddressHeader">IPv4 Address</th>
+      <th id="ipv4SubnetHeader">IPv4 Subnet</th>
     </tr>
   </thead>
   <tbody>
@@ -135,7 +168,60 @@
   </tbody>
 </table>
 
+
 <script>
+
+
+  // Function to apply the column toggle immediately
+  function applyColumnToggle(column) {
+    var checkbox = document.getElementById(column + 'Toggle');
+    toggleColumn(column, checkbox.checked);
+  }
+
+function toggleColumn(column) {
+    var headerCell = document.getElementById(column + 'Header');
+    var columnIndex = headerCell.cellIndex;
+    var table = document.getElementById('portTable');
+    var checkboxes = document.querySelectorAll('#columnPopup input[type="checkbox"]');
+
+    var isVisible = headerCell.style.display !== 'none';
+
+    for (var i = 0; i < table.rows.length; i++) {
+        table.rows[i].cells[columnIndex].style.display = isVisible ? 'none' : '';
+    }
+
+    headerCell.style.display = isVisible ? 'none' : '';
+
+    // Save column visibility preference
+    localStorage.setItem(column + 'Toggle', !isVisible);
+
+    // Update checkbox status
+    checkboxes.forEach(function(checkbox) {
+        if (checkbox.id === column + 'Toggle') {
+            checkbox.checked = !isVisible;
+        }
+    });
+}
+
+// Load column toggle preferences from local storage
+document.addEventListener('DOMContentLoaded', function() {
+    var columns = ['description', 'macAddress', 'mtu', 'bandwidth', 'mediaType', 'duplex', 'lineProtocol', 'operationalStatus', 'interfaceType', 'ipv4Address', 'ipv4Subnet'];
+
+    columns.forEach(function(column) {
+        var isVisible = localStorage.getItem(column + 'Toggle') !== 'false';
+        var headerCell = document.getElementById(column + 'Header');
+        var table = document.getElementById('portTable');
+
+        headerCell.style.display = isVisible ? '' : 'none';
+
+        for (var i = 0; i < table.rows.length; i++) {
+            table.rows[i].cells[headerCell.cellIndex].style.display = isVisible ? '' : 'none';
+        }
+    });
+});
+
+
+
     function toggleFields() {
     var accessMode = document.getElementById("accessMode");
     var trunkMode = document.getElementById("trunkMode");
@@ -154,34 +240,69 @@
       trunkFields.style.display = "none";
     }
   }
-var popupOpen = false;
+  var editPopupOpen = false;
+  var columnPopupOpen = false;
 
-function togglePopup() {
-    if (popupOpen) {
-        closePopup();
-    } else {
-        openPopup();
+  // Function to toggle the visibility of the edit popup
+  function togglePopup() {
+    var editPopup = document.getElementById('popup');
+    editPopup.style.display = editPopupOpen ? 'none' : 'block';
+    editPopupOpen = !editPopupOpen;
+
+    // Close the column popup if it's open
+    if (columnPopupOpen && editPopupOpen) {
+      toggleColumnPopup();
     }
-}
 
-function openPopup() {
-    document.getElementById('popup').style.display = 'block';
-    displaySelectedPorts();
-    popupOpen = true;
-}
-
-function closePopup() {
-    document.getElementById('popup').style.display = 'none';
-    popupOpen = false;
-}
-
-  function toggleSelectAll() {
-    var checkboxes = document.querySelectorAll('input[name="port"]');
-    checkboxes.forEach(function(checkbox) {
-      checkbox.checked = !checkbox.checked;
-    });
-    updateSelectedPorts();
+    if (editPopupOpen) {
+      displaySelectedPorts();
+    }
   }
+
+  // Function to close the edit popup
+  function closePopup() {
+    var editPopup = document.getElementById('popup');
+    editPopup.style.display = 'none';
+    editPopupOpen = false;
+  }
+
+  // Function to toggle the visibility of the column popup
+  function toggleColumnPopup() {
+    var columnPopup = document.getElementById('columnPopup');
+    columnPopup.style.display = columnPopupOpen ? 'none' : 'block';
+    columnPopupOpen = !columnPopupOpen;
+
+    // Close the edit popup if it's open
+    if (editPopupOpen && columnPopupOpen) {
+      closePopup();
+    }
+  }
+
+  // Function to close the column popup
+  function closeColumnPopup() {
+    var columnPopup = document.getElementById('columnPopup');
+    columnPopup.style.display = 'none';
+    columnPopupOpen = false;
+  }
+
+
+
+
+function toggleSelectAll() {
+    var checkboxes = document.querySelectorAll('input[name="port"]');
+    var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+    // Check if the select all checkbox is checked or not
+    var selectAllChecked = !selectAllCheckbox.checked;
+
+    // Set the checked status of all checkboxes based on the select all checkbox
+    checkboxes.forEach(function(checkbox) {
+        checkbox.checked = selectAllChecked;
+    });
+
+    // Update selected ports after toggling checkboxes
+    updateSelectedPorts();
+}
 
   function updateSelectedPorts() {
     var selectedPorts = [];
