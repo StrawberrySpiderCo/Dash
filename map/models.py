@@ -134,6 +134,18 @@ class NetworkInterface(models.Model):
 
     def __str__(self):
         return f"{self.device} - {self.name}"
+    
+class NetworkTask(models.Model):
+    device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='tasks')
+    result = models.CharField(max_length=200)
+    start_time = models.CharField(max_length=200)
+    end_time = models.CharField(max_length=200)
+    duration = models.CharField(max_length=200)
+    name = models.CharField(max_length=100)
+    uid = models.CharField(max_length=250)
+
+    def __str__(self):
+        return f"{self.device} - {self.name}"
 
 class RunningConfig(models.Model):
     """

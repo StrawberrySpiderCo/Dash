@@ -1,12 +1,60 @@
 import ansible_runner
 import json
-from map.models import Org_Info
+from map.models import Org_Info,NetworkDevice,NetworkInterface,NetworkTask
 import shutil
 from typing import Literal, Union, Optional
 import os
 
 class AnsiblePlaybookRunError(Exception):
     pass
+
+def ansible_logging(events):
+    output = {
+        "runner_on_ok": [],
+        "runner_on_failed": []
+    }
+    for i in events:
+            if i['event'] == 'runner_on_ok':
+                net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
+                NetworkTask.objects.create(
+                device=net_device,
+                result = 'Successful',
+                start_time = i['event_data']['start'],
+                end_time = i['event_data']['end'],
+                duration = i['event_data']['duration'],
+                name = i['event_data']['task'],
+                uid = i['event_data']['uuid'],
+            )
+                completed_task = {
+                    "hostname": i['event_data']['host'],
+                    "task_name": i['event_data']['task'],
+                    "task_result": i['event_data']['res'],
+                    "start_time": i['event_data']['start'],
+                    "end_time": i['event_data']['end'],
+                    "duration": i['event_data']['duration']
+                }
+                output["runner_on_ok"].append(completed_task)
+            if i['event'] == 'runner_on_failed':
+                net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
+                NetworkTask.objects.create(
+                device=net_device,
+                result = 'Failed',
+                start_time = i['event_data']['start'],
+                end_time = i['event_data']['end'],
+                duration = i['event_data']['duration'],
+                name = i['event_data']['task'],
+                uid = i['event_data']['uuid'],
+            )
+                failed_task = {
+                    "hostname": i['event_data']['host'],
+                    "task_name": i['event_data']['task'],
+                    "task_result": i['event_data']['res'],
+                    "start_time": i['event_data']['start'],
+                    "end_time": i['event_data']['end'],
+                    "duration": i['event_data']['duration']
+                }
+                output["runner_on_failed"].append(failed_task)
+    print(type(output))
 
 def run_ansible_playbook(playbook):
     """
@@ -38,25 +86,9 @@ def run_ansible_playbook(playbook):
             extravars=ansible_config,
             suppress_env_files=True,
         )
-        for i in r.events:
-            if i['event'] == 'runner_on_ok':
-                completed_task = {
-                    "hostname": i['event_data']['host'],
-                    "task_name": i['event_data']['task'],
-                    "task_result": i['event_data']['res']
-                }
-                output["runner_on_ok"].append(completed_task)
-            if i['event'] == 'runner_on_failed':
-                failed_task = {
-                    "hostname": i['event_data']['host'],
-                    "task_name": i['event_data']['task'],
-                    "task_result": i['event_data']['res']
-                }
-                output["runner_on_failed"].append(failed_task)
-            elif i['event'] == 'warning' and '[WARNING]: Could not match supplied host pattern, ignoring: network_devices' in i['stdout']:
-                raise AnsiblePlaybookRunError("Host Pattern Not Found")
+        events = r.events
+        ansible_logging(events)
         cleanup_artifacts_folder()
-        return(output)
     except FileNotFoundError as fnf_err:
         raise AnsiblePlaybookRunError(f"File not found error: {str(fnf_err)}")
     except AnsiblePlaybookRunError as e:
@@ -140,6 +172,8 @@ def setShut(ansibleHost: str,
                                     'hostname':ansibleHost,
                                     'input_action':isShut,
                                     'interface_name':interface,})
+    events = r.events
+    ansible_logging(events)
     cleanup_artifacts_folder()
                                       
     
@@ -192,6 +226,8 @@ def l2interface(hostname: str,
                                     'native_vlan': native_vlan,
                                     'allowed_vlans': allowed_vlan,
                                     'encapsulation': encapsulation})
+    events = r.events
+    ansible_logging(events)
     cleanup_artifacts_folder()
 def l3interface(hostname: str = '',
                 interface: list = [],
