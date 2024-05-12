@@ -20,10 +20,10 @@
   top: 50%; 
   left: 50%; 
   transform: translate(-50%, -50%); 
-  width: 50vh;
+  width: fit-content;
   height: fit-content;
   background-color: var(--left-menu-color);
-  border: 1px solid black;
+  border: 1px solid var(--border-color);
   padding: 20px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   transition: opacity 0.3s ease;
@@ -36,18 +36,58 @@
   white-space: nowrap;
 }
 
+.column-popup {
+  position: fixed; 
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%);
+  
+  max-width: 70em; /* Set a maximum width to prevent it from becoming too wide on larger screens */
+  max-height: 7.5em; /* Adjust maximum height as needed */
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0.375em;
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--border-color);
+  color: var(--border-color) !important;
+  transition: all .1s ease-in-out;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.7rem; /* Adjust font size as needed */
+  font-weight: 700;
+}
 
+.column-form {
+  display: flex; /* Use flexbox to arrange items horizontally */
+  flex-wrap: wrap; /* Allow items to wrap to the next line if necessary */
+  justify-content: space-between; /* Add space between items */
+}
+
+.checkbox-container {
+  display: flex; /* Use flexbox for checkboxes and labels */
+  align-items: center; /* Align items vertically */
+}
+
+
+/* Style for labels */
+.column-popup label {
+  margin-right: 10px; /* Remove default margin */
+  flex-grow: 1; /* Allow labels to take up remaining space */
+}
 </style>
 <h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
-<input type="button" value="Edit Selected" onclick="togglePopup()">
+<input type="button"  value="Edit Selected" onclick="togglePopup()">
 
-<input type="button" value="Toggle Columns" onclick="toggleColumnPopup()">
+<input type="button" style="float: right;" value="Toggle Columns" onclick="toggleColumnPopup()">
 <br><br>
 
 <div id="popup-container" class="popup-container">
   <div class="popup">
-    <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
+    <h2>Bulk Edit Information <span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
     <form id="editForm" onsubmit="return submitForm()">
       {% csrf_token %}
       <h3>Selected Ports:</h3>
@@ -97,9 +137,9 @@
   </div>
   </div>
 
-<div id="columnPopup" style="display: none;" class="popup">
-  <h2>Toggle Columns <span style="float: right; cursor: pointer;" onclick="closeColumnPopup()">X</span></h2>
-  <form id="columnForm">
+<div id="columnPopup" class="column-popup">
+  <form id="columnForm" class="column-form">
+    <div class="checkbox-container">
     <input type="checkbox" id="descriptionToggle" checked onchange="toggleColumn('description')">
     <label for="descriptionToggle">Description</label><br>
     <input type="checkbox" id="macAddressToggle" checked onchange="toggleColumn('macAddress')">
@@ -122,6 +162,7 @@
     <label for="ipv4AddressToggle">IPv4 Address</label><br>
     <input type="checkbox" id="ipv4SubnetToggle" checked onchange="toggleColumn('ipv4Subnet')">
     <label for="ipv4SubnetToggle">IPv4 Subnet</label><br>
+  </div>
   </form>
 </div>
 
