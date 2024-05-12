@@ -3,47 +3,99 @@
 {% block title %}Network{% endblock %}
 {% block template %}
 <style>
+.popup-container {
+  display: none; 
+  background: rgba(0, 0, 0, 0.6);
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 1s; 
+}
+
 .popup {
-    display: none;
-    position: absolute;
-    top: auto;
-    bottom: auto;
-    overflow-y: auto;
-    width: 50vh;
-    height:fit-content;
-    background-color: var(--left-menu-color);
-    border: 1px solid black;
-    padding: 20px;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 9999; 
-    -moz-appearance: none;
-  -webkit-appearance: none;
-  -ms-appearance: none;
-  appearance: none;
-  -moz-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  -webkit-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  -ms-transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  border-radius: 0.375em;
-  border: 0;
-  box-shadow: inset 0 0 0 2px var(--border-color);
-  color: var(--border-color) !important;
-  display: inline-block;
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: 50vh;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid black;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
   font-family: var(--font-family);
+  z-index: 9999;
   font-size: 0.8em;
   font-weight: 700;
-  padding: 0 1em .25em;
   text-align: center;
-  text-decoration: none;
   white-space: nowrap;
 }
+
 
 </style>
 <h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
 <input type="button" value="Edit Selected" onclick="togglePopup()">
+
 <input type="button" value="Toggle Columns" onclick="toggleColumnPopup()">
 <br><br>
+
+<div id="popup-container" class="popup-container">
+  <div class="popup">
+    <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
+    <form id="editForm" onsubmit="return submitForm()">
+      {% csrf_token %}
+      <h3>Selected Ports:</h3>
+      <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
+      <br>
+      
+      <h3>Port Mode:</h3>
+      <input type="radio" name="mode" id="accessMode" value="access" onclick="toggleFields()">
+      <label for="accessMode">Access</label>
+      <input type="radio" name="mode" id="trunkMode" value="trunk" onclick="toggleFields()">
+      <label for="trunkMode">Trunk</label>
+      <input type="radio" name="mode" id="deleteMode" value="delete" onclick="toggleFields()">
+      <label for="deleteMode">Delete</label>
+      <br>
+      <div id="vlanFields" style="display: none;">
+        <label for="vlan">VLAN:</label>
+        <input type="number" pattern="[0-9]*" name="vlan" id="vlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br><br>
+        <label for="voiceVlan">Voice VLAN:</label>
+        <input type="number" pattern="[0-9]*" name="voiceVlan" id="voiceVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br> <br>
+      </div>
+  
+      <div id="trunkFields" style="display: none;">
+        <label for="nativeVlan">Native VLAN:</label>
+        <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br><br>
+        <label for="allowedVlans">Allowed VLANs:</label>
+        <input type="text" name="allowedVlans" id="allowedVlans" placeholder="Enter VLANs separated by commas (e.g., 1, 2, 3)"><br><br>
+        <label for="encapsulation">Encapsulation:</label>
+        <select name="encapsulation" id="encapsulation">
+          <option value="dot1q">Dot1Q</option>
+          <option value="isl">ISL</option>
+          <option value="negotiate">Negotiate</option>
+        </select>
+        <br>
+      </div>
+      <h3>Port State:</h3>
+      <input type="hidden" name="selected_ports" id="selectedPorts">
+      <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
+      <input type="radio" name="desiredState" id="shutState" value="shut">
+      <label for="shutState">Disable Ports</label>
+      <input type="radio" name="desiredState" id="noshutState" value="noshut" checked>
+      <label for="noshutState">Enable Ports</label>
+      <br><br>
+      <button style="background-color: var(--background-color); float: right;" onclick="return submitForm()">Submit</button>
+      <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
+      <br>
+    </form>
+  </div>
+  </div>
 
 <div id="columnPopup" style="display: none;" class="popup">
   <h2>Toggle Columns <span style="float: right; cursor: pointer;" onclick="closeColumnPopup()">X</span></h2>
@@ -74,57 +126,12 @@
 </div>
 
 
- 
-<div id="popup" style="display: none;" class="popup">
-  <h2>Bulk Edit Information <span style="float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
-  <form id="editForm" action="{% url 'edit_ports' %}" method="post">
-    {% csrf_token %}
-    <h3>Selected Ports:</h3>
-    <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
-    <br>
-    
-    <h3>Port Mode:</h3>
-    <input type="radio" name="mode" id="accessMode" value="access" onclick="toggleFields()">
-    <label for="accessMode">Access</label>
-    <input type="radio" name="mode" id="trunkMode" value="trunk" onclick="toggleFields()">
-    <label for="trunkMode">Trunk</label>
-    <input type="radio" name="mode" id="deleteMode" value="delete" onclick="toggleFields()">
-    <label for="deleteMode">Delete</label>
-    <br>
-    <div id="vlanFields" style="display: none;">
-      <label for="vlan">VLAN:</label>
-      <input type="number" pattern="[0-9]*" name="vlan" id="vlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br><br>
-      <label for="voiceVlan">Voice VLAN:</label>
-      <input type="number" pattern="[0-9]*" name="voiceVlan" id="voiceVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br> <br>
-    </div>
-
-    <div id="trunkFields" style="display: none;">
-      <label for="nativeVlan">Native VLAN:</label>
-      <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br><br>
-      <label for="allowedVlans">Allowed VLANs:</label>
-      <input type="text" name="allowedVlans" id="allowedVlans" placeholder="Enter VLANs separated by commas (e.g., 1, 2, 3)"><br><br>
-      <label for="encapsulation">Encapsulation:</label>
-      <select name="encapsulation" id="encapsulation">
-        <option value="dot1q">Dot1Q</option>
-        <option value="isl">ISL</option>
-        <option value="negotiate">Negotiate</option>
-      </select>
-      <br>
-    </div>
-    <h3>Port State:</h3>
-    <input type="hidden" name="selected_ports" id="selectedPorts">
-    <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
-    <input type="radio" name="desiredState" id="shutState" value="shut">
-    <label for="shutState">Disable Ports</label>
-    <input type="radio" name="desiredState" id="noshutState" value="noshut" checked>
-    <label for="noshutState">Enable Ports</label>
-    <br><br>
-    <button style="background-color: var(--background-color); float: right;" onclick="return submitForm()">Submit</button>
-    <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
-    <br>
-  </form>
+<div id="popup-message-container" class="popup-container">
+<div id="popupMessage" class="popup">
+  <p id="popupContent"></p>
+  <button onclick="closeMessagePopup()">Close</button>
 </div>
-
+</div>
 
 
 <table id="portTable">
@@ -173,9 +180,8 @@
 
 <script>
 
-
   // Function to apply the column toggle immediately
-  function applyColumnToggle(column) {
+function applyColumnToggle(column) {
     var checkbox = document.getElementById(column + 'Toggle');
     toggleColumn(column, checkbox.checked);
   }
@@ -224,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    function toggleFields() {
+function toggleFields() {
     var accessMode = document.getElementById("accessMode");
     var trunkMode = document.getElementById("trunkMode");
     var deleteMode = document.getElementById("deleteMode");
@@ -242,49 +248,56 @@ document.addEventListener('DOMContentLoaded', function() {
       trunkFields.style.display = "none";
     }
   }
-  var editPopupOpen = false;
-  var columnPopupOpen = false;
 
-  // Function to toggle the visibility of the edit popup
-  function togglePopup() {
-    var editPopup = document.getElementById('popup');
-    editPopup.style.display = editPopupOpen ? 'none' : 'block';
-    editPopupOpen = !editPopupOpen;
+var $popupContainer = document.getElementById('popup-container'),
+  $popup = $popupContainer.querySelector('.popup');
 
-    // Close the column popup if it's open
-    if (columnPopupOpen && editPopupOpen) {
-      toggleColumnPopup();
-    }
+// Function to toggle the visibility of the edit popup
+function togglePopup() {
+    $popupContainer.querySelector('input').value=''
+   $popupContainer.style.display = 'block';
+  //fade In 
+   setTimeout(function () {
+     $popupContainer.style.opacity = 1;
+   }, 100);
+}
 
-    if (editPopupOpen) {
-      displaySelectedPorts();
-    }
-  }
+$popupContainer.onclick = function(){
+  //fade out 
+   $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 900);
+}
+$popup.onclick = function(e){
+  e.stopPropagation();
+}
+$columnPopup.onclick = function(e){
+  e.stopPropagation();
+}
 
-  // Function to close the edit popup
-  function closePopup() {
-    var editPopup = document.getElementById('popup');
-    editPopup.style.display = 'none';
-    editPopupOpen = false;
-  }
+// Function to close the edit popup
+function closePopup() {
+  //fade out 
+  $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 900);
+}
+var columnPopupOpen = false;
 
   // Function to toggle the visibility of the column popup
-  function toggleColumnPopup() {
-    var columnPopup = document.getElementById('columnPopup');
+function toggleColumnPopup() {
+  var columnPopup = document.getElementById('columnPopup');
     columnPopup.style.display = columnPopupOpen ? 'none' : 'block';
     columnPopupOpen = !columnPopupOpen;
 
-    // Close the edit popup if it's open
-    if (editPopupOpen && columnPopupOpen) {
-      closePopup();
-    }
   }
 
   // Function to close the column popup
-  function closeColumnPopup() {
-    var columnPopup = document.getElementById('columnPopup');
+function closeColumnPopup() {
+  var columnPopup = document.getElementById('columnPopup');
     columnPopup.style.display = 'none';
-    columnPopupOpen = false;
   }
 
 
@@ -306,7 +319,7 @@ function toggleSelectAll() {
     updateSelectedPorts();
 }
 
-  function updateSelectedPorts() {
+function updateSelectedPorts() {
     var selectedPorts = [];
     var checkboxes = document.querySelectorAll('input[name="port"]:checked');
     checkboxes.forEach(function(checkbox) {
@@ -316,7 +329,7 @@ function toggleSelectAll() {
     displaySelectedPorts();
   }
 
-  function displaySelectedPorts() {
+function displaySelectedPorts() {
     var selectedPortsDisplay = document.getElementById("selectedPortsDisplay");
     selectedPortsDisplay.innerHTML = "";
     var selectedPorts = JSON.parse(document.getElementById('selectedPorts').value);
@@ -326,49 +339,88 @@ function toggleSelectAll() {
     });
   }
 
-  function submitForm() {
-  // Get the values from the additional fields
-  var ipAddress = document.getElementById('ip_address').value;
-  var selectedPorts = document.getElementById('selectedPorts').value;
-  var desiredState = document.querySelector('input[name="desiredState"]:checked').value;
-  var mode = document.querySelector('input[name="mode"]:checked').value;
-  
-  var vlan = document.getElementById('vlan').value;
-  var voiceVlan = document.getElementById('voiceVlan').value;
-  var nativeVlan = document.getElementById('nativeVlan').value;
-  var allowedVlans = document.getElementById('allowedVlans').value;
-  var encapsulation = document.getElementById('encapsulation').value;
+function submitForm() {
+    // Get the values from the additional fields
+    var ipAddress = document.getElementById('ip_address').value;
+    var selectedPorts = document.getElementById('selectedPorts').value;
+    var desiredState = document.querySelector('input[name="desiredState"]:checked').value;
+    var mode = document.querySelector('input[name="mode"]:checked').value;
+    
+    var vlan = document.getElementById('vlan').value;
+    var voiceVlan = document.getElementById('voiceVlan').value;
+    var nativeVlan = document.getElementById('nativeVlan').value;
+    var allowedVlans = document.getElementById('allowedVlans').value;
+    var encapsulation = document.getElementById('encapsulation').value;
 
-  // Check if all required fields are filled
-  if (!ipAddress || !selectedPorts || !desiredState || !mode) {
-    alert("Please fill out all required fields.");
-    return false; // Prevent form submission if any required field is empty
-  }
-
-  // If mode is access, check VLAN and Voice VLAN values
-  if (mode === "access") {
-    if (!vlan) {
+    // Check if all required fields are filled
+    if (!ipAddress || !selectedPorts || !desiredState || !mode) {
       alert("Please fill out all required fields.");
       return false; // Prevent form submission if any required field is empty
     }
-  }
-  // If mode is trunk, check Native VLAN, Allowed VLANs, and Encapsulation values
-  else if (mode === "trunk") {
-    if (!nativeVlan || !allowedVlans || !encapsulation) {
-      alert("Please fill out all required fields.");
-      return false; // Prevent form submission if any required field is empty
+
+    // If mode is access, check VLAN and Voice VLAN values
+    if (mode === "access") {
+      if (!vlan) {
+        alert("Please fill out all required fields.");
+        return false; // Prevent form submission if any required field is empty
+      }
     }
+    // If mode is trunk, check Native VLAN, Allowed VLANs, and Encapsulation values
+    else if (mode === "trunk") {
+      if (!nativeVlan || !allowedVlans || !encapsulation) {
+        alert("Please fill out all required fields.");
+        return false; // Prevent form submission if any required field is empty
+      }
+    }
+
+    // Prepare form data
+    var formData = new FormData();
+    formData.append('ip_address', ipAddress);
+    formData.append('selected_ports', selectedPorts);
+    formData.append('desiredState', desiredState);
+    formData.append('mode', mode);
+    formData.append('vlan', vlan);
+    formData.append('voiceVlan', voiceVlan);
+    formData.append('nativeVlan', nativeVlan);
+    formData.append('allowedVlans', allowedVlans);
+    formData.append('encapsulation', encapsulation);
+
+    // Send AJAX request to Django view
+    fetch('{% url "edit_ports" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Display popup message
+        closePopup();
+        document.getElementById('popupContent').innerText = "Request sent successfully!";
+        document.getElementById('popupMessage').style.display = "block";
+        // Redirect to task page after 3 seconds
+        setTimeout(function() {
+          window.location.href = data.taskPageURL;
+        }, 3000000);
+      } else {
+        // Display popup message with error
+        document.getElementById('popupContent').innerText = "Error: " + data.message;
+        document.getElementById('popupMessage').style.display = "block";
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+
+    return false; // Prevent default form submission
   }
 
-  // Set the values to hidden input fields in the form
-  document.getElementById('ip_address').value = ipAddress;
-  document.getElementById('selectedPorts').value = selectedPorts;
-  document.getElementById('desiredState').value = desiredState;
-
-  // Submit the form
-  document.getElementById('editForm').submit();
-}
-
+  // Function to close the popup
+function closeMessagePopup() {
+    document.getElementById('popupMessage').style.display = "none";
+  }
 </script>
 
 {% endblock %}

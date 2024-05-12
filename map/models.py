@@ -143,7 +143,7 @@ class NetworkTask(models.Model):
     duration = models.CharField(max_length=200)
     name = models.CharField(max_length=100)
     uid = models.CharField(max_length=250)
-
+    task_result = models.TextField(null=True, blank=True)
     def __str__(self):
         return f"{self.device} - {self.name}"
 

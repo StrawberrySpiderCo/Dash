@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface
 from map.tasks import update_device_info_task, set_interface, set_l2interface
 from django.contrib.auth.decorators import user_passes_test
+from django.http import JsonResponse
 import json
 
 
@@ -83,9 +84,14 @@ def edit_ports(request):
         encapsulation = request.POST.get('encapsulation')
         set_interface.delay(host, selected_ports, desired_state)
         set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
-        return render(request, 'port_edit_success.html', {'allowed_vlan': allowed_vlans, 'selected_ports': selected_ports, 'host': host, 'desired_state': desired_state, 'mode':mode, 'vlan':vlan, 'voice_vlan':voice_vlan})
-    else:
-        return render(request, 'port_edit_failure.html')
+        data = {
+        'success': True,  # or False based on the result
+        'taskPageURL': '/network_tasks/',
+        'message': 'Yippee'
+        # Other data you want to send to the client
+        }
+        return JsonResponse(data)
+        
 
 @login_required
 def network_view(request):

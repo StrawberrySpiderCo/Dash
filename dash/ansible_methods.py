@@ -24,6 +24,7 @@ def ansible_logging(events):
                 duration = i['event_data']['duration'],
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
+                task_result = i['event_data']['res']
             )
                 completed_task = {
                     "hostname": i['event_data']['host'],
