@@ -15,11 +15,13 @@ def ansible_logging(events):
     }
     for i in events:
             if i['event'] == 'runner_on_ok':
+                start_time_list = (i['event_data']['start']).split('.')
+                start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
                 NetworkTask.objects.create(
                 device=net_device,
                 result = 'Successful',
-                start_time = i['event_data']['start'],
+                start_time = start_time,
                 end_time = i['event_data']['end'],
                 duration = i['event_data']['duration'],
                 name = i['event_data']['task'],
@@ -36,11 +38,13 @@ def ansible_logging(events):
                 }
                 output["runner_on_ok"].append(completed_task)
             if i['event'] == 'runner_on_failed':
+                start_time_list = (i['event_data']['start']).split('.')
+                start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
                 NetworkTask.objects.create(
                 device=net_device,
                 result = 'Failed',
-                start_time = i['event_data']['start'],
+                start_time = start_time,
                 end_time = i['event_data']['end'],
                 duration = i['event_data']['duration'],
                 name = i['event_data']['task'],

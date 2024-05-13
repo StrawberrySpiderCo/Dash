@@ -3,13 +3,30 @@
 {% csrf_token %}
 {% block title %}Network Tasks{% endblock %}
 {% block template %}
-<h2>Port View</h2>
-<p>{{allowed_vlan}}</p>
-<p>{{desired_state}}</p>
-<p>{{ host }}</p>
-<p>{{vlan}}</p>
-<p>{{voice_vlan}}</p>
-{% for port in selected_ports %}
-<p>{{port}}</p>
-{% endfor %}
-{% endblock %}
+<h2>Tasks - {{ device.hostname }} - {{ device.ip_address }}</h2>
+<div id="tasks-container">
+    {%for task in device_tasks%}
+    <p>Name: {{task.name}} - Status: {{task.result}} - Time: {{task.start_time}}</p>
+    {%endfor%}
+</div>
+
+
+<script>
+    function fetchTasks() {
+        $.ajax({
+            url: "{% url 'fetch_tasks' device_id=device.id %}", // Assuming you have a URL named 'tasks_view'
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                $('#tasks-container').empty(); // Clear existing tasks
+                response.device_tasks.forEach(function(task) {
+                    $('#tasks-container').append(`<p>Name: ${task.name} - Status: ${task.result} - Time: ${task.start_time}</p>`);
+                });
+            }
+        });
+    }
+    
+    // Poll every 5 seconds (for example)
+    setInterval(fetchTasks, 2000);
+    </script>
+    {% endblock %}

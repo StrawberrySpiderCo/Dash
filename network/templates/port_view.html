@@ -525,7 +525,7 @@ function submitForm() {
         }, 100);
         // Redirect to task page after 3 seconds
         setTimeout(function() {
-          window.location.href = data.taskPageURL;
+          window.location.href = "{% url 'tasks_view' device_id=device.id %}";
         }, 3000);
       } else {
         // Display popup message with error

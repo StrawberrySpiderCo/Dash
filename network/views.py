@@ -6,7 +6,7 @@ from django.contrib.staticfiles.views import serve
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
-from map.models import NetworkDevice, NetworkInterface
+from map.models import NetworkDevice, NetworkInterface, NetworkTask
 from map.tasks import update_device_info_task, set_interface, set_l2interface
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
@@ -86,12 +86,25 @@ def edit_ports(request):
         set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
         data = {
         'success': True,  # or False based on the result
-        'taskPageURL': '/network_tasks/',
         'message': 'Yippee'
         # Other data you want to send to the client
         }
         return JsonResponse(data)
         
+@login_required
+def tasks_view(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    device_tasks = NetworkTask.objects.filter(device=device)
+    return render(request, 'network_tasks.html', {'device': device, 'device_tasks': device_tasks})
+
+
+@login_required
+def fetch_tasks(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    device_tasks = NetworkTask.objects.filter(device=device)
+    tasks_data = [{'result': task.result, 'start_time': task.start_time, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result} for task in device_tasks]
+    return JsonResponse({'device_tasks': tasks_data})
+
 
 @login_required
 def network_view(request):

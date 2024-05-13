@@ -144,8 +144,17 @@ class NetworkTask(models.Model):
     name = models.CharField(max_length=100)
     uid = models.CharField(max_length=250)
     task_result = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
     def __str__(self):
-        return f"{self.device} - {self.name}"
+        return f"{self.device} - {self.name} - {self.result} - Sent at: {self.start_time}"
+
+    class Meta:
+        """
+        Meta class to define additional properties for the model.
+        """
+
+        # Ordering of instances by creation time, with most recent first
+        ordering = ['-created_at']
 
 class RunningConfig(models.Model):
     """
