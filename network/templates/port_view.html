@@ -37,6 +37,39 @@
   white-space: nowrap;
 }
 
+.popup-message-container{
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.message-popup{
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .popup-column-container {
   display: none; 
   background: rgba(0, 0, 0, 0.1);
@@ -193,10 +226,9 @@
 </div>
 </div>
 
-<div id="popup-message-container" class="popup-container">
-<div id="popupMessage" class="popup">
+<div id="popup-message-container" class="popup-message-container">
+<div id="popupMessage" class="message-popup">
   <p id="popupContent"></p>
-  <button onclick="closeMessagePopup()">Close</button>
 </div>
 </div>
 
@@ -317,7 +349,18 @@ function toggleFields() {
   }
 
 var $popupContainer = document.getElementById('popup-container'),
-  $popup = $popupContainer.querySelector('.popup'), $columnPopup=document.getElementById('columnPopup'), $columnContainer=document.getElementById('popup-column-container');
+  $popup = $popupContainer.querySelector('.popup'), $columnPopup=document.getElementById('columnPopup'), $columnContainer=document.getElementById('popup-column-container'),
+  $messagePopup = document.getElementById('popupMessage'), $messageContainer = document.getElementById('popup-message-container');
+
+// Function to toggle the visibility of the edit popup
+function togglePopup() {
+    $popupContainer.querySelector('input').value=''
+   $popupContainer.style.display = 'block';
+  //fade In 
+   setTimeout(function () {
+     $popupContainer.style.opacity = 1;
+   }, 100);
+}
 
 // Function to toggle the visibility of the edit popup
 function togglePopup() {
@@ -377,7 +420,6 @@ function closeColumnPopup() {
      $columnContainer.style.display = 'none'
    }, 900);
   }
-
 
 
 
@@ -476,12 +518,15 @@ function submitForm() {
       if (data.success) {
         // Display popup message
         closePopup();
-        document.getElementById('popupContent').innerText = "Request sent successfully!";
-        document.getElementById('popupMessage').style.display = "block";
+        document.getElementById('popupContent').innerText = "Sending request, redirecting to tasks page...";
+        $messageContainer.style.display = 'block';
+        setTimeout(function () {
+          $messageContainer.style.opacity = 1;
+        }, 100);
         // Redirect to task page after 3 seconds
         setTimeout(function() {
           window.location.href = data.taskPageURL;
-        }, 3000000);
+        }, 3000);
       } else {
         // Display popup message with error
         document.getElementById('popupContent').innerText = "Error: " + data.message;
@@ -495,10 +540,7 @@ function submitForm() {
     return false; // Prevent default form submission
   }
 
-  // Function to close the popup
-function closeMessagePopup() {
-    document.getElementById('popupMessage').style.display = "none";
-  }
+
 </script>
 
 {% endblock %}
