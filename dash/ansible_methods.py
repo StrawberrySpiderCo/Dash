@@ -20,7 +20,7 @@ def run_ansible_playbook(task_name, ansible_config):
     Output:
     - returns 2 variables
     - r (runner): runner instance, used to grab status codes, verbose event data, etc
-    - output (dict): returns a dictionary containing simplified data to return to user if nessesary
+    - output (dict): returns a dictionary contains simplified data to return to user if nessesary
     {
     'runner_on_ok': {
         'hostname': '',
@@ -84,6 +84,18 @@ def run_ansible_playbook(task_name, ansible_config):
         raise AnsiblePlaybookRunError(f"An error occurred: {str(e)}")
 
 def ansible_logging(events):
+    """
+    Run after run_ansible_playbook to save results to the database
+
+    Args:
+    - events (r.events) - after running run_ansible_playbook you will have access to the the runner output and will have to run that in the r.events then input that
+    - EXAMPLE:  r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
+                ansible_logging(r.events)
+
+
+    Output:
+    - provides no output but will log all events provided into Postgres database under network tasks
+    """
     output = {
         "runner_on_ok": [],
         "runner_on_failed": []
