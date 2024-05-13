@@ -41,8 +41,6 @@ def set_l2interface(hostname: str,
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
     ansible_logging(r.events)
 
-
-
 @shared_task
 def set_l3interface(hostname: str = '',
                 interface: list = [],
@@ -104,7 +102,6 @@ def set_l3interface(hostname: str = '',
                                       'ipv4': ipv4,
                                       'ipv6': ipv6})
 
-
 @shared_task
 def gather_all_running_configs():
     ansible_events, ansible_results = run_ansible_playbook('get_all',{})
@@ -125,7 +122,6 @@ def gather_all_running_configs():
 @shared_task
 def update_port_info(host):
     update_port_info(host)
-
 
 @shared_task
 def setup_network_devices(org_info_id):

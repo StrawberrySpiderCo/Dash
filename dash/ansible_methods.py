@@ -16,7 +16,23 @@ def run_ansible_playbook(task_name, ansible_config):
     Args:
     - task_name (str): Name of the Ansible task.
     - ansible_config (dict): Configuration parameters for Ansible.
-    - **kwargs: Additional parameters specific to the task.
+
+    Output:
+    - returns 2 variables
+    - r (runner): runner instance, used to grab status codes, verbose event data, etc
+    - output (dict): returns a dictionary containing simplified data to return to user if nessesary
+    {
+    'runner_on_ok': {
+        'hostname': '',
+        'task_name': '',
+        'task_result': ''
+        },
+    'runner_on_fail': {
+        'hostname': '',
+        'task_name': '',
+        'task_result': ''
+        }
+    }
     """
     org_info = Org_Info.objects.get()
     ansible_config.update({
