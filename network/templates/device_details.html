@@ -89,7 +89,7 @@
 </style>
 <header class="header">
     <div class="header-left">
-        <h2>{{ device.hostname }} - {{ device.ip_address }}</h2>
+        <h2>{{ device.hostname }} - {{ device.ip_address }} - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'tasks_view' device.id %}" >Tasks</a></h2>
     </div>
     <div class="header-right">
         <!-- Button to redirect to port view page -->

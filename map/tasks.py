@@ -17,16 +17,17 @@ from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
-from dash.ansible_methods import run_ansible_playbook, l2interface, l3interface, setShut
+from dash.ansible_methods import run_ansible_playbook, ansible_logging
 from typing import Literal, Union, Optional
 load_dotenv()
 
 
 @shared_task
-def set_interface(ansibleHost: str,
+def set_interface(hostname: str,
             interface: Union[list, str],
-            isShut: Literal['shut','noshut']):
-    setShut(ansibleHost, interface, isShut)
+            action: Literal['shut','noshut']):
+    r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
+    ansible_logging(r.events)
 
 @shared_task
 def set_l2interface(hostname: str, 
@@ -37,7 +38,10 @@ def set_l2interface(hostname: str,
                 native_vlan: Optional[int] = 'None',
                 allowed_vlan: Optional[list] = 'None',
                 encapsulation: Literal['dot1q', 'isl', 'negotiate'] = 'dot1q'):
-    l2interface(hostname, interface, mode, vlan, voice_vlan, native_vlan, allowed_vlan, encapsulation)
+    r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
+    ansible_logging(r.events)
+
+
 
 @shared_task
 def set_l3interface(hostname: str = '',
@@ -65,11 +69,45 @@ def set_l3interface(hostname: str = '',
                     "is_srEnable": None,
                     "is_ipv6sr": None,
                     },):
-    l3interface(hostname, interface, ipv4, ipv6)
+    
+    default_ipv4 = {
+        "is_ipv4": False,
+        "address": None,
+        "mask": None,
+        "is_secondIP": False,
+        "is_dhcp": False,
+        "client_id": None,
+        "hostname": None,
+    }
+    default_ipv6 = {
+    'is_ipv6': False,
+    "address": None,
+    "mask": None,
+    "is_anycast": None,
+    "is_autoconfigDefault": None,
+    "is_autoconfigEnable": None,
+    "is_dhcp": None,
+    "is_rapidCommit": None,
+    "is_cga": None,
+    "is_eui": None,
+    "is_linkLocal": None,
+    "is_srDefault": None,
+    "is_srEnable": None,
+    "is_ipv6sr": None,
+    }
+
+    ipv4 = {**default_ipv4, **ipv4}
+    ipv6 = {**default_ipv6, **ipv6}
+    
+    r,output = run_ansible_playbook('set_l3interface.yml',{'hostname': hostname,
+                                      'interface_name': interface,
+                                      'ipv4': ipv4,
+                                      'ipv6': ipv6})
+
 
 @shared_task
 def gather_all_running_configs():
-    ansible_results = run_ansible_playbook('get_all')
+    ansible_events, ansible_results = run_ansible_playbook('get_all',{})
     for runner_on_ok in ansible_results['runner_on_ok']:
         ip_address = (runner_on_ok['hostname'])
         ansible_data = runner_on_ok['task_result']['ansible_facts']
@@ -83,6 +121,11 @@ def gather_all_running_configs():
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
         error_msg = ansible_data['msg']
+
+@shared_task
+def update_port_info(host):
+    update_port_info(host)
+
 
 @shared_task
 def setup_network_devices(org_info_id):
@@ -112,7 +155,7 @@ def setup_network_devices(org_info_id):
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
-    ansible_results = run_ansible_playbook('get_all')
+    ansible_events, ansible_results = run_ansible_playbook('get_all',{})
     for runner_on_ok in ansible_results['runner_on_ok']:
         ip_address = (runner_on_ok['hostname'])
         ansible_data = runner_on_ok['task_result']['ansible_facts']

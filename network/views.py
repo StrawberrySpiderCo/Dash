@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface, NetworkTask
-from map.tasks import update_device_info_task, set_interface, set_l2interface
+from map.tasks import update_device_info_task, set_interface, set_l2interface, update_port_info
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 import json
@@ -84,6 +84,7 @@ def edit_ports(request):
         encapsulation = request.POST.get('encapsulation')
         set_interface.delay(host, selected_ports, desired_state)
         set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
+        update_port_info.delay(host)
         data = {
         'success': True,  
         'message': 'Yippee'
