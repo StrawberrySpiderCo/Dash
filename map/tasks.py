@@ -17,17 +17,49 @@ from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
-from dash.ansible_methods import run_ansible_playbook, ansible_logging
+from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder
 from typing import Literal, Union, Optional
 load_dotenv()
 
+@shared_task
+def update_port_info(hostname):
+    net_device = NetworkDevice.objects.get(ip_address=hostname)
+    r, output = run_ansible_playbook('get_all',{'hostname':hostname})
+    for runner_on_ok in output['runner_on_ok']:
+        ansible_data = runner_on_ok['task_result']['ansible_facts']
+    for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+            short_name = abbreviated_interface_name(interface_name)
+            defaults = {
+                'device': net_device,
+                'description': interface_data['description'],
+                'mac_address': interface_data['macaddress'],
+                'mtu': interface_data['mtu'],
+                'bandwidth': interface_data['bandwidth'],
+                'media_type': interface_data['mediatype'],
+                'duplex': interface_data['duplex'],
+                'line_protocol': interface_data['lineprotocol'],
+                'oper_status': interface_data['operstatus'],
+                'interface_type': interface_data['type'],
+                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
+                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+                'short_name': short_name
+            }
+            # Create or update the NetworkInterface object
+            obj, created = NetworkInterface.objects.update_or_create(
+                device=net_device,
+                name=interface_name,
+                defaults=defaults
+            )
+    cleanup_artifacts_folder()
 
 @shared_task
 def set_interface(hostname: str,
             interface: Union[list, str],
             action: Literal['shut','noshut']):
     r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
-    ansible_logging(r.events)
+    events = r.events
+    ansible_logging(events)
+    cleanup_artifacts_folder()
 
 @shared_task
 def set_l2interface(hostname: str, 
@@ -39,7 +71,8 @@ def set_l2interface(hostname: str,
                 allowed_vlan: Optional[list] = 'None',
                 encapsulation: Literal['dot1q', 'isl', 'negotiate'] = 'dot1q'):
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
-    ansible_logging(r.events)
+    events = r.events
+    ansible_logging(events)
 
 @shared_task
 def set_l3interface(hostname: str = '',
@@ -118,10 +151,6 @@ def gather_all_running_configs():
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
         error_msg = ansible_data['msg']
-
-@shared_task
-def update_port_info(host):
-    update_port_info(host)
 
 @shared_task
 def setup_network_devices(org_info_id):

@@ -16,6 +16,7 @@ def run_ansible_playbook(task_name, ansible_config):
     Args:
     - task_name (str): Name of the Ansible task.
     - ansible_config (dict): Configuration parameters for Ansible.
+    - EXAMPLE: r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
 
     Output:
     - returns 2 variables
@@ -74,7 +75,6 @@ def run_ansible_playbook(task_name, ansible_config):
                output["runner_on_failed"].append(failed_task)
            elif i['event'] == 'warning' and '[WARNING]: Could not match supplied host pattern, ignoring: network_devices' in i['stdout']:
                raise AnsiblePlaybookRunError("Host Pattern Not Found")
-        cleanup_artifacts_folder()
         return (r, output)
     except FileNotFoundError as fnf_err:
         raise AnsiblePlaybookRunError(f"File not found error: {str(fnf_err)}")
@@ -85,12 +85,14 @@ def run_ansible_playbook(task_name, ansible_config):
 
 def ansible_logging(events):
     """
-    Run after run_ansible_playbook to save results to the database
+    Run after run_ansible_playbook to save results to the database. The reason this is not integrated in the main method is to setup better logging solution in the future without
+    disrupting run_ansible_playbook
 
     Args:
     - events (r.events) - after running run_ansible_playbook you will have access to the the runner output and will have to run that in the r.events then input that
-    - EXAMPLE:  r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
-                ansible_logging(r.events)
+    - EXAMPLE:      r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
+                    events = r.events
+                    ansible_logging(events)
 
 
     Output:
