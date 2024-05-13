@@ -5,14 +5,15 @@
 <style>
 .popup-container {
   display: none; 
+  position: fixed;
   background: rgba(0, 0, 0, 0.6);
-  position: absolute;
+
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
   opacity:0;
-  transition: opacity 1s; 
+  transition: opacity 0.5s; 
 }
 
 .popup {
@@ -25,7 +26,7 @@
   background-color: var(--left-menu-color);
   border: 1px solid var(--border-color);
   padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
   transition: opacity 0.3s ease;
   border-radius: 5px;
   font-family: var(--font-family);
@@ -36,17 +37,30 @@
   white-space: nowrap;
 }
 
+.popup-column-container {
+  display: none; 
+  background: rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
 .column-popup {
   position: fixed; 
-  top: 50%; /* Center vertically */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%);
+  top: 10vh; /* Adjust this value as needed */
+  left: 50vw; 
+  transform: translate(-50%, -10%); /* Adjust this value as well */
   
-  max-width: 70em; /* Set a maximum width to prevent it from becoming too wide on larger screens */
-  max-height: 7.5em; /* Adjust maximum height as needed */
+  width: 50vw; /* This will make the popup's width 50% of the viewport width */
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 12vh; /* Adjust this value as needed */
   background-color: var(--left-menu-color);
   border: 1px solid var(--border-color);
-  padding: 20px;
+  padding: 2vw; /* You can also use viewport units for padding */
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 0.375em;
   border: 0;
@@ -56,9 +70,10 @@
   border-radius: 5px;
   font-family: var(--font-family);
   z-index: 9999;
-  font-size: 0.7rem; /* Adjust font size as needed */
+  font-size: 1rem; /* Adjust font size as needed */
   font-weight: 700;
 }
+
 
 .column-form {
   display: flex; /* Use flexbox to arrange items horizontally */
@@ -74,17 +89,25 @@
 
 /* Style for labels */
 .column-popup label {
-  margin-right: 10px; /* Remove default margin */
+  margin-right: 1.7em; /* Remove default margin */
   flex-grow: 1; /* Allow labels to take up remaining space */
 }
+
+
 </style>
 <h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
 
-<input type="button"  value="Edit Selected" onclick="togglePopup()">
+<button onclick="togglePopup()">
+  Edit Selected
+  <i class="icon solid fa-pen"></i>
+</button>
 
-<input type="button" style="float: right;" value="Toggle Columns" onclick="toggleColumnPopup()">
+<button style="float: right;" onclick="toggleColumnPopup()">
+  Filter Columns
+  <i class="icon solid fa-filter"></i>
+</button>
+
 <br><br>
-
 <div id="popup-container" class="popup-container">
   <div class="popup">
     <h2>Bulk Edit Information <span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
@@ -137,8 +160,10 @@
   </div>
   </div>
 
+<div id="popup-column-container" class="popup-column-container">
 <div id="columnPopup" class="column-popup">
   <form id="columnForm" class="column-form">
+  
     <div class="checkbox-container">
     <input type="checkbox" id="descriptionToggle" checked onchange="toggleColumn('description')">
     <label for="descriptionToggle">Description</label><br>
@@ -162,10 +187,11 @@
     <label for="ipv4AddressToggle">IPv4 Address</label><br>
     <input type="checkbox" id="ipv4SubnetToggle" checked onchange="toggleColumn('ipv4Subnet')">
     <label for="ipv4SubnetToggle">IPv4 Subnet</label><br>
+    
   </div>
   </form>
 </div>
-
+</div>
 
 <div id="popup-message-container" class="popup-container">
 <div id="popupMessage" class="popup">
@@ -291,7 +317,7 @@ function toggleFields() {
   }
 
 var $popupContainer = document.getElementById('popup-container'),
-  $popup = $popupContainer.querySelector('.popup');
+  $popup = $popupContainer.querySelector('.popup'), $columnPopup=document.getElementById('columnPopup'), $columnContainer=document.getElementById('popup-column-container');
 
 // Function to toggle the visibility of the edit popup
 function togglePopup() {
@@ -316,7 +342,13 @@ $popup.onclick = function(e){
 $columnPopup.onclick = function(e){
   e.stopPropagation();
 }
-
+$columnContainer.onclick = function(){
+  //fade out 
+   $columnContainer.style.opacity = 0;
+   setTimeout(function () {
+     $columnContainer.style.display = 'none'
+   }, 900);
+}
 // Function to close the edit popup
 function closePopup() {
   //fade out 
@@ -325,20 +357,25 @@ function closePopup() {
      $popupContainer.style.display = 'none'
    }, 900);
 }
-var columnPopupOpen = false;
+
 
   // Function to toggle the visibility of the column popup
 function toggleColumnPopup() {
-  var columnPopup = document.getElementById('columnPopup');
-    columnPopup.style.display = columnPopupOpen ? 'none' : 'block';
-    columnPopupOpen = !columnPopupOpen;
-
+  $columnContainer.querySelector('input').value=''
+   $columnContainer.style.display = 'block';
+  //fade In 
+   setTimeout(function () {
+     $columnContainer.style.opacity = 1;
+   }, 100);
   }
 
   // Function to close the column popup
 function closeColumnPopup() {
-  var columnPopup = document.getElementById('columnPopup');
-    columnPopup.style.display = 'none';
+  //fade out 
+  $columnContainer.style.opacity = 0;
+   setTimeout(function () {
+     $columnContainer.style.display = 'none'
+   }, 900);
   }
 
 
