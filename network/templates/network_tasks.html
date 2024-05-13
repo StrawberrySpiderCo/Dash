@@ -4,29 +4,47 @@
 {% block title %}Network Tasks{% endblock %}
 {% block template %}
 <h2>Tasks - {{ device.hostname }} - {{ device.ip_address }}</h2>
-<div id="tasks-container">
-    {%for task in device_tasks%}
-    <p>Name: {{task.name}} - Status: {{task.result}} - Time: {{task.start_time}}</p>
-    {%endfor%}
-</div>
-
+<table id="tasks-table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Time</th>
+        </tr>
+    </thead>
+    <tbody id="tasks-body">
+        {% for task in device_tasks %}
+        <tr>
+            <td>{{ task.name }}</td>
+            <td>{{ task.result }}</td>
+            <td>{{ task.start_time }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 <script>
-    function fetchTasks() {
-        $.ajax({
-            url: "{% url 'fetch_tasks' device_id=device.id %}", // Assuming you have a URL named 'tasks_view'
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                $('#tasks-container').empty(); // Clear existing tasks
-                response.device_tasks.forEach(function(task) {
-                    $('#tasks-container').append(`<p>Name: ${task.name} - Status: ${task.result} - Time: ${task.start_time}</p>`);
-                });
-            }
-        });
-    }
-    
-    // Poll every 5 seconds (for example)
-    setInterval(fetchTasks, 2000);
-    </script>
-    {% endblock %}
+function fetchTasks() {
+    $.ajax({
+        url: "{% url 'fetch_tasks' device_id=device.id %}", 
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            $('#tasks-body').empty();
+            response.device_tasks.forEach(function(task) {
+                $('#tasks-body').append(`
+                    <tr>
+                        <td>${task.name}</td>
+                        <td>${task.result}</td>
+                        <td>${task.start_time}</td>
+                    </tr>
+                `);
+            });
+        }
+    });
+}
+
+// Poll every 2 seconds
+setInterval(fetchTasks, 2000);
+</script>
+{% endblock %}

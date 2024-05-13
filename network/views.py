@@ -85,9 +85,9 @@ def edit_ports(request):
         set_interface.delay(host, selected_ports, desired_state)
         set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
         data = {
-        'success': True,  # or False based on the result
+        'success': True,  
         'message': 'Yippee'
-        # Other data you want to send to the client
+        
         }
         return JsonResponse(data)
         
@@ -102,7 +102,7 @@ def tasks_view(request, device_id):
 def fetch_tasks(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
     device_tasks = NetworkTask.objects.filter(device=device)
-    tasks_data = [{'result': task.result, 'start_time': task.start_time, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result} for task in device_tasks]
+    tasks_data = [{'result': task.result, 'start_time': task.created_at, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result} for task in device_tasks]
     return JsonResponse({'device_tasks': tasks_data})
 
 
