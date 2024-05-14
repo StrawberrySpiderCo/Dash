@@ -105,7 +105,7 @@ def fetch_devices(request):
 
 @login_required
 def network_view(request):
-    device_info = NetworkDevice.objects.all()
+    device_info = NetworkDevice.objects.all().order_by('ip_address')
     context = {
             'device_info': device_info
         }
