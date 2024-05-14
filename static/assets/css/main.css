@@ -43,14 +43,17 @@ PINK DEFAULTS###################################################################
   --left-menu-line-color: #D2D7D9BF;
   --font-family: "Roboto Slab", serif;
   
-  --dark-header-color: #ffffff;
-  --dark-text-color: #dcdcdc;
-  --dark-border-color: #848484;
-  --dark-background-color: #1e1e1e;
-  --dark-left-menu-color: #2e2e2e;
-  --dark-left-menu-header-color: #3e3e3e;
-  --dark-left-menu-line-color: #848484;
+  --dark-header-color: #beb8b0;
+  --dark-text-color: #9c9487;
+  --dark-border-color: #9c9487;
+  --dark-background-color: #181A1B;
+  --dark-left-menu-color: #1d2021;
+  --dark-left-menu-header-color: #202324;
+  --dark-left-menu-line-color: #587667;
 }
+
+
+
 [data-theme="light"] {
   --header-color: var(--header-color);
     --text-color:  var(--text-color);
