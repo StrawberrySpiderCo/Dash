@@ -28,6 +28,9 @@ def update_port_info(hostname):
     for runner_on_ok in output['runner_on_ok']:
         ansible_data = runner_on_ok['task_result']['ansible_facts']
     for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+        if 'vlan' in interface_name.lower():
+            pass
+        else:
             short_name = abbreviated_interface_name(interface_name)
             defaults = {
                 'device': net_device,
