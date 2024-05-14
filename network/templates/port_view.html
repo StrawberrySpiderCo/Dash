@@ -279,42 +279,19 @@
 
 <script>
 
-// Load column toggle preferences from local storage
-document.addEventListener('DOMContentLoaded', function() {
-    var columns = ['description', 'macAddress', 'mtu', 'bandwidth', 'mediaType', 'duplex', 'lineProtocol', 'operationalStatus', 'interfaceType', 'ipv4Address', 'ipv4Subnet'];
-    
-    // Loop through each column
-    columns.forEach(function(column) {
-        var isVisible = localStorage.getItem(column + 'Toggle') !== 'false';
-        var headerCell = document.getElementById(column + 'Header');
-        var checkbox = document.getElementById(column + 'Toggle'); // Get the corresponding checkbox
-        
-        // Update checkbox status based on visibility preference
-        checkbox.checked = isVisible;
-        
-        // Apply column visibility based on preference
-        headerCell.style.display = isVisible ? '' : 'none';
-        var columnIndex = headerCell.cellIndex;
-        var table = document.getElementById('portTable');
-
-        for (var i = 0; i < table.rows.length; i++) {
-            table.rows[i].cells[columnIndex].style.display = isVisible ? '' : 'none';
-        }
-    });
-});
-
-// Function to apply the column toggle immediately
-function applyColumnToggle(column) {
+  // Function to apply the column toggle immediately
+  function applyColumnToggle(column) {
     var checkbox = document.getElementById(column + 'Toggle');
     toggleColumn(column, checkbox.checked);
-}
+  }
 
-function toggleColumn(column, isChecked) {
+function toggleColumn(column) {
     var headerCell = document.getElementById(column + 'Header');
     var columnIndex = headerCell.cellIndex;
     var table = document.getElementById('portTable');
+    var checkboxes = document.querySelectorAll('#columnPopup input[type="checkbox"]');
 
-    var isVisible = isChecked; // Update isVisible based on checkbox status
+    var isVisible = headerCell.style.display !== 'none';
 
     for (var i = 0; i < table.rows.length; i++) {
         table.rows[i].cells[columnIndex].style.display = isVisible ? 'none' : '';
@@ -323,8 +300,32 @@ function toggleColumn(column, isChecked) {
     headerCell.style.display = isVisible ? 'none' : '';
 
     // Save column visibility preference
-    localStorage.setItem(column + 'Toggle', isVisible);
+    localStorage.setItem(column + 'Toggle', !isVisible);
+
+    // Update checkbox status
+    checkboxes.forEach(function(checkbox) {
+        if (checkbox.id === column + 'Toggle') {
+            checkbox.checked = !isVisible;
+        }
+    });
 }
+
+// Load column toggle preferences from local storage
+document.addEventListener('DOMContentLoaded', function() {
+    var columns = ['description', 'macAddress', 'mtu', 'bandwidth', 'mediaType', 'duplex', 'lineProtocol', 'operationalStatus', 'interfaceType', 'ipv4Address', 'ipv4Subnet'];
+
+    columns.forEach(function(column) {
+        var isVisible = localStorage.getItem(column + 'Toggle') !== 'false';
+        var headerCell = document.getElementById(column + 'Header');
+        var table = document.getElementById('portTable');
+
+        headerCell.style.display = isVisible ? '' : 'none';
+
+        for (var i = 0; i < table.rows.length; i++) {
+            table.rows[i].cells[headerCell.cellIndex].style.display = isVisible ? '' : 'none';
+        }
+    });
+});
 
 
 
