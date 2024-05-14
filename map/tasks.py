@@ -238,7 +238,9 @@ def setup_network_devices(org_info_id):
                         'ansible_status': error_msg
                     }
                 )
-
+    events = ansible_events.events
+    ansible_logging(events)
+    cleanup_artifacts_folder()
 @shared_task
 def setup_github_repo(org_info_id):
     # Retrieve Org_Info instance
@@ -311,6 +313,11 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
+
+
+
+
+
 
 @shared_task
 def update_vlan_info_task():
