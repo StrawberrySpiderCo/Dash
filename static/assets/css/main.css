@@ -42,6 +42,32 @@ PINK DEFAULTS###################################################################
   --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
   --font-family: "Roboto Slab", serif;
+  
+  --dark-header-color: #ffffff;
+  --dark-text-color: #dcdcdc;
+  --dark-border-color: #848484;
+  --dark-background-color: #1e1e1e;
+  --dark-left-menu-color: #2e2e2e;
+  --dark-left-menu-header-color: #3e3e3e;
+  --dark-left-menu-line-color: #848484;
+}
+[data-theme="light"] {
+  --header-color: var(--header-color);
+    --text-color:  var(--text-color);
+    --border-color:  var(--border-color);
+    --background-color:  var(--background-color);
+    --left-menu-color:  var(--left-menu-color);
+    --left-menu-header-color: var(--left-menu-header-color);
+    --left-menu-line-color: var(--left-menu-line-color);
+}
+[data-theme="dark"] {
+  --header-color: var(--dark-header-color);
+  --text-color:  var(--dark-text-color);
+  --border-color:  var(--dark-border-color);
+  --background-color:  var(--dark-background-color);
+  --left-menu-color:  var(--dark-left-menu-color);
+  --left-menu-header-color: var(--dark-left-menu-header-color);
+  --left-menu-line-color: var(--dark-left-menu-line-color); 
 }
 
 

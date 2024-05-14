@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 {% load static %}
 {% csrf_token %}
-<html>
+<html lang="en">
 	<head>
 		<title>{% block title %}{% endblock %}</title>
 		<meta charset="utf-8" />
@@ -45,10 +45,10 @@
 									<li>
 										<span class="opener"><i class="icon solid fa-list"></i> Projects</span>
 										<ul>
-											<li><a href="{% url 'meetings' %}">Meetings</a></li>
-											<li><a href="{% url 'projects' %}">All Projects</a></li>
-											<li><a href="{% url 'my_projects' %}">My Projects</a></li>
-											<li><a href="{% url 'project_dashboard' %}">Project Dashboard</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'meetings' %}">Meetings</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'projects' %}">All Projects</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'my_projects' %}">My Projects</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'project_dashboard' %}">Project Dashboard</a></li>
 										</ul>
 									</li>
 									
@@ -56,13 +56,13 @@
 									<li>
 										<span class="opener"><i class="icon solid fa-toolbox"></i> Tools</span>
 										<ul>
-											<li><a href="{% url 'sierra_sendoff' %}">Sierra Sendoff</a></li>
-											<li><a href="{% url 'ipam' %}">IPAM</a></li>
-											<li><a href="{% url 'purrception' %}">Purrception</a></li>
-											<li><a href="{% url 'microsoft_portals' %}">Microsoft Portals</a></li>
-											<li><a href="{% url 'webex_slave_bot' %}">Webex Slave Bot</a></li>
-											<li><a href="{% url 'multiplicity' %}">Multiplicity</a></li>
-											<li><a href="{% url 'rule_clone' %}">Rule Clone</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'sierra_sendoff' %}">Sierra Sendoff</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'ipam' %}">IPAM</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'purrception' %}">Purrception</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'microsoft_portals' %}">Microsoft Portals</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'webex_slave_bot' %}">Webex Slave Bot</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'multiplicity' %}">Multiplicity</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'rule_clone' %}">Rule Clone</a></li>
 										</ul>
 									</li>
 									<li><a href="{% url 'wikis' %}"><i class="icon solid fa-book"></i> Wiki</a></li>
@@ -93,17 +93,17 @@
 							<!-- Header -->
 								<header id="header">
 									<p class="button top-button-left" onclick="redirectToRequest()">Request a feature <i class="icon solid fa-comment"></i> </p>
-									
 									{% if user.is_authenticated %}
 									<p class="button top-button-right-mid" onclick="redirectToLogout()">Logout <i class="icon solid fa-user-slash"></i></p>
 									<p class="button top-button-right" onclick="history.back()">Back <i class="icon solid fa-backward"></i></a></p>
-									<!--<ul class="icons">
-										<li><a href="https://github.com/Jtomlin2001/Public_CSV_Code" class="icon brands fa-github"><span class="label">Github</span></a></li>-->
+									<ul class="icons">
+										<li id="dark-mode-toggle"><a class="icon brands fa-github"><span class="label">Github</span></a></li>
+									</ul>
 									{% else %}
 									<p class="button top-button-left-mid" onclick="redirectToLogin()">Login <i class="icon solid fa-key"></i></p>
 									<p class="button top-button-right" onclick="history.back()">Back <i class="icon solid fa-backward"></i></a></p>
 									<ul class="icons">
-										<li><a href="https://github.com/Jtomlin2001/Public_CSV_Code" class="icon brands fa-github"><span class="label">Github</span></a></li>
+										<li id="dark-mode-toggle"><a class="icon brands fa-github"><span class="label">Github</span></a></li>
 									{% endif %}
 									</ul>
 
@@ -132,9 +132,26 @@
 				function redirectToLogout() {
 	window.location.href = "{% url 'logout_user' %}";
 }
-				function redirectToRequest(){
-					window.location.href = "{% url 'feature_request' %}"
-				}
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButton = document.getElementById('dark-mode-toggle');
+    const htmlElement = document.querySelector('html');
+
+    // Retrieve theme preference from local storage
+    const savedTheme = localStorage.getItem('theme');
+
+    // If a theme preference is found in local storage, apply it
+    if (savedTheme) {
+        htmlElement.setAttribute('data-theme', savedTheme);
+    }
+
+    // Add event listener to the toggle button
+    toggleButton.addEventListener('click', function() {
+        const newTheme = htmlElement.getAttribute('data-theme') === 'dark' ? '' : 'dark';
+        htmlElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+});
+
 			</script>
 
 
