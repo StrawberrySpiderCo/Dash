@@ -41,7 +41,7 @@
 
 <h2>Network</h2>
 
-<div id="noDevicesPopup" class="popup-container">
+<div id="popup-container" class="popup-container">
   <div class="popup">
     <h2>Retrieving Device Info</h2>
     <p>Please wait while we retrieve device information...</p>
@@ -117,46 +117,42 @@ Routers
 
   {% endfor %}-->
   <script>
+var $popupContainer = document.getElementById('popup-container'),
+    $popup = $popupContainer.querySelector('.popup');
 
-    var $popupContainer = document.getElementById('popup-container'),
-  $popup = $popupContainer.querySelector('.popup');
+// Retrieve devicesFound state from sessionStorage if available
+var devicesFound = sessionStorage.getItem('devicesFound') === 'true';
 
-    function fetchDevices() {
-    $.ajax({
-        url: "{% url 'fetch_devices' %}", 
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-          if (response.trim() === '') {
-            $popupContainer.querySelector('input').value=''
-            $popupContainer.style.display = 'block';
-            setTimeout(function () {
-              $popupContainer.style.opacity = 1;
-            }, 100);
-            
-            $('#tasks-body').empty();
-            response.devices.forEach(function(device) {
-                $('#devices-body').append(`
-                    <tr>
-                      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'device_details' device_id=${device.id} %}">${ device.hostname }</a></td>                        <td>${device.result}</td>
-                      <td>{% if ${device.online} %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
-                      <td>${device.ip_address}</td>
-                    </tr>
-                `)});
-        }
-          else {
-              //fade out 
-   $popupContainer.style.opacity = 0;
-   setTimeout(function () {
-     $popupContainer.style.display = 'none'
-   }, 300);
-        }
+function fetchDevices() {
+    if (!devicesFound) {
+        $.ajax({
+            url: "{% url 'fetch_devices' %}",
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                if (response.devices === '') {
+                    $popupContainer.style.display = 'block';
+                    setTimeout(function () {
+                        $popupContainer.style.opacity = 1;
+                    }, 100);
+                } else {
+                    devicesFound = true; // Set the flag to true
+                    sessionStorage.setItem('devicesFound', 'true'); // Store the flag in sessionStorage
+                    setTimeout(function () {
+                        location.reload();
+                    }, 8000); // Reload after devices are found
+                }
+            }
+        });
     }
-    });
 }
 
+// Call fetchDevices initially when the page loads
+fetchDevices();
+
 // Poll every 2 seconds
-setInterval(fetchDevices, 2000);
+setInterval(fetchDevices, 6000);
+
   </script>
   
 {% endblock %}

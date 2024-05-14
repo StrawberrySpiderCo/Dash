@@ -104,6 +104,10 @@ def ansible_logging(events):
     #}
     for i in events:
             if i['event'] == 'runner_on_ok':
+                try:
+                    msg = i['event_data']['msg']
+                except:
+                    msg = ''
                 start_time_list = (i['event_data']['start']).split('.')
                 start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
@@ -116,7 +120,7 @@ def ansible_logging(events):
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
                 task_result = i['event_data']['res'],
-                #msg = i['event_data']['msg'],
+                msg = msg,
             )
                 #completed_task = {
                 #    "hostname": i['event_data']['host'],
@@ -128,6 +132,10 @@ def ansible_logging(events):
                 #}
                 #output["runner_on_ok"].append(completed_task)
             if i['event'] == 'runner_on_failed':
+                try:
+                    msg = i['event_data']['res']['results'][0]['msg']
+                except:
+                    msg = ''
                 start_time_list = (i['event_data']['start']).split('.')
                 start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
@@ -140,7 +148,7 @@ def ansible_logging(events):
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
                 task_result =  i['event_data']['res'],
-                msg = i['event_data']['res']['results'][0]['msg']
+                msg = msg
             )
                 #failed_task = {
                 #    "hostname": i['event_data']['host'],
