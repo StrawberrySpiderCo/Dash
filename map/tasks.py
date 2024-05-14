@@ -202,11 +202,8 @@ def setup_network_devices(org_info_id):
         net_device.firmware_version = firmware_version
         net_device.image = image
         net_device.ansible_status = 'runner_on_ok'
+        net_device.statup_config = running_config
         net_device.save()
-        RunningConfig.objects.create(
-                device=net_device,
-                config_text=running_config
-            )
         for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
             short_name = abbreviated_interface_name(interface_name)
             defaults = {
