@@ -14,7 +14,8 @@
     </div>
 {% endif %}
 <div class="container">
-    <h3>Organization Information Form</h3>
+    <br><br>
+    <h2>Organization Information Form</h2>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ org_form.non_field_errors }}
