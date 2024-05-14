@@ -198,6 +198,10 @@
   <form id="columnForm" class="column-form">
   
     <div class="checkbox-container">
+    <input type="checkbox" id="lineProtocolToggle" checked onchange="toggleColumn('lineProtocol')">
+    <label for="lineProtocolToggle">Line Protocol</label><br>
+    <input type="checkbox" id="operationalStatusToggle" checked onchange="toggleColumn('operationalStatus')">
+    <label for="operationalStatusToggle">Operational Status</label><br>
     <input type="checkbox" id="descriptionToggle" checked onchange="toggleColumn('description')">
     <label for="descriptionToggle">Description</label><br>
     <input type="checkbox" id="macAddressToggle" checked onchange="toggleColumn('macAddress')">
@@ -210,10 +214,6 @@
     <label for="mediaTypeToggle">Media Type</label><br>
     <input type="checkbox" id="duplexToggle" checked onchange="toggleColumn('duplex')">
     <label for="duplexToggle">Duplex</label><br>
-    <input type="checkbox" id="lineProtocolToggle" checked onchange="toggleColumn('lineProtocol')">
-    <label for="lineProtocolToggle">Line Protocol</label><br>
-    <input type="checkbox" id="operationalStatusToggle" checked onchange="toggleColumn('operationalStatus')">
-    <label for="operationalStatusToggle">Operational Status</label><br>
     <input type="checkbox" id="interfaceTypeToggle" checked onchange="toggleColumn('interfaceType')">
     <label for="interfaceTypeToggle">Interface Type</label><br>
     <input type="checkbox" id="ipv4AddressToggle" checked onchange="toggleColumn('ipv4Address')">
@@ -242,14 +242,14 @@
         Select/Deselect All
       </label>
       </th>
+      <th id="lineProtocolHeader">Line Protocol</th>
+      <th id="operationalStatusHeader">Operational Status</th>
       <th id="descriptionHeader">Description</th>
       <th id="macAddressHeader">MAC Address</th>
       <th id="mtuHeader">MTU</th>
       <th id="bandwidthHeader">Bandwidth</th>
       <th id="mediaTypeHeader">Media Type</th>
       <th id="duplexHeader">Duplex</th>
-      <th id="lineProtocolHeader">Line Protocol</th>
-      <th id="operationalStatusHeader">Operational Status</th>
       <th id="interfaceTypeHeader">Interface Type</th>
       <th id="ipv4AddressHeader">IPv4 Address</th>
       <th id="ipv4SubnetHeader">IPv4 Subnet</th>
@@ -260,14 +260,14 @@
     <tr>
       <td><input type="checkbox" id="port{{ interface.id }}" name="port" value="{{ interface.name }}" onchange="updateSelectedPorts()">
           <label for="port{{ interface.id }}">{{ interface.name }}</label></td>
-      <td>{{ interface.description }}</td>
+          <td>{{ interface.line_protocol }}</td>
+          <td>{{ interface.oper_status }}</td>
+          <td>{{ interface.description }}</td>
       <td>{{ interface.mac_address }}</td>
       <td>{{ interface.mtu }}</td>
       <td>{{ interface.bandwidth }}</td>
       <td>{{ interface.media_type }}</td>
       <td>{{ interface.duplex }}</td>
-      <td>{{ interface.line_protocol }}</td>
-      <td>{{ interface.oper_status }}</td>
       <td>{{ interface.interface_type }}</td>
       <td>{{ interface.ipv4_address }}</td>
       <td>{{ interface.ipv4_subnet }}</td>
@@ -279,19 +279,42 @@
 
 <script>
 
-  // Function to apply the column toggle immediately
+// Load column toggle preferences from local storage
+document.addEventListener('DOMContentLoaded', function() {
+    var columns = ['description', 'macAddress', 'mtu', 'bandwidth', 'mediaType', 'duplex', 'lineProtocol', 'operationalStatus', 'interfaceType', 'ipv4Address', 'ipv4Subnet'];
+    
+    // Loop through each column
+    columns.forEach(function(column) {
+        var isVisible = localStorage.getItem(column + 'Toggle') !== 'false';
+        var headerCell = document.getElementById(column + 'Header');
+        var checkbox = document.getElementById(column + 'Toggle'); // Get the corresponding checkbox
+        
+        // Update checkbox status based on visibility preference
+        checkbox.checked = isVisible;
+        
+        // Apply column visibility based on preference
+        headerCell.style.display = isVisible ? '' : 'none';
+        var columnIndex = headerCell.cellIndex;
+        var table = document.getElementById('portTable');
+
+        for (var i = 0; i < table.rows.length; i++) {
+            table.rows[i].cells[columnIndex].style.display = isVisible ? '' : 'none';
+        }
+    });
+});
+
+// Function to apply the column toggle immediately
 function applyColumnToggle(column) {
     var checkbox = document.getElementById(column + 'Toggle');
     toggleColumn(column, checkbox.checked);
-  }
+}
 
-function toggleColumn(column) {
+function toggleColumn(column, isChecked) {
     var headerCell = document.getElementById(column + 'Header');
     var columnIndex = headerCell.cellIndex;
     var table = document.getElementById('portTable');
-    var checkboxes = document.querySelectorAll('#columnPopup input[type="checkbox"]');
 
-    var isVisible = headerCell.style.display !== 'none';
+    var isVisible = isChecked; // Update isVisible based on checkbox status
 
     for (var i = 0; i < table.rows.length; i++) {
         table.rows[i].cells[columnIndex].style.display = isVisible ? 'none' : '';
@@ -300,32 +323,8 @@ function toggleColumn(column) {
     headerCell.style.display = isVisible ? 'none' : '';
 
     // Save column visibility preference
-    localStorage.setItem(column + 'Toggle', !isVisible);
-
-    // Update checkbox status
-    checkboxes.forEach(function(checkbox) {
-        if (checkbox.id === column + 'Toggle') {
-            checkbox.checked = !isVisible;
-        }
-    });
+    localStorage.setItem(column + 'Toggle', isVisible);
 }
-
-// Load column toggle preferences from local storage
-document.addEventListener('DOMContentLoaded', function() {
-    var columns = ['description', 'macAddress', 'mtu', 'bandwidth', 'mediaType', 'duplex', 'lineProtocol', 'operationalStatus', 'interfaceType', 'ipv4Address', 'ipv4Subnet'];
-
-    columns.forEach(function(column) {
-        var isVisible = localStorage.getItem(column + 'Toggle') !== 'false';
-        var headerCell = document.getElementById(column + 'Header');
-        var table = document.getElementById('portTable');
-
-        headerCell.style.display = isVisible ? '' : 'none';
-
-        for (var i = 0; i < table.rows.length; i++) {
-            table.rows[i].cells[headerCell.cellIndex].style.display = isVisible ? '' : 'none';
-        }
-    });
-});
 
 
 
