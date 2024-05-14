@@ -109,7 +109,7 @@ class NetworkDevice(models.Model):
 
     def __str__(self):
         return self.ip_address
-    
+
 class NetworkInterface(models.Model):
     device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='interfaces')
     mode = models.CharField(max_length=100, null=True, blank=True)
@@ -131,23 +131,8 @@ class NetworkInterface(models.Model):
     ipv4_address = models.CharField(max_length=50, null=True, blank=True)
     ipv4_subnet = models.CharField(max_length=50, null=True, blank=True)
     short_name = models.CharField(max_length=17, null=True, blank=True)
-    
-    class Meta:
-        ordering = ['card_number', 'port_number']
-    
-    def sort_ports(self):
-        port_name = self.name
-        try:
-            prefix, rest = port_name.split('/')
-            card_number, port_number = rest.split('/')
-            card_number = int(card_number)
-            port_number = int(port_number)
-            return card_number, port_number
-        except ValueError:
-            return float('inf'), float('inf')
 
-    def __str__(self):
-        return f"{self.device} - {self.name}"
+    
     
 class NetworkTask(models.Model):
     device = models.ForeignKey(NetworkDevice, on_delete=models.CASCADE, related_name='tasks')

@@ -23,8 +23,8 @@ class IpForm(forms.Form):
 @login_required
 def device_details(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
-    device_interfaces = NetworkInterface.objects.filter(device=device)
-    return render(request, 'device_details.html', {'device': device, 'device_interfaces':device_interfaces})
+    sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
+    return render(request, 'device_details.html', {'device': device, 'device_interfaces':sorted_interfaces})
 
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
@@ -36,22 +36,9 @@ def update_device_info(request):
 @login_required
 def port_view(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
-    device_interfaces = NetworkInterface.objects.filter(device=device)
-    sorted_interfaces = sorted(device_interfaces, key=sort_ports)
+    sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
+    print(sorted_interfaces)
     return render(request, 'port_view.html', {'device': device, 'device_interfaces': sorted_interfaces})
-
-def sort_ports(interface):
-    port_name = interface.name
-    try:
-        prefix, rest = port_name.split('/')
-        card_number, port_number = rest.split('/')
-        print(prefix, rest, card_number, port_number)
-        card_number = int(card_number)
-        port_number = int(port_number)
-        return card_number, port_number
-    except ValueError:
-        return float('inf'), float('inf')
-    
 
 def edit_ports(request):
     port_list = []
