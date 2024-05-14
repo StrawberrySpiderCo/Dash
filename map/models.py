@@ -131,6 +131,20 @@ class NetworkInterface(models.Model):
     ipv4_address = models.CharField(max_length=50, null=True, blank=True)
     ipv4_subnet = models.CharField(max_length=50, null=True, blank=True)
     short_name = models.CharField(max_length=17, null=True, blank=True)
+    
+    class Meta:
+        ordering = ['card_number', 'port_number']
+    
+    def sort_ports(self):
+        port_name = self.name
+        try:
+            prefix, rest = port_name.split('/')
+            card_number, port_number = rest.split('/')
+            card_number = int(card_number)
+            port_number = int(port_number)
+            return card_number, port_number
+        except ValueError:
+            return float('inf'), float('inf')
 
     def __str__(self):
         return f"{self.device} - {self.name}"
@@ -145,6 +159,7 @@ class NetworkTask(models.Model):
     uid = models.CharField(max_length=250)
     task_result = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
+    msg =  models.CharField(max_length=255, null=True, blank=True)
     def __str__(self):
         return f"{self.device} - {self.name} - {self.result} - Sent at: {self.start_time}"
 

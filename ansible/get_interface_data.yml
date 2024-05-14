@@ -1,0 +1,11 @@
+---
+- name: Gather interface data
+  hosts: "{{ hostname }}"
+  gather_facts: no
+
+  tasks:
+    - name: Gather Interface Information
+      ios_facts:
+        gather_subset:
+          - interfaces
+      register: interface_data

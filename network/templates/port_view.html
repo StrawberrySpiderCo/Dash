@@ -128,7 +128,7 @@
 
 
 </style>
-<h2>Port View - {{ device.hostname }} - {{ device.ip_address }}</h2>
+<h2>Port View - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
 
 <button onclick="togglePopup()">
   Edit Selected

@@ -98,10 +98,10 @@ def ansible_logging(events):
     Output:
     - provides no output but will log all events provided into Postgres database under network tasks
     """
-    output = {
-        "runner_on_ok": [],
-        "runner_on_failed": []
-    }
+    #output = {
+    #    "runner_on_ok": [],
+    #    "runner_on_failed": []
+    #}
     for i in events:
             if i['event'] == 'runner_on_ok':
                 start_time_list = (i['event_data']['start']).split('.')
@@ -115,17 +115,18 @@ def ansible_logging(events):
                 duration = i['event_data']['duration'],
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
-                task_result = i['event_data']['res']
+                task_result = i['event_data']['res'],
+                msg = i['event_data']['msg'],
             )
-                completed_task = {
-                    "hostname": i['event_data']['host'],
-                    "task_name": i['event_data']['task'],
-                    "task_result": i['event_data']['res'],
-                    "start_time": i['event_data']['start'],
-                    "end_time": i['event_data']['end'],
-                    "duration": i['event_data']['duration']
-                }
-                output["runner_on_ok"].append(completed_task)
+                #completed_task = {
+                #    "hostname": i['event_data']['host'],
+                #    "task_name": i['event_data']['task'],
+                #    "task_result": i['event_data']['res'],
+                #    "start_time": i['event_data']['start'],
+                #    "end_time": i['event_data']['end'],
+                #    "duration": i['event_data']['duration']
+                #}
+                #output["runner_on_ok"].append(completed_task)
             if i['event'] == 'runner_on_failed':
                 start_time_list = (i['event_data']['start']).split('.')
                 start_time = start_time_list[0]
@@ -138,16 +139,18 @@ def ansible_logging(events):
                 duration = i['event_data']['duration'],
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
+                task_result =  i['event_data']['res'],
+                msg = i['event_data']['res']['results'][0]['msg']
             )
-                failed_task = {
-                    "hostname": i['event_data']['host'],
-                    "task_name": i['event_data']['task'],
-                    "task_result": i['event_data']['res'],
-                    "start_time": i['event_data']['start'],
-                    "end_time": i['event_data']['end'],
-                    "duration": i['event_data']['duration']
-                }
-                output["runner_on_failed"].append(failed_task)
+                #failed_task = {
+                #    "hostname": i['event_data']['host'],
+                #    "task_name": i['event_data']['task'],
+                #    "task_result": i['event_data']['res'],
+                #    "start_time": i['event_data']['start'],
+                #    "end_time": i['event_data']['end'],
+                #    "duration": i['event_data']['duration']
+                #}
+                #output["runner_on_failed"].append(failed_task)
 
 def cleanup_artifacts_folder():
     artifacts_folder = '/home/sbs/Dash/ansible/artifacts'

@@ -103,7 +103,7 @@ def tasks_view(request, device_id):
 def fetch_tasks(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
     device_tasks = NetworkTask.objects.filter(device=device)
-    tasks_data = [{'result': task.result, 'start_time': task.created_at, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result} for task in device_tasks]
+    tasks_data = [{'result': task.result, 'start_time': task.created_at, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result, 'msg': task.msg} for task in device_tasks]
     return JsonResponse({'device_tasks': tasks_data})
 
 

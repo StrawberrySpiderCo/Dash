@@ -10,6 +10,7 @@
             <th>Name</th>
             <th>Status</th>
             <th>Time</th>
+            <th>Message</th>
         </tr>
     </thead>
     <tbody id="tasks-body">
@@ -18,6 +19,7 @@
             <td>{{ task.name }}</td>
             <td>{{ task.result }}</td>
             <td>{{ task.start_time }}</td>
+            <td>{{ task.msg }}</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -37,6 +39,7 @@ function fetchTasks() {
                         <td>${task.name}</td>
                         <td>${task.result}</td>
                         <td>${task.start_time}</td>
+                        <td>${task.msg}</td>
                     </tr>
                 `);
             });

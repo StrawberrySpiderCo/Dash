@@ -24,7 +24,8 @@ load_dotenv()
 @shared_task
 def update_port_info(hostname):
     net_device = NetworkDevice.objects.get(ip_address=hostname)
-    r, output = run_ansible_playbook('get_all',{'hostname':hostname})
+    r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
+    print(output)
     for runner_on_ok in output['runner_on_ok']:
         ansible_data = runner_on_ok['task_result']['ansible_facts']
     for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
@@ -76,6 +77,7 @@ def set_l2interface(hostname: str,
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
     events = r.events
     ansible_logging(events)
+    cleanup_artifacts_folder()
 
 @shared_task
 def set_l3interface(hostname: str = '',
