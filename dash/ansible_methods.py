@@ -116,7 +116,7 @@ def ansible_logging(events):
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
                 task_result = i['event_data']['res'],
-                msg = i['event_data']['msg'],
+                #msg = i['event_data']['msg'],
             )
                 #completed_task = {
                 #    "hostname": i['event_data']['host'],

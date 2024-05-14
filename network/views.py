@@ -92,15 +92,19 @@ def fetch_tasks(request, device_id):
     device_tasks = NetworkTask.objects.filter(device=device)
     tasks_data = [{'result': task.result, 'start_time': task.created_at, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result, 'msg': task.msg} for task in device_tasks]
     return JsonResponse({'device_tasks': tasks_data})
-
+@login_required
+def fetch_devices(request):
+    device_info = NetworkDevice.objects.all()
+    unique_networks = set(device.hostname for device in device_info)
+    devices = {
+            'device_info': device_info
+        }
+    return JsonResponse({'devices': devices})
 
 @login_required
 def network_view(request):
     device_info = NetworkDevice.objects.all()
-    unique_networks = set(device.hostname for device in device_info)
-    #sorted_networks = sorted(unique_networks)
     context = {
-            #'networks': sorted_networks,
             'device_info': device_info
         }
     return render(request, 'network.html', context)

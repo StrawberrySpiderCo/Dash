@@ -3,9 +3,50 @@
 {% csrf_token %}
 {% block title %}Network{% endblock %}
 {% block template %}
+<style>
+  .popup-container {
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
 
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.popup {
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+</style>
 
 <h2>Network</h2>
+
+<div id="noDevicesPopup" class="popup-container">
+  <div class="popup">
+    <h2>Retrieving Device Info</h2>
+    <p>Please wait while we retrieve device information...</p>
+  </div>
+</div>
 
 <table id="routersTable">
   <thead>
@@ -15,7 +56,7 @@
       <th>IP</th>
     </tr>
   </thead>
-  <tbody>
+  <tbody id="device-body">
     {% for device in device_info %}
     <tr>
       <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></td>
@@ -75,5 +116,47 @@ Routers
       </ul>
 
   {% endfor %}-->
+  <script>
 
+    var $popupContainer = document.getElementById('popup-container'),
+  $popup = $popupContainer.querySelector('.popup');
+
+    function fetchDevices() {
+    $.ajax({
+        url: "{% url 'fetch_devices' %}", 
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+          if (response.trim() === '') {
+            $popupContainer.querySelector('input').value=''
+            $popupContainer.style.display = 'block';
+            setTimeout(function () {
+              $popupContainer.style.opacity = 1;
+            }, 100);
+            
+            $('#tasks-body').empty();
+            response.devices.forEach(function(device) {
+                $('#devices-body').append(`
+                    <tr>
+                      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'device_details' device_id=${device.id} %}">${ device.hostname }</a></td>                        <td>${device.result}</td>
+                      <td>{% if ${device.online} %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
+                      <td>${device.ip_address}</td>
+                    </tr>
+                `)});
+        }
+          else {
+              //fade out 
+   $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 300);
+        }
+    }
+    });
+}
+
+// Poll every 2 seconds
+setInterval(fetchDevices, 2000);
+  </script>
+  
 {% endblock %}
