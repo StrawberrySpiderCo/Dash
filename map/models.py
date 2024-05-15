@@ -106,7 +106,7 @@ class NetworkDevice(models.Model):
     device_type = models.CharField(max_length=200, default='', null=True)
     image = models.CharField(max_length=200, default='', null=True)
     ansible_status = models.CharField(max_length=200, default='', null=True)
-    statup_config = models.TextField(default='', null=True)
+    startup_config = models.TextField(default='', null=True)
 
     def __str__(self):
         return self.ip_address

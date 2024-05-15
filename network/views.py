@@ -6,10 +6,11 @@ from django.contrib.staticfiles.views import serve
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
-from map.models import NetworkDevice, NetworkInterface, NetworkTask
-from map.tasks import set_interface, set_l2interface, update_port_info
+from map.models import NetworkDevice, NetworkInterface, NetworkTask,RunningConfig
+from map.tasks import set_interface, set_l2interface, update_port_info, gather_running_configs, gather_startup_configs
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
+from difflib import unified_diff
 import json
 
 
@@ -30,15 +31,22 @@ def device_details(request, device_id):
 @user_passes_test(user_is_admin, login_url='invalid_login')
 @login_required
 def update_device_info(request):
-    update_device_info_task.delay()
+    #update_device_info_task.delay()
     return redirect('network')
 
 @login_required
 def port_view(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
     sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
-    print(sorted_interfaces)
     return render(request, 'port_view.html', {'device': device, 'device_interfaces': sorted_interfaces})
+
+
+
+@login_required
+def config_view(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    device_configs = RunningConfig.objects.filter(device=device)
+    return render(request, 'config_view.html', {'device': device, 'device_configs': device_configs})
 
 def edit_ports(request):
     port_list = []
@@ -95,6 +103,13 @@ def fetch_tasks(request, device_id):
     device_tasks = NetworkTask.objects.filter(device=device)
     tasks_data = [{'result': task.result, 'start_time': task.created_at, 'end_time': task.end_time, 'duration': task.duration, 'name': task.name, 'uid': task.uid, 'task_result': task.task_result, 'msg': task.msg} for task in device_tasks]
     return JsonResponse({'device_tasks': tasks_data})
+@login_required
+def fetch_configs(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    hostname = device.ip_address
+    gather_startup_configs.delay(hostname)
+    gather_running_configs.delay(hostname)
+    return JsonResponse({'device_tasks': ''})
 
 @login_required
 def fetch_devices(request):

@@ -32,10 +32,12 @@ from project import views as project
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('port/<int:device_id>/', network.port_view, name='port_view'),
+    path('port_view/<int:device_id>/', network.port_view, name='port_view'),
+    path('config/<int:device_id>/', network.config_view, name='config_view'),
     path('network/tasks/<int:device_id>/', network.tasks_view, name='tasks_view'),
     path('fetch/network/tasks/<int:device_id>/', network.fetch_tasks, name='fetch_tasks'),
     path('fetch/network/devices/', network.fetch_devices, name='fetch_devices'),
+    path('fetch/network/configs/<int:device_id>/', network.fetch_configs, name='fetch_configs'),
     path('setup/', map.setup, name='setup'),
     path('edit_ports_results/', network.edit_ports, name='edit_ports'),
     path('setup/success/', map.success_setup, name='success_setup'),

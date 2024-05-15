@@ -1,0 +1,10 @@
+---
+- name: Gather Running Config
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  tasks:
+    - name: Fetch Startup Config
+      ios_command:
+        commands:
+          - show startup-config
+      register: startup_config_output

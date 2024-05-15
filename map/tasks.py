@@ -141,6 +141,22 @@ def set_l3interface(hostname: str = '',
                                       'ipv6': ipv6})
 
 @shared_task
+def gather_startup_configs(hostname=None):
+    if hostname is None:
+        hostname = 'network_devices'
+    ansible_events, ansible_results = run_ansible_playbook('get_startup_config', {'hostname': hostname})
+    for runner_on_ok in ansible_results['runner_on_ok']:
+        ip_address = (runner_on_ok['hostname'])
+        stdout = ansible_results['runner_on_ok'][0]['task_result']['stdout']
+        stdout_with_newlines = '\n'.join(stdout[0].split(', '))
+        device = NetworkDevice.objects.get(ip_address=ip_address)
+        device.startup_config = stdout_with_newlines
+        device.save()
+    events = ansible_events.events
+    ansible_logging(events)
+    cleanup_artifacts_folder()
+
+@shared_task
 def gather_running_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -207,7 +223,6 @@ def setup_network_devices(org_info_id):
         net_device.firmware_version = firmware_version
         net_device.image = image
         net_device.ansible_status = 'runner_on_ok'
-        net_device.statup_config = running_config
         net_device.save()
         for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
             short_name = abbreviated_interface_name(interface_name)
@@ -246,6 +261,7 @@ def setup_network_devices(org_info_id):
     events = ansible_events.events
     ansible_logging(events)
     cleanup_artifacts_folder()
+
 @shared_task
 def setup_github_repo(org_info_id):
     # Retrieve Org_Info instance
@@ -318,7 +334,23 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
-### MERAKI, AZURE, WEBEX CODE
+
+@shared_task
+def clean_up():
+    from django.db.models import Max
+
+    def reset_sequence(model):
+        max_id = model.objects.all().aggregate(max_id=Max('id'))['max_id']
+        if max_id is not None:
+            with connection.cursor() as cursor:
+                cursor.execute(f'ALTER SEQUENCE {model._meta.db_table}_id_seq RESTART WITH {max_id + 1}')
+
+    reset_sequence(Client_Info)
+    reset_sequence(Device_Info)
+
+    Client_Info.objects.all().delete()
+    Device_Info.objects.all().delete()
+### MERAKI, AZURE, WEBEX CODE #####
 '''
 @shared_task
 def update_vlan_info_task():

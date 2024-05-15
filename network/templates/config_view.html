@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Network{% endblock %}
+{% block template %}
+<style>
+.config-container {
+    width: 50%;
+    float: left;
+    padding: 10px;
+}
+.popup-message-container{
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.message-popup{
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+.header-container {
+    text-align: center;
+    margin-bottom: 10px; /* Add margin below the headers */
+}
+
+.config-box {
+    height: 50dvh; /* Adjust the height as needed */
+    border: solid 2px var(--left-menu-line-color);
+    border-radius: 0.375em;
+    background: var(--background-color);
+    padding: 0 1em;
+    box-sizing: border-box;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    margin-bottom: 20px;
+}
+
+
+    .container {
+        display: flex;
+        flex-direction: row;
+        align-items: center; /* Align items vertically */
+    }
+
+    .config-select {
+        margin-right: 10px; /* Adjust margin as needed */
+    }
+    .config-diff-new {
+    background-color: #ffd000ce; 
+}
+</style>
+<h2>Config View - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
+
+<!-- Dropdown menu to select running config -->
+
+<div class="container">
+    <div class="config-select">
+        <label for="running-config-select">Select Running Config:</label>
+        <select name="running_config" id="running-config-select" class="scrollable-dropdown">
+            {% for config in device_configs %}
+                <option value="{{ config.id }}" data-config-text="{{ config.config_text }}">{{ config.created_at }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button style="margin-left: auto;" onclick="fetchConfig()">Pull</button>
+    <button style="margin-left: 10px;">Promote</button>
+</div>
+
+<br>
+
+<!-- Display startup config and selected running config differences -->
+<div class="config-container">
+    <div class="header-container">
+        <h3>Startup Config</h3>
+    </div>
+    <div id="config-box-1" class="config-box">
+        <pre>{{ device.startup_config }}</pre>
+    </div>
+</div>
+
+<div class="config-container">
+    <div class="header-container">
+        <h3>Running Config</h3>
+    </div>
+    <div id="config-box-2" class="config-box">
+        <pre id="selected-running-config"></pre>
+    </div>
+</div>
+
+<div id="popup-message-container" class="popup-message-container">
+    <div id="popupMessage" class="message-popup">
+      <p id="popupContent"></p>
+      <button type="button" onclick="closeMessagePopup()">Close</button>
+    </div>
+    </div>
+<script>
+    var $messagePopup = document.getElementById('popupMessage'), $messageContainer = document.getElementById('popup-message-container');
+    var configBox1 = document.getElementById('config-box-1');
+    var configBox2 = document.getElementById('config-box-2');
+    var select = document.getElementById('running-config-select');
+    var differences = [];
+
+    function updateSelectedConfig() {
+        var selectedOption = select.options[select.selectedIndex];
+        var selectedConfigText = selectedOption.dataset.configText;
+        var startupConfigText = configBox1.innerText;
+
+        var startupLines = startupConfigText.split(/\r?\n/);
+
+        configBox1.innerHTML = '';
+
+        startupLines.forEach(function(line) {
+            var span = document.createElement('span');
+            span.textContent = line;
+            configBox1.appendChild(span);
+            configBox1.appendChild(document.createElement('br')); 
+        });
+
+        var selectedLines = selectedConfigText.split(/\r?\n/);
+        
+
+        configBox2.innerHTML = '';
+
+        differences = [];
+
+        selectedLines.forEach(function(line) {
+            if (startupLines.includes(line)) {
+                configBox2.innerHTML += '<span>' + line + '</span>\n';
+            } else {
+                configBox2.innerHTML += '<span class="config-diff-new">' + line + '</span>\n';
+                differences.push(line); 
+            }
+        });
+
+        configBox1.addEventListener('scroll', function() {
+            configBox2.scrollTop = this.scrollTop;
+        });
+        
+        configBox2.addEventListener('scroll', function() {
+            configBox1.scrollTop = this.scrollTop;
+        });
+    }
+
+    function displayDifferences() {
+        alert("Differences:\n" + differences.join("\n"));
+    }
+    select.addEventListener('change', updateSelectedConfig);
+
+    updateSelectedConfig();
+
+
+ // Function to handle fetching configurations
+ function fetchConfig() {
+        
+    fetch('{% url "fetch_configs" device.id %}', {
+      method: 'GET',
+    })
+    document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
+        $messageContainer.style.display = 'block';
+        setTimeout(function () {
+          $messageContainer.style.opacity = 1;
+        }, 100);   
+        setTimeout(function () {
+                        location.reload();
+                    }, 10000);
+}
+$messageContainer.onclick = function(){
+  //fade out 
+  $messageContainer.style.opacity = 0;
+   setTimeout(function () {
+    $messageContainer.style.display = 'none'
+   }, 300);
+}
+$messagePopup.onclick = function(e){
+  e.stopPropagation();
+}
+function closeMessagePopup() {
+  //fade out 
+  $messageContainer.style.opacity = 0;
+   setTimeout(function () {
+     $$messageContainer.style.display = 'none'
+   }, 300);
+}
+</script>
+
+
+
+
+
+{% endblock %}
