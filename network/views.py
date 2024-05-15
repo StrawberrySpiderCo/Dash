@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface, NetworkTask
-from map.tasks import update_device_info_task, set_interface, set_l2interface, update_port_info
+from map.tasks import set_interface, set_l2interface, update_port_info
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 import json

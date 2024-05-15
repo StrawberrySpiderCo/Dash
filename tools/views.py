@@ -18,7 +18,6 @@ from django.contrib.auth.decorators import login_required
 from selenium import webdriver
 from map.models import Client_Info, Org_Info, Employee
 
-from map.tasks import update_vlan_info_task
 import json
 
 from django.contrib.auth.decorators import user_passes_test

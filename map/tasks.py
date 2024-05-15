@@ -318,12 +318,8 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
-
-
-
-
-
-
+### MERAKI, AZURE, WEBEX CODE
+'''
 @shared_task
 def update_vlan_info_task():
     api_key = '16209be12e5a4e06b76e0a6d668c5477b20924d9'
@@ -506,7 +502,6 @@ def get_user_list():
         for user in user_data['value']:
             Employee.objects.update_or_create(display_name = user['displayName'], azure_id = user['id'], first_name = user['givenName'], phone = user['businessPhones'], last_name = user['surname'], title = user['jobTitle'], mail = user['mail'])
             url1 = user_data.get('@odata.nextLink')
-
 @shared_task
 def get_user_info():
     tenant_id = '370fb7ee-e5b0-4bf5-b91b-3b67fe429a27'
@@ -604,7 +599,6 @@ def get_webex_id():
                 user.save()
             except Employee.DoesNotExist:   
                 pass
-
 @shared_task
 def get_webex_info():
     webex_person = "https://webexapis.com/v1/people/"
@@ -629,14 +623,12 @@ def get_webex_info():
             employee.extension = extension
             employee.webex_lic = person_info.get('licenses')
             employee.save()
-
 @shared_task
 def delete_dev_id():
     employees = Employee.objects.all()
     for employee in employees:
         employee.webex_dev_id = None
         employee.save()
-
 @shared_task
 def get_webex_dev_id():
     employees = Employee.objects.all()
@@ -710,3 +702,5 @@ def get_webex_token():
         env_file.write(f'{access_token}')
     with open('map\\webex_refresh.txt','w') as refreshtxt:
         refreshtxt.write(f'{refresh_token}')
+
+        '''
