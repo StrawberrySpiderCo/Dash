@@ -104,10 +104,17 @@ def ansible_logging(events):
     #}
     for i in events:
             if i['event'] == 'runner_on_ok':
+                duration = i['event_data']['duration']
                 try:
-                    msg = i['event_data']['msg']
-                except:
-                    msg = ''
+                    msg = i['event_data']['res']['results'][0]['msg']
+                except (KeyError, IndexError):
+                    try:
+                        msg = i['event_data']['res']['msg']
+                    except KeyError:
+                        try:
+                            msg = i['event_data']['msg']
+                        except KeyError:
+                            msg = f'Task Done: {duration}secs'
                 start_time_list = (i['event_data']['start']).split('.')
                 start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
@@ -116,7 +123,7 @@ def ansible_logging(events):
                 result = 'Successful',
                 start_time = start_time,
                 end_time = i['event_data']['end'],
-                duration = i['event_data']['duration'],
+                duration = duration,
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
                 task_result = i['event_data']['res'],
@@ -132,10 +139,17 @@ def ansible_logging(events):
                 #}
                 #output["runner_on_ok"].append(completed_task)
             if i['event'] == 'runner_on_failed':
+                duration = i['event_data']['duration']
                 try:
                     msg = i['event_data']['res']['results'][0]['msg']
-                except:
-                    msg = ''
+                except (KeyError, IndexError):
+                    try:
+                        msg = i['event_data']['res']['msg']
+                    except KeyError:
+                        try:
+                            msg = i['event_data']['msg']
+                        except KeyError:
+                            msg = f'Task Timed Out: {duration}secs'
                 start_time_list = (i['event_data']['start']).split('.')
                 start_time = start_time_list[0]
                 net_device = NetworkDevice.objects.get(ip_address=i['event_data']['host'])
@@ -144,7 +158,7 @@ def ansible_logging(events):
                 result = 'Failed',
                 start_time = start_time,
                 end_time = i['event_data']['end'],
-                duration = i['event_data']['duration'],
+                duration = duration,
                 name = i['event_data']['task'],
                 uid = i['event_data']['uuid'],
                 task_result =  i['event_data']['res'],

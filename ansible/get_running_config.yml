@@ -1,0 +1,10 @@
+---
+- name: Gather Running Config
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  tasks:
+    - name: Gather Running Config
+      ios_facts:
+        gather_subset:
+          - config
+      register: running_config

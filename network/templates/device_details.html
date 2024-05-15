@@ -194,8 +194,11 @@
 <div id="popup-message-container" class="popup-message-container">
     <div id="popupMessage" class="message-popup">
       <p id="popupContent"></p>
+      <button type="button" onclick="closeMessagePopup()">Close</button>
     </div>
     </div>
+
+
 <div class="switch">
     <div class="ports">
         {% for interface in device_interfaces %}
@@ -312,8 +315,16 @@
     </div>
 
 <script>
+// Function to close the edit popup
+function closeMessagePopup() {
+  //fade out 
+  $messageContainer.style.opacity = 0;
+   setTimeout(function () {
+     $$messageContainer.style.display = 'none'
+   }, 300);
+}
+
 function submitForm() {
-    console.log('cheese')
     // Get the values from the additional fields
     var ipAddress = document.getElementById('ip_address').value;
     var selectedPorts = document.getElementById('selectedPorts').value;
@@ -373,15 +384,12 @@ function submitForm() {
         // Display popup message
         closePopup();
         closeIntPopup();
-        document.getElementById('popupContent').innerText = "Sending request, redirecting to tasks page...";
+        document.getElementById('popupContent').innerText = "Request Sent!";
         $messageContainer.style.display = 'block';
         setTimeout(function () {
           $messageContainer.style.opacity = 1;
         }, 100);
-        // Redirect to task page after 3 seconds
-        setTimeout(function() {
-          window.location.href = "{% url 'tasks_view' device_id=device.id %}";
-        }, 3000);
+       
       } else {
         // Display popup message with error
         document.getElementById('popupContent').innerText = "Error: " + data.message;
@@ -414,7 +422,7 @@ function submitForm() {
     }
   }
 var $popupContainer = document.getElementById('popup-container'),
-  $popup = $popupContainer.querySelector('.popup');
+  $popup = $popupContainer.querySelector('.popup'),$messagePopup = document.getElementById('popupMessage'), $messageContainer = document.getElementById('popup-message-container');
   function closePopup() {
   //fade out 
   $popupContainer.style.opacity = 0;
@@ -441,6 +449,16 @@ $popupContainer.onclick = function(){
    setTimeout(function () {
      $popupContainer.style.display = 'none'
    }, 300);
+}
+$messageContainer.onclick = function(){
+  //fade out 
+  $messageContainer.style.opacity = 0;
+   setTimeout(function () {
+    $messageContainer.style.display = 'none'
+   }, 300);
+}
+$messagePopup.onclick = function(e){
+  e.stopPropagation();
 }
 $popup.onclick = function(e){
   e.stopPropagation();

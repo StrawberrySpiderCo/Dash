@@ -141,8 +141,10 @@ def set_l3interface(hostname: str = '',
                                       'ipv6': ipv6})
 
 @shared_task
-def gather_all_running_configs():
-    ansible_events, ansible_results = run_ansible_playbook('get_all',{})
+def gather_running_configs(hostname=None):
+    if hostname is None:
+        hostname = 'network_devices'
+    ansible_events, ansible_results = run_ansible_playbook('get_running_config', {'hostname': hostname})
     for runner_on_ok in ansible_results['runner_on_ok']:
         ip_address = (runner_on_ok['hostname'])
         ansible_data = runner_on_ok['task_result']['ansible_facts']
@@ -156,6 +158,9 @@ def gather_all_running_configs():
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
         error_msg = ansible_data['msg']
+    events = ansible_events.events
+    ansible_logging(events)
+    cleanup_artifacts_folder()
 
 @shared_task
 def setup_network_devices(org_info_id):
