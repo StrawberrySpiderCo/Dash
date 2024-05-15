@@ -44,7 +44,10 @@ def edit_ports(request):
     port_list = []
     if request.method == 'POST':
         selected_ports_str = request.POST.get('selected_ports')
-        selected_ports = json.loads(selected_ports_str)
+        try:
+            selected_ports = json.loads(selected_ports_str)
+        except:
+            selected_ports = selected_ports_str.split()
         host = request.POST.get('ip_address')
         desired_state = request.POST.get('desiredState')
         mode = request.POST.get('mode')

@@ -4,6 +4,39 @@
 {% block title %}{{device.hostname}}{% endblock %}
 {% block template %}
 <style>
+.popup-container {
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.popup {
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .switch {
     background-color: #f0f0f0;
     padding: 20px;
@@ -19,21 +52,52 @@
     
     display: flex;
 }
+.port-details-container{
+    display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
 /* Styles for the port details pop-up */
 .port-details {
-    display: none;
-    position: absolute;
-    top: auto;
-    bottom: auto;
-    overflow-y: scroll;
-    width: 50vh;
-    height:50vh;
-    background-color: white;
-    border: 1px solid black;
-    padding: 20px;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
-    z-index: 9999; /* Ensure the pop-up appears on top */
+    position: fixed; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    width: 20vw; /* 80% of the viewport width */
+    height: 80vh; /* 70% of the viewport height */
+    max-width: 90%; /* Maximum width of 90% of the viewport width */
+    max-height: 100%; /* Maximum height of 90% of the viewport height */
+    background-color: var(--left-menu-color);
+    border: 1px solid var(--border-color);
+    padding: 2rem; /* Adjust padding */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.3s ease;
+    border-radius: 5px;
+    font-family: var(--font-family);
+    z-index: 9999;
+    font-size: 1rem; /* Adjust font size */
+    font-weight: 700;
+    text-align: left; /* Align text to the left */
+    display: flex; /* Use flexbox layout */
+    flex-direction: column; /* Arrange items vertically */
+    justify-content: flex-start; /* Align items to the start of the container */
+    align-items: stretch; /* Stretch items to fill the container */
+    gap: 0.8rem; /* Add spacing between items */
+    overflow-y: auto;
 }
+
+.port-details p {
+    margin: 0; /* Remove default margins for paragraphs */
+    flex-grow: 1; /* Allow paragraphs to expand and fill the available space */
+}
+
+
 
 .close-btn {
     position: absolute;
@@ -76,7 +140,38 @@
     padding: 10px 20px; /* Adjust padding as needed */
 
 }
+.popup-message-container{
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
 
+.message-popup{
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
 .header-left {
     flex-grow: 1; /* Grow to occupy remaining space */
 }
@@ -96,14 +191,18 @@
         <a href="{% url 'port_view' device.id %}" class="button">Port View</a>
     </div>
 </header>
-
+<div id="popup-message-container" class="popup-message-container">
+    <div id="popupMessage" class="message-popup">
+      <p id="popupContent"></p>
+    </div>
+    </div>
 <div class="switch">
     <div class="ports">
         {% for interface in device_interfaces %}
             {% if forloop.counter0|divisibleby:2 %}
                 <div class="port-row">
             {% endif %}
-            <div class="port {% if interface.oper_status == 'up' %}up{% else %}down{% endif %}" data-port-id="{{ interface.id }}">{{ interface.short_name }}</div>
+            <div class="port {% if interface.oper_status == 'up' %}up{% else %}down{% endif %}" data-port-id="{{ interface.id }}"  data-port-name="{{ interface.name }}" value="{{ interface.name }}" >{{ interface.short_name }}</div>
             {% if forloop.counter|divisibleby:2 or forloop.last %}
                 </div>
             {% endif %}
@@ -112,21 +211,27 @@
 </div>
 
 {% for interface in device_interfaces %}
-<div id="port-details-{{ interface.id }}" class="port-details" style="display: none;">
-    <!-- Port details content goes here -->
-    <p>Name: {{ interface.name }}</p>
+<div id="port-details-container-{{ interface.id }}" class="port-details-container">
+<div id="port-details-{{ interface.id }}" class="port-details" value="{{ interface.name }}">
+    <h2 id="port-name-{{ interface.id }}">{{ interface.name }}<span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closeIntPopup()">X</span></h2>
+    <p>Line Protocol: {{ interface.line_protocol }}</p>
+    <p>Operational Status: {{ interface.oper_status }}</p>
     <p>Description: {{ interface.description }}</p>
     <p>MAC Address: {{ interface.mac_address }}</p>
     <p>MTU: {{ interface.mtu }}</p>
     <p>Bandwidth: {{ interface.bandwidth }}</p>
     <p>Media Type: {{ interface.media_type }}</p>
     <p>Duplex: {{ interface.duplex }}</p>
-    <p>Line Protocol: {{ interface.line_protocol }}</p>
-    <p>Operational Status: {{ interface.oper_status }}</p>
     <p>Interface Type: {{ interface.interface_type }}</p>
     <p>IPv4 Address: {{ interface.ipv4_address }}</p>
     <p>IPv4 Subnet: {{ interface.ipv4_subnet }}</p>
-    <button class="close-btn">Close</button>
+    <button onclick="togglePopup()">
+        Edit Selected
+        <i class="icon solid fa-pen"></i>
+      </button>
+
+
+</div>
 </div>
 {% endfor %}
 
@@ -154,53 +259,244 @@
   </table>
 </div>
 
+<div id="popup-container" class="popup-container">
+    <div class="popup">
+      <h2>Bulk Edit Information <span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
+      <form id="editForm" onsubmit="return submitForm()">
+        {% csrf_token %}
+        <h3>Selected Ports:</h3>
+        <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
+        <br>
+        
+        <h3>Port Mode:</h3>
+        <input type="radio" name="mode" id="accessMode" value="access" onclick="toggleFields()">
+        <label for="accessMode">Access</label>
+        <input type="radio" name="mode" id="trunkMode" value="trunk" onclick="toggleFields()">
+        <label for="trunkMode">Trunk</label>
+        <input type="radio" name="mode" id="deleteMode" value="delete" onclick="toggleFields()">
+        <label for="deleteMode">Delete</label>
+        <br>
+        <div id="vlanFields" style="display: none;">
+          <label for="vlan">VLAN:</label>
+          <input type="number" pattern="[0-9]*" name="vlan" id="vlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br><br>
+          <label for="voiceVlan">Voice VLAN:</label>
+          <input type="number" pattern="[0-9]*" name="voiceVlan" id="voiceVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"> <br> <br>
+        </div>
+    
+        <div id="trunkFields" style="display: none;">
+          <label for="nativeVlan">Native VLAN:</label>
+          <input type="number" pattern="[0-9]*" name="nativeVlan" id="nativeVlan" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><br><br>
+          <label for="allowedVlans">Allowed VLANs:</label>
+          <input type="text" name="allowedVlans" id="allowedVlans" placeholder="Enter VLANs separated by commas (e.g., 1, 2, 3)"><br><br>
+          <label for="encapsulation">Encapsulation:</label>
+          <select name="encapsulation" id="encapsulation">
+            <option value="dot1q">Dot1Q</option>
+            <option value="isl">ISL</option>
+            <option value="negotiate">Negotiate</option>
+          </select>
+          <br>
+        </div>
+        <h3>Port State:</h3>
+        <input type="hidden" name="selected_ports" id="selectedPorts">
+        <input type="hidden" name="ip_address" id="ip_address" value="{{ device.ip_address }}">
+        <input type="radio" name="desiredState" id="shutState" value="shut">
+        <label for="shutState">Disable Ports</label>
+        <input type="radio" name="desiredState" id="noshutState" value="noshut" checked>
+        <label for="noshutState">Enable Ports</label>
+        <br><br>
+        <button style="background-color: var(--background-color); float: right;" onclick="return submitForm()">Submit</button>
+        <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
+        <br>
+      </form>
+    </div>
+    </div>
+
 <script>
+function submitForm() {
+    console.log('cheese')
+    // Get the values from the additional fields
+    var ipAddress = document.getElementById('ip_address').value;
+    var selectedPorts = document.getElementById('selectedPorts').value;
+    var desiredState = document.querySelector('input[name="desiredState"]:checked').value;
+    var mode = document.querySelector('input[name="mode"]:checked').value;
+    
+    var vlan = document.getElementById('vlan').value;
+    var voiceVlan = document.getElementById('voiceVlan').value;
+    var nativeVlan = document.getElementById('nativeVlan').value;
+    var allowedVlans = document.getElementById('allowedVlans').value;
+    var encapsulation = document.getElementById('encapsulation').value;
+
+    // Check if all required fields are filled
+    if (!ipAddress || !selectedPorts || !desiredState || !mode) {
+      alert("Please fill out all required fields.");
+      return false; // Prevent form submission if any required field is empty
+    }
+
+    // If mode is access, check VLAN and Voice VLAN values
+    if (mode === "access") {
+      if (!vlan) {
+        alert("Please fill out all required fields.");
+        return false; // Prevent form submission if any required field is empty
+      }
+    }
+    // If mode is trunk, check Native VLAN, Allowed VLANs, and Encapsulation values
+    else if (mode === "trunk") {
+      if (!nativeVlan || !allowedVlans || !encapsulation) {
+        alert("Please fill out all required fields.");
+        return false; // Prevent form submission if any required field is empty
+      }
+    }
+
+    // Prepare form data
+    var formData = new FormData();
+    formData.append('ip_address', ipAddress);
+    formData.append('selected_ports', selectedPorts);
+    formData.append('desiredState', desiredState);
+    formData.append('mode', mode);
+    formData.append('vlan', vlan);
+    formData.append('voiceVlan', voiceVlan);
+    formData.append('nativeVlan', nativeVlan);
+    formData.append('allowedVlans', allowedVlans);
+    formData.append('encapsulation', encapsulation);
+
+    // Send AJAX request to Django view
+    fetch('{% url "edit_ports" %}', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Display popup message
+        closePopup();
+        closeIntPopup();
+        document.getElementById('popupContent').innerText = "Sending request, redirecting to tasks page...";
+        $messageContainer.style.display = 'block';
+        setTimeout(function () {
+          $messageContainer.style.opacity = 1;
+        }, 100);
+        // Redirect to task page after 3 seconds
+        setTimeout(function() {
+          window.location.href = "{% url 'tasks_view' device_id=device.id %}";
+        }, 3000);
+      } else {
+        // Display popup message with error
+        document.getElementById('popupContent').innerText = "Error: " + data.message;
+        document.getElementById('popupMessage').style.display = "block";
+      }
+    })
+    .catch(error => {
+      console.error("Error:", error);
+    });
+
+    return false; // Prevent default form submission
+  }
+
+    function toggleFields() {
+    var accessMode = document.getElementById("accessMode");
+    var trunkMode = document.getElementById("trunkMode");
+    var deleteMode = document.getElementById("deleteMode");
+    var vlanFields = document.getElementById("vlanFields");
+    var trunkFields = document.getElementById("trunkFields");
+
+    if (accessMode.checked) {
+      vlanFields.style.display = "block";
+      trunkFields.style.display = "none";
+    } else if (trunkMode.checked) {
+      vlanFields.style.display = "none";
+      trunkFields.style.display = "block";
+    } else if (deleteMode.checked) {
+      vlanFields.style.display = "none";
+      trunkFields.style.display = "none";
+    }
+  }
+var $popupContainer = document.getElementById('popup-container'),
+  $popup = $popupContainer.querySelector('.popup');
+  function closePopup() {
+  //fade out 
+  $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 300);
+}
+
+
+// Function to toggle the visibility of the edit popup
+function togglePopup() {
+    $popupContainer.querySelector('input').value=''
+   $popupContainer.style.display = 'block';
+  //fade In 
+   setTimeout(function () {
+     $popupContainer.style.opacity = 1;
+   }, 100);
+}
+
+
+$popupContainer.onclick = function(){
+  //fade out 
+   $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 300);
+}
+$popup.onclick = function(e){
+  e.stopPropagation();
+}
+
+    let selectedPort = null; // Define selectedPort outside the event listener
+    let intpopupContainer = null
+    function closeIntPopup() {
+  //fade out 
+  intpopupContainer.style.opacity = 0;
+   setTimeout(function () {
+     intpopupContainer.style.display = 'none'
+   }, 300);
+}
+
+    function updateSelectedPort(portElement) {
+        const portName = portElement.dataset.portName;
+        selectedPort = portName;
+        var selectedPortsDisplay = document.getElementById("selectedPortsDisplay");
+        selectedPortsDisplay.innerHTML = "<p style='margin: 0; font-size: 1em;'>" + selectedPort + "</p>";
+        document.getElementById('selectedPorts').value = selectedPort;
+    }
+    function updatePopup(popupContainer) {
+        intpopupContainer = popupContainer;
+    }
+
+
     document.addEventListener('DOMContentLoaded', function() {
         const ports = document.querySelectorAll('.port');
     
-        let tempDetails = null;
         ports.forEach(port => {
             port.addEventListener('click', function() {
                 const portId = this.dataset.portId;
-                const portDetails = document.getElementById(`port-details-${portId}`);
-    
-                
-                // Toggle the visibility of the port details
-                if (portDetails.style.display === 'none') {
-                    portDetails.style.display = 'block';
-    
-                    if (tempDetails == portDetails){
-                        tempDetails = 'undefined'
-                    }
-                } 
-                else if (portDetails == tempDetails){
-                    portDetails.style.display = 'none';
-                    tempDetails = 'undefined'
-                } 
-                else {
-                    portDetails.style.display = 'none';
+                updateSelectedPort(this);
+                var popupContainer = document.getElementById(`port-details-container-${portId}`);
+                updatePopup(popupContainer)
+                var popup = document.getElementById(`port-details-${portId}`);
+                popupContainer.style.display = 'block';
+                setTimeout(function () {
+                    popupContainer.style.opacity = 1;
+                }, 100);
+                popupContainer.onclick = function(){
+                    popupContainer.style.opacity = 0;
+                    setTimeout(function () {
+                        popupContainer.style.display = 'none'
+                    }, 300);
                 }
-    
-                try{
-                if (typeof tempDetails !== 'undefined'){
-                        tempDetails.style.display = 'none'
-                    }
-                } catch (error) {
-                    console.log(error)
+                popup.onclick = function(e){
+                    e.stopPropagation();
                 }
-    
-                tempDetails = portDetails
-            });
-        });
-    
-        // Close button functionality
-        const closeButtons = document.querySelectorAll('.close-btn');
-        closeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const portDetails = this.parentElement;
-                portDetails.style.display = 'none';
-            });
+            })
         });
     });
-    </script>
+</script>
+
+
+
+
 {% endblock %}
