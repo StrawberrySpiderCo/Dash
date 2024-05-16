@@ -107,6 +107,8 @@
 .config-old {
     background-color: #fccacad5; 
 }
+
+
 </style>
 <h2>Config View - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
 
@@ -116,9 +118,11 @@
     <div class="config-select">
         <label for="running-config-select">Select Backup Config:</label>
         <select name="running_config" id="running-config-select" class="scrollable-dropdown">
+            <div style="max-height: 5vh;">
             {% for config in device_configs %}
                 <option value="{{ config.id }}" data-config-text="{{ config.config_text }}" data-config-date="{{ config.created_at }}">{{ config.created_at }}</option>
             {% endfor %}
+        </div>
         </select>
     </div>
     <button style="margin-left: auto;" onclick="fetchConfig()">Pull</button>

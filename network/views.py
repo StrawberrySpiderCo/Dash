@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface, NetworkTask,RunningConfig
-from map.tasks import set_interface, set_l2interface, update_port_info, gather_running_configs, gather_startup_configs,push_startup_configs
+from map.tasks import set_interface, set_l2interface, update_port_info, gather_running_configs, gather_startup_configs,push_startup_configs, update_device
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 from difflib import unified_diff
@@ -111,6 +111,14 @@ def fetch_configs(request, device_id):
     gather_startup_configs.delay(hostname)
     gather_running_configs.delay(hostname)
     return JsonResponse({'device_tasks': ''})
+
+@login_required
+def fetch_device_info(request, device_id):
+    device = get_object_or_404(NetworkDevice, pk=device_id)
+    hostname = device.ip_address
+    update_device.delay(hostname)
+    return JsonResponse({'device_info': ''})
+
 @login_required
 def push_configs(request, device_id):
     if request.method == 'POST':
@@ -125,6 +133,11 @@ def push_configs(request, device_id):
         return JsonResponse({'message': 'Config pushed successfully.'})
     else:
         return JsonResponse({'error': 'Method not allowed.'}, status=405)
+@login_required
+def fetch_all(request):
+
+    gather_running_configs.delay()
+    gather_startup_configs.delay()
 @login_required
 def fetch_devices(request):
     device_info = NetworkDevice.objects.all()

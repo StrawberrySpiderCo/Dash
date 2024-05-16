@@ -3,12 +3,42 @@ import json
 from map.models import Org_Info,NetworkDevice,NetworkInterface,NetworkTask
 import shutil
 import os
+import subprocess
+
 playbookPath = r'/home/sbs/Dash/ansible/'
 private_data_path = r'/home/sbs/Dash/ansible/'
 inventory_path = r'/home/sbs/Dash/ansible/hosts.ini'
 class AnsiblePlaybookRunError(Exception):
     pass
-
+def update_host_file():
+    org_info = Org_Info.objects.get()
+    network_ips = set(org_info.network_device_ips)
+    playbook_dir = '/home/sbs/Dash/ansible'
+    host_file_path = f"{playbook_dir}/hosts.ini"
+    if os.path.exists(host_file_path):
+        os.remove(host_file_path)
+    with open(host_file_path, 'w') as host_file:
+        host_file.write("[network_devices]\n")
+        for ip in network_ips:
+            result = subprocess.call(['ping', ip, '-c', '2'])
+            online = result == 0
+            device, created = NetworkDevice.objects.update_or_create(
+                ip_address=ip,
+                defaults={
+                    'model': '',
+                    'username': org_info.ssh_username,
+                    'password': org_info.ssh_password,
+                    'enable_password': org_info.ssh_enable_password,
+                    'online': online
+                }
+            )
+            device.save()
+            if online:
+                host_file.write(f"{ip} ansible_host={ip}\n")
+        host_file.write("\n[network_devices:vars]\n")
+        host_file.write("ansible_network_os=ios\n")
+        host_file.write("ansible_connection=network_cli\n")
+        
 def run_ansible_playbook(task_name, ansible_config):
     """
     Run an Ansible task and return the data

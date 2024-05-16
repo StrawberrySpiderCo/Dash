@@ -1,6 +1,6 @@
 ---
 - name: Gather Interface Details
-  hosts: network_devices
+  hosts: "{{ hostname }}"
   gather_facts: no
 
   tasks:

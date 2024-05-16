@@ -77,7 +77,7 @@ def setup(request):
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
                 setup_github_repo.delay(org_info.id)
-                setup_network_devices.delay(org_info.id)
+                setup_network_devices.delay()
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True

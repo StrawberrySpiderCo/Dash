@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
-from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder
+from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
 from typing import Literal, Union, Optional
 load_dotenv()
 
@@ -25,7 +25,6 @@ load_dotenv()
 def update_port_info(hostname):
     net_device = NetworkDevice.objects.get(ip_address=hostname)
     r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
-    print(output)
     for runner_on_ok in output['runner_on_ok']:
         ansible_data = runner_on_ok['task_result']['ansible_facts']
     for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
@@ -185,35 +184,10 @@ def gather_running_configs(hostname=None):
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
-def setup_network_devices(org_info_id):
-    org_info = Org_Info.objects.get(pk=org_info_id)
-    network_ips = set(org_info.network_device_ips)
-    playbook_dir = '/home/sbs/Dash/ansible'
-    host_file_path = f"{playbook_dir}/hosts.ini"
-    if os.path.exists(host_file_path):
-        os.remove(host_file_path)
-    with open(host_file_path, 'w') as host_file:
-        host_file.write("[network_devices]\n")
-        for ip in network_ips:
-            result = subprocess.call(['ping', ip, '-c', '2'])
-            online = result == 0
-            device, created = NetworkDevice.objects.update_or_create(
-                ip_address=ip,
-                defaults={
-                    'model': '',
-                    'username': org_info.ssh_username,
-                    'password': org_info.ssh_password,
-                    'enable_password': org_info.ssh_enable_password,
-                    'online': online
-                }
-            )
-            device.save()
-            host_file.write(f"{ip} ansible_host={ip}\n")
-        host_file.write("\n[network_devices:vars]\n")
-        host_file.write("ansible_network_os=ios\n")
-        host_file.write("ansible_connection=network_cli\n")
-    ansible_events, ansible_results = run_ansible_playbook('get_all',{})
+def get_device_info(hostname=None):
+    if hostname is None:
+        hostname = 'network_devices'
+    ansible_events, ansible_results = run_ansible_playbook('get_all',{'hostname':hostname})
     for runner_on_ok in ansible_results['runner_on_ok']:
         ip_address = (runner_on_ok['hostname'])
         ansible_data = runner_on_ok['task_result']['ansible_facts']
@@ -222,7 +196,6 @@ def setup_network_devices(org_info_id):
         firmware_version = ansible_data['ansible_net_version']
         serial_number = ansible_data['ansible_net_serialnum']
         image = ansible_data['ansible_net_image']
-        running_config = ansible_data['ansible_net_config']
         net_device = NetworkDevice.objects.get(ip_address=ip_address)
         net_device.hostname = hostname
         net_device.model = model
@@ -231,30 +204,6 @@ def setup_network_devices(org_info_id):
         net_device.image = image
         net_device.ansible_status = 'runner_on_ok'
         net_device.save()
-        for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
-            short_name = abbreviated_interface_name(interface_name)
-            defaults = {
-                'device': net_device,
-                'description': interface_data['description'],
-                'mac_address': interface_data['macaddress'],
-                'mtu': interface_data['mtu'],
-                'bandwidth': interface_data['bandwidth'],
-                'media_type': interface_data['mediatype'],
-                'duplex': interface_data['duplex'],
-                'line_protocol': interface_data['lineprotocol'],
-                'oper_status': interface_data['operstatus'],
-                'interface_type': interface_data['type'],
-                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
-                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
-                'short_name': short_name
-            }
-            # Create or update the NetworkInterface object
-            obj, created = NetworkInterface.objects.update_or_create(
-                device=net_device,
-                name=interface_name,
-                defaults=defaults
-            )
-
     for runner_on_failed in ansible_results['runner_on_failed']:
         ip_address = (runner_on_failed['hostname'])
         ansible_data = runner_on_failed['task_result']
@@ -266,8 +215,23 @@ def setup_network_devices(org_info_id):
                     }
                 )
     events = ansible_events.events
-    ansible_logging(events)
+    ansible_logging(events)   
     cleanup_artifacts_folder()
+        
+@shared_task
+def setup_network_devices():
+    update_host_file()
+    get_device_info()
+    update_port_info()
+    gather_startup_configs()
+    gather_running_configs()
+
+@shared_task
+def update_device(hostname):
+    update_port_info(hostname)
+    get_device_info(hostname)
+    gather_startup_configs(hostname)
+    gather_running_configs(hostname)
 
 @shared_task
 def setup_github_repo(org_info_id):

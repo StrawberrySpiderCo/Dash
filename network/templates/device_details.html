@@ -188,6 +188,7 @@
     </div>
     <div class="header-right">
         <!-- Button to redirect to port view page -->
+        <button onclick="fetchInfo()">Pull</button>
         <a href="{% url 'port_view' device.id %}" class="button">Port View</a>
     </div>
 </header>
@@ -512,6 +513,23 @@ $popup.onclick = function(e){
             })
         });
     });
+
+    function fetchInfo() {
+        
+        fetch('{% url "fetch_device_info" device.id %}', {
+          method: 'GET',
+        })
+        
+        document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
+            $messageContainer.style.display = 'block';
+            setTimeout(function () {
+              $messageContainer.style.opacity = 1;
+            }, 100);   
+            setTimeout(function () {
+                            location.reload();
+                        }, 10000);
+    }
+    
 </script>
 
 
