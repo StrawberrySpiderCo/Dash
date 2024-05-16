@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig, NetworkInterface
+from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig, NetworkInterface,NetworkTask
 from django.db import IntegrityError
 from time import sleep
 import subprocess
@@ -311,19 +311,8 @@ def setup_github_repo(org_info_id):
 
 @shared_task
 def clean_up():
-    from django.db.models import Max
-
-    def reset_sequence(model):
-        max_id = model.objects.all().aggregate(max_id=Max('id'))['max_id']
-        if max_id is not None:
-            with connection.cursor() as cursor:
-                cursor.execute(f'ALTER SEQUENCE {model._meta.db_table}_id_seq RESTART WITH {max_id + 1}')
-
-    reset_sequence(Client_Info)
-    reset_sequence(Device_Info)
-
-    Client_Info.objects.all().delete()
-    Device_Info.objects.all().delete()
+    RunningConfig.objects.all().delete()
+    NetworkTask.objects.all().delete()
 ### MERAKI, AZURE, WEBEX CODE #####
 '''
 @shared_task
