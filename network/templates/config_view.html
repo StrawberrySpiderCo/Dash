@@ -81,7 +81,7 @@
         <label for="running-config-select">Select Running Config:</label>
         <select name="running_config" id="running-config-select" class="scrollable-dropdown">
             {% for config in device_configs %}
-                <option value="{{ config.id }}" data-config-text="{{ config.config_text }}">{{ config.created_at }}</option>
+                <option value="{{ config.id }}" data-config-text="{{ config.config_text }}" data-config-date="{{ config.created_at }}">{{ config.created_at }}</option>
             {% endfor %}
         </select>
     </div>
@@ -94,7 +94,7 @@
 <!-- Display startup config and selected running config differences -->
 <div class="config-container">
     <div class="header-container">
-        <h3>Startup Config</h3>
+        <button style="margin-left: 10px;" onclick="exportStartupConfig()">Export Startup Config</button>
     </div>
     <div id="config-box-1" class="config-box">
         <pre>{{ device.startup_config }}</pre>
@@ -103,7 +103,7 @@
 
 <div class="config-container">
     <div class="header-container">
-        <h3>Running Config</h3>
+        <button  onclick="exportRunningConfig()">Export Running Config</button>
     </div>
     <div id="config-box-2" class="config-box">
         <pre id="selected-running-config"></pre>
@@ -171,8 +171,6 @@
 
     updateSelectedConfig();
 
-
- // Function to handle fetching configurations
  function fetchConfig() {
         
     fetch('{% url "fetch_configs" device.id %}', {
@@ -204,6 +202,39 @@ function closeMessagePopup() {
      $$messageContainer.style.display = 'none'
    }, 300);
 }
+
+function exportRunningConfig() {
+        var selectedOption = select.options[select.selectedIndex];
+        var runningConfigText = selectedOption.dataset.configText;
+        var runningConfigDate = selectedOption.dataset.configDate;
+        var runningConfigName = '{{device.hostname}}_'+ runningConfigDate + "_running_config.txt";
+
+        // Create blob for running config
+        var runningConfigBlob = new Blob([runningConfigText], { type: 'text/plain' });
+        var runningConfigUrl = URL.createObjectURL(runningConfigBlob);
+        var runningConfigLink = document.createElement('a');
+        runningConfigLink.href = runningConfigUrl;
+        runningConfigLink.download = runningConfigName;
+        document.body.appendChild(runningConfigLink);
+        runningConfigLink.click();
+        document.body.removeChild(runningConfigLink);
+    }
+
+    function exportStartupConfig() {
+        var startupConfigText = configBox1.innerText;
+        var startupConfigName = '{{device.hostname}}' + "_startup_config.txt";
+
+        // Create blob for startup config
+        var startupConfigBlob = new Blob([startupConfigText], { type: 'text/plain' });
+        var startupConfigUrl = URL.createObjectURL(startupConfigBlob);
+        var startupConfigLink = document.createElement('a');
+        startupConfigLink.href = startupConfigUrl;
+        startupConfigLink.download = startupConfigName;
+        document.body.appendChild(startupConfigLink);
+        startupConfigLink.click();
+        document.body.removeChild(startupConfigLink);
+    }
+
 </script>
 
 
