@@ -20,9 +20,30 @@ app.autodiscover_tasks()
 
 
 app.conf.beat_schedule = {
-        #'clean-up': {
-        #'task': 'map.tasks.clean_up',
-        #'schedule': crontab(minute='30', hour='2'),
+        'clean-up': {
+        'task': 'map.tasks.clean_up',
+        'schedule': crontab(day_of_month='*/30'),
+    },
+    'update_host_file': {
+        'task': 'map.tasks.update_host_file',  
+        'schedule': crontab(hour=2, minute=30),
+    },
+    'update-device-info': {
+        'task': 'map.tasks.get_device_info',
+        'schedule': crontab(day_of_week=0, hour=3),
+    },
+    'update-port-info': {
+        'task': 'map.tasks.get_device_info',
+        'schedule': crontab(minute='*/2'),
+    },
+    'gather-running-config': {
+        'task': 'map.gather_running_configs',
+        'schedule': crontab(hour=4),
+    },
+}
+    #'clean-up': {
+    #'task': 'map.tasks.clean_up',
+    #'schedule': crontab(minute='30', hour='2'),
 
     #'update-vlan-info': {
     #    'task': 'map.tasks.update_vlan_info_task',  
@@ -65,4 +86,3 @@ app.conf.beat_schedule = {
     #    'task': 'map.tasks.delete_dev_id',
     #    'schedule': crontab(minute='43')
     #}
-}
