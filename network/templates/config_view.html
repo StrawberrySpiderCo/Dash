@@ -3,6 +3,39 @@
 {% block title %}{{ device.hostname }} Configs{% endblock %}
 {% block template %}
 <style>
+      .popup-container {
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.popup {
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
 .config-container {
     width: 50%;
     float: left;
@@ -69,7 +102,10 @@
         margin-right: 10px; /* Adjust margin as needed */
     }
     .config-diff-new {
-    background-color: #ffd000ce; 
+    background-color: #bceb95ce; 
+}
+.config-old {
+    background-color: #fccacad5; 
 }
 </style>
 <h2>Config View - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
@@ -86,7 +122,7 @@
         </select>
     </div>
     <button style="margin-left: auto;" onclick="fetchConfig()">Pull</button>
-    <button style="margin-left: 10px;" onclick="pushConfig()">Promote</button>
+    <button style="margin-left: 10px;" onclick="togglePopup()">Promote</button>
 </div>
 
 <br>
@@ -116,13 +152,60 @@
       <button type="button" onclick="closeMessagePopup()">Close</button>
     </div>
     </div>
+
+
+
+    <div id="popup-container" class="popup-container">
+        <div style="width: 60vw;" class="popup">
+          <h2>Config Change Information <span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
+          <h3>Following changes will be added to Startup Config</h3>
+          <div id="subtractions" style=" padding: 30px; overflow-y: auto; margin: 10px !important; height: 40vh; width: 25vw; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; text-align: left; border-radius: 0.375em; padding: 10px;"><h3>Subtractions</h3></div>
+        <div id="additions" style=" padding: 30px; overflow-y: auto; margin: 10px !important; height: 40vh; width: 25vw; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; text-align: left; border-radius: 0.375em; padding: 10px;"><h3>Additions</h3></div>
+
+          <br><br>
+          <button style="background-color: var(--background-color); float: right;" onclick="pushConfig()">Submit</button>
+          <button type="button" style="float: left; cursor: pointer;" onclick="closePopup()">Cancel</button>
+        </div>
+        </div>
+    
 <script>
     var $messagePopup = document.getElementById('popupMessage'), $messageContainer = document.getElementById('popup-message-container');
     var configBox1 = document.getElementById('config-box-1');
     var configBox2 = document.getElementById('config-box-2');
     var select = document.getElementById('running-config-select');
     var differences = [];
+    var $popupContainer = document.getElementById('popup-container'),
+    $popup = $popupContainer.querySelector('.popup');
 
+  function closePopup() {
+  //fade out 
+  $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 300);
+}
+
+
+// Function to toggle the visibility of the edit popup
+function togglePopup() {
+   $popupContainer.style.display = 'block';
+  //fade In 
+   setTimeout(function () {
+     $popupContainer.style.opacity = 1;
+   }, 100);
+}
+
+
+$popupContainer.onclick = function(){
+  //fade out 
+   $popupContainer.style.opacity = 0;
+   setTimeout(function () {
+     $popupContainer.style.display = 'none'
+   }, 300);
+}
+    $popup.onclick = function(e){
+  e.stopPropagation();
+}
     function pushConfig() {
         var selectedOption = select.options[select.selectedIndex];
         var runningConfigText = selectedOption.dataset.configText;
@@ -148,52 +231,69 @@
         }).catch(error => {
             console.error('Error:', error);
         });
-    }
+        closePopup()
+        document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
+        $messageContainer.style.display = 'block';
+        setTimeout(function () {
+          $messageContainer.style.opacity = 1;
+        }, 100);   
+        setTimeout(function () {
+                        location.reload();
+                    }, 10000);
+}
+
 
     function updateSelectedConfig() {
-        var selectedOption = select.options[select.selectedIndex];
-        var selectedConfigText = selectedOption.dataset.configText;
-        var startupConfigText = configBox1.innerText;
+    var selectedOption = select.options[select.selectedIndex];
+    var selectedConfigText = selectedOption.dataset.configText;
+    var startupConfigText = configBox1.innerText;
 
-        var startupLines = startupConfigText.split(/\r?\n/);
+    var startupLines = startupConfigText.split(/\r?\n/);
+    var selectedLines = selectedConfigText.split(/\r?\n/);
 
-        configBox1.innerHTML = '';
+    configBox1.innerHTML = '';
+    configBox2.innerHTML = '';
+    additions = [];
+    subtractions = [];
 
-        startupLines.forEach(function(line) {
-            var span = document.createElement('span');
-            span.textContent = line;
-            configBox1.appendChild(span);
-            configBox1.appendChild(document.createElement('br')); 
-        });
+    startupLines.forEach(function(line) {
+        var span = document.createElement('span');
+        if (!selectedLines.includes(line)) {
+            span.classList.add('config-old');
+            subtractions.push('-  '+line); // Highlight additional line in startup config
+        }
+        span.textContent = line;
+        configBox1.appendChild(span);
+        configBox1.appendChild(document.createElement('br'));
+    });
 
-        var selectedLines = selectedConfigText.split(/\r?\n/);
-        
+    selectedLines.forEach(function(line) {
+        var span = document.createElement('span');
+        span.textContent = line;
+        if (!startupLines.includes(line)) {
+            span.classList.add('config-diff-new');
+            additions.push('+  '+line);
+        }
+        configBox2.appendChild(span);
+        configBox2.appendChild(document.createElement('br'));
+    });
 
-        configBox2.innerHTML = '';
+    configBox1.addEventListener('scroll', function() {
+        configBox2.scrollTop = this.scrollTop;
+    });
 
-        differences = [];
+    configBox2.addEventListener('scroll', function() {
+        configBox1.scrollTop = this.scrollTop;
+    });
 
-        selectedLines.forEach(function(line) {
-            if (startupLines.includes(line)) {
-                configBox2.innerHTML += '<span>' + line + '</span>\n';
-            } else {
-                configBox2.innerHTML += '<span class="config-diff-new">' + line + '</span>\n';
-                differences.push(line); 
-            }
-        });
+    var additionsContainer = document.getElementById('additions');
+    additionsContainer.innerHTML = "<h3>Additions</h3>" + additions.join('<br>');
+    var subtractionsContainer = document.getElementById('subtractions');
+    subtractionsContainer.innerHTML = "<h3>Subtractions</h3>" + subtractions.join('<br>');
+}
 
-        configBox1.addEventListener('scroll', function() {
-            configBox2.scrollTop = this.scrollTop;
-        });
-        
-        configBox2.addEventListener('scroll', function() {
-            configBox1.scrollTop = this.scrollTop;
-        });
-    }
 
-    function displayDifferences() {
-        alert("Differences:\n" + differences.join("\n"));
-    }
+
     select.addEventListener('change', updateSelectedConfig);
 
     updateSelectedConfig();
@@ -203,6 +303,7 @@
     fetch('{% url "fetch_configs" device.id %}', {
       method: 'GET',
     })
+    
     document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
         $messageContainer.style.display = 'block';
         setTimeout(function () {
@@ -212,6 +313,9 @@
                         location.reload();
                     }, 10000);
 }
+
+
+
 $messageContainer.onclick = function(){
   //fade out 
   $messageContainer.style.opacity = 0;
