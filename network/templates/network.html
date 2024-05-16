@@ -4,6 +4,39 @@
 {% block title %}Network{% endblock %}
 {% block template %}
 <style>
+
+.popup-message-container{
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.message-popup{
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
   .popup-container {
   display: none; 
   position: fixed;
@@ -37,9 +70,34 @@
   text-align: center;
   white-space: nowrap;
 }
-</style>
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px; /* Adjust padding as needed */
+}
+.header-left {
+    flex-grow: 1; /* Grow to occupy remaining space */
+}
 
-<h2>Network</h2>
+.header-right {
+    margin-left: 10px; /* Optional: Add some space between the header content and the button */
+}
+</style>
+<header class="header">
+  <div class="header-left">
+    <h2>Network Devices</h2> 
+   </div>
+  <div class="header-right">
+      <button onclick="fetchInfo()" title="Click to pull all devices information">Pull All Devices Info</button>
+  </div>
+</header>
+<div id="popup-message-container" class="popup-message-container">
+  <div id="popupMessage" class="message-popup">
+    <p id="popupContent"></p>
+
+  </div>
+  </div>
 
 <div id="popup-container" class="popup-container">
   <div class="popup">
@@ -59,7 +117,7 @@
   <tbody id="device-body">
     {% for device in device_info %}
     <tr>
-      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></td>
+      <td>{% if device.online %}<a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a>{% else %} <span style="color: red;">{{device.ansible_status}}</span>{% endif %}</td>
       <td>{% if device.online %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
       <td>{{ device.ip_address }}</td>
     </tr>
@@ -117,8 +175,33 @@ Routers
 
   {% endfor %}-->
   <script>
+
 var $popupContainer = document.getElementById('popup-container'),
-    $popup = $popupContainer.querySelector('.popup');
+  $popup = $popupContainer.querySelector('.popup'),$messagePopup = document.getElementById('popupMessage'), $messageContainer = document.getElementById('popup-message-container');
+    function closeMessagePopup() {
+  //fade out 
+  $messageContainer.style.opacity = 0;
+   setTimeout(function () {
+     $$messageContainer.style.display = 'none'
+   }, 300);
+}
+    function fetchInfo() {
+        
+        fetch('{% url "fetch_all_devices_info" %}', {
+          method: 'GET',
+        })
+        
+        document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
+            $messageContainer.style.display = 'block';
+            setTimeout(function () {
+              $messageContainer.style.opacity = 1;
+            }, 100);   
+            setTimeout(function () {
+                            location.reload();
+                        }, 60000);
+    }
+    
+
 
 // Retrieve devicesFound state from sessionStorage if available
 var devicesFound = sessionStorage.getItem('devicesFound') === 'true';

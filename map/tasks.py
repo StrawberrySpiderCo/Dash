@@ -22,37 +22,40 @@ from typing import Literal, Union, Optional
 load_dotenv()
 
 @shared_task
-def update_port_info(hostname):
-    net_device = NetworkDevice.objects.get(ip_address=hostname)
+def update_port_info(hostname=None):
+    if hostname is None:
+        hostname = 'network_devices'
     r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
     for runner_on_ok in output['runner_on_ok']:
+        ip_address = (runner_on_ok['hostname'])
+        net_device = NetworkDevice.objects.get(ip_address=ip_address)
         ansible_data = runner_on_ok['task_result']['ansible_facts']
-    for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
-        if 'vlan' in interface_name.lower():
-            pass
-        else:
-            short_name = abbreviated_interface_name(interface_name)
-            defaults = {
-                'device': net_device,
-                'description': interface_data['description'],
-                'mac_address': interface_data['macaddress'],
-                'mtu': interface_data['mtu'],
-                'bandwidth': interface_data['bandwidth'],
-                'media_type': interface_data['mediatype'],
-                'duplex': interface_data['duplex'],
-                'line_protocol': interface_data['lineprotocol'],
-                'oper_status': interface_data['operstatus'],
-                'interface_type': interface_data['type'],
-                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
-                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
-                'short_name': short_name
-            }
-            # Create or update the NetworkInterface object
-            obj, created = NetworkInterface.objects.update_or_create(
-                device=net_device,
-                name=interface_name,
-                defaults=defaults
-            )
+        for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+            if 'vlan' or 'nvi' in interface_name.lower():
+                pass
+            else:
+                short_name = abbreviated_interface_name(interface_name)
+                defaults = {
+                    'device': net_device,
+                    'description': interface_data['description'],
+                    'mac_address': interface_data['macaddress'],
+                    'mtu': interface_data['mtu'],
+                    'bandwidth': interface_data['bandwidth'],
+                    'media_type': interface_data['mediatype'],
+                    'duplex': interface_data['duplex'],
+                    'line_protocol': interface_data['lineprotocol'],
+                    'oper_status': interface_data['operstatus'],
+                    'interface_type': interface_data['type'],
+                    'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
+                    'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+                    'short_name': short_name
+                }
+                # Create or update the NetworkInterface object
+                obj, created = NetworkInterface.objects.update_or_create(
+                    device=net_device,
+                    name=interface_name,
+                    defaults=defaults
+                )
     cleanup_artifacts_folder()
 
 @shared_task

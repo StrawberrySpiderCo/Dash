@@ -4,6 +4,6 @@
   gather_facts: no
 
   tasks:
-    - name: Get All
+    - name: Get Device Info
       cisco.ios.ios_facts:
         gather_subset: all

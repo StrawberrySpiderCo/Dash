@@ -65,20 +65,20 @@
 }
 /* Styles for the port details pop-up */
 .port-details {
-    position: fixed; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%); 
-    width: 20vw; /* 80% of the viewport width */
-    height: 80vh; /* 70% of the viewport height */
-    max-width: 90%; /* Maximum width of 90% of the viewport width */
-    max-height: 100%; /* Maximum height of 90% of the viewport height */
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-size: 0.8em;
+  white-space: nowrap;
     background-color: var(--left-menu-color);
     border: 1px solid var(--border-color);
     padding: 2rem; /* Adjust padding */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    transition: opacity 0.3s ease;
-    border-radius: 5px;
     font-family: var(--font-family);
     z-index: 9999;
     font-size: 1rem; /* Adjust font size */
@@ -188,7 +188,7 @@
     </div>
     <div class="header-right">
         <!-- Button to redirect to port view page -->
-        <button onclick="fetchInfo()">Pull</button>
+        <button onclick="fetchInfo()" style="margin-right: 15px; margin-bottom: 5px;" title="Click to pull device information">Pull Device Info</button>
         <a href="{% url 'port_view' device.id %}" class="button">Port View</a>
     </div>
 </header>
@@ -265,11 +265,11 @@
 
 <div id="popup-container" class="popup-container">
     <div class="popup">
-      <h2>Bulk Edit Information <span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
+      <h2>Edit Selected Port<span style="padding-left: 1.5em;  float: right; cursor: pointer;" onclick="closePopup()">X</span></h2>
       <form id="editForm" onsubmit="return submitForm()">
         {% csrf_token %}
         <h3>Selected Ports:</h3>
-        <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 7vw; text-align: center; border-radius: 0.375em;"></div>
+        <div id="selectedPortsDisplay" style="margin: auto; height: 10vh; overflow-y: auto; box-shadow: inset 0 0 0 2px var(--border-color); display: inline-block; width: 14vw; text-align: center; border-radius: 0.375em;"></div>
         <br>
         
         <h3>Port Mode:</h3>
@@ -279,6 +279,8 @@
         <label for="trunkMode">Trunk</label>
         <input type="radio" name="mode" id="deleteMode" value="delete" onclick="toggleFields()">
         <label for="deleteMode">Delete</label>
+        <input type="radio" name="mode" id="noneMode" value="None" onclick="toggleFields()">
+        <label for="noneMode">None</label>
         <br>
         <div id="vlanFields" style="display: none;">
           <label for="vlan">VLAN:</label>
@@ -385,11 +387,14 @@ function submitForm() {
         // Display popup message
         closePopup();
         closeIntPopup();
-        document.getElementById('popupContent').innerText = "Request Sent!";
+        document.getElementById('popupContent').innerText = "Request Sent! Page will reload upon task finishing";
         $messageContainer.style.display = 'block';
         setTimeout(function () {
           $messageContainer.style.opacity = 1;
         }, 100);
+        setTimeout(function () {
+                            location.reload();
+                        }, 13000);
        
       } else {
         // Display popup message with error
@@ -408,6 +413,7 @@ function submitForm() {
     var accessMode = document.getElementById("accessMode");
     var trunkMode = document.getElementById("trunkMode");
     var deleteMode = document.getElementById("deleteMode");
+    var noneMode = document.getElementById("noneMode");
     var vlanFields = document.getElementById("vlanFields");
     var trunkFields = document.getElementById("trunkFields");
 
@@ -418,6 +424,9 @@ function submitForm() {
       vlanFields.style.display = "none";
       trunkFields.style.display = "block";
     } else if (deleteMode.checked) {
+      vlanFields.style.display = "none";
+      trunkFields.style.display = "none";
+    }else if (noneMode.checked) {
       vlanFields.style.display = "none";
       trunkFields.style.display = "none";
     }
