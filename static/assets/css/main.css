@@ -1,5 +1,6 @@
 @import url(fontawesome-all.min.css);
 @import url("https://fonts.googleapis.com/css?family=Open+Sans:400,600,400italic,600italic|Roboto+Slab:400,700");
+@import url(https://db.onlinewebfonts.com/c/28d4f822989fee21b19067d87b6dbe17?family=Thunderman);
  
 /*
 	Editorial by HTML5 UP
@@ -15,6 +16,13 @@ GREEN DEFAULTS##################################################################
   --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
   --font-family: "Roboto Slab", serif;
+    --dark-header-color: #beb8b0;
+  --dark-text-color: #9c9487;
+  --dark-border-color: #9c9487;
+  --dark-background-color: #181A1B;
+  --dark-left-menu-color: #1d2021;
+  --dark-left-menu-header-color: #202324;
+  --dark-left-menu-line-color: #587667;
 }
 
 PINK DEFAULTS##########################################################################
@@ -28,10 +36,17 @@ PINK DEFAULTS###################################################################
   --left-menu-header-color: #e1c2be;
   --left-menu-line-color: #f7a399;
   --font-family: "Thunderman", sans-serif;
+  --dark-header-color: #a14232;
+  --dark-text-color: #ffd9d8;
+  --dark-border-color: #a74e44;
+  --dark-background-color: #511b18;
+  --dark-left-menu-color: #544a48;
+  --dark-left-menu-header-color: #564b49;
+  --dark-left-menu-line-color: #934d43;
 }
 
 
-
+var(--left-menu-line-color);
 */
 :root{
   --header-color: #3d4449;
@@ -42,8 +57,7 @@ PINK DEFAULTS###################################################################
   --left-menu-header-color: #EFF1F2;
   --left-menu-line-color: #D2D7D9BF;
   --font-family: "Roboto Slab", serif;
-  
-  --dark-header-color: #beb8b0;
+    --dark-header-color: #beb8b0;
   --dark-text-color: #9c9487;
   --dark-border-color: #9c9487;
   --dark-background-color: #181A1B;
