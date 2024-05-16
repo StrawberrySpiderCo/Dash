@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
-{% block title %}Network Tasks{% endblock %}
+{% block title %}{{ device.hostname }} Tasks{% endblock %}
 {% block template %}
 <h2>Tasks - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
 <table id="tasks-table">

@@ -141,6 +141,13 @@ def set_l3interface(hostname: str = '',
                                       'ipv6': ipv6})
 
 @shared_task
+def push_startup_configs(hostname, config):
+    ansible_events, ansible_results = run_ansible_playbook('push_startup_config', {'hostname': hostname, 'config': config})
+    events = ansible_events.events
+    ansible_logging(events)
+    #cleanup_artifacts_folder()
+
+@shared_task
 def gather_startup_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'

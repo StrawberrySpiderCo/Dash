@@ -59,7 +59,7 @@
   <tbody id="device-body">
     {% for device in device_info %}
     <tr>
-      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" target="_blank" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></td>
+      <td><a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}">{{ device.hostname }}</a></td>
       <td>{% if device.online %}<span style="color: green;">✓</span>{% else %}<span style="color: red;">X</span>{% endif %}</td>
       <td>{{ device.ip_address }}</td>
     </tr>

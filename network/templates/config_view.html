@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Network{% endblock %}
+{% block title %}{{ device.hostname }} Configs{% endblock %}
 {% block template %}
 <style>
 .config-container {
@@ -78,7 +78,7 @@
 
 <div class="container">
     <div class="config-select">
-        <label for="running-config-select">Select Running Config:</label>
+        <label for="running-config-select">Select Backup Config:</label>
         <select name="running_config" id="running-config-select" class="scrollable-dropdown">
             {% for config in device_configs %}
                 <option value="{{ config.id }}" data-config-text="{{ config.config_text }}" data-config-date="{{ config.created_at }}">{{ config.created_at }}</option>
@@ -86,7 +86,7 @@
         </select>
     </div>
     <button style="margin-left: auto;" onclick="fetchConfig()">Pull</button>
-    <button style="margin-left: 10px;">Promote</button>
+    <button style="margin-left: 10px;" onclick="pushConfig()">Promote</button>
 </div>
 
 <br>
@@ -103,7 +103,7 @@
 
 <div class="config-container">
     <div class="header-container">
-        <button  onclick="exportRunningConfig()">Export Running Config</button>
+        <button  onclick="exportRunningConfig()">Export Backup Config</button>
     </div>
     <div id="config-box-2" class="config-box">
         <pre id="selected-running-config"></pre>
@@ -122,6 +122,33 @@
     var configBox2 = document.getElementById('config-box-2');
     var select = document.getElementById('running-config-select');
     var differences = [];
+
+    function pushConfig() {
+        var selectedOption = select.options[select.selectedIndex];
+        var runningConfigText = selectedOption.dataset.configText;
+
+        fetch('{% url "push_configs" device.id %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Add CSRF token
+            },
+            body: JSON.stringify({
+                runningConfigText: runningConfigText // Send the running config text
+            })
+        }).then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error pushing config');
+            }
+        }).then(data => {
+            // Handle response if needed
+            console.log(data);
+        }).catch(error => {
+            console.error('Error:', error);
+        });
+    }
 
     function updateSelectedConfig() {
         var selectedOption = select.options[select.selectedIndex];

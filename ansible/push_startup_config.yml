@@ -1,0 +1,11 @@
+---
+- name: Push new startup config to Cisco device
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  tasks:
+    - name: Copy Startup Config
+      ios_config:
+        src: "{{config}}"
+    - name: Save Startup Config
+      ios_config:
+        save_when: modified
