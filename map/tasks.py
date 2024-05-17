@@ -87,7 +87,6 @@ def update_port_info(hostname=None):
                 name=interface_name,
                 defaults=defaults
             )
-    events = r.events
 
 @app.task(queue='configure_devices_queue')
 def set_interface(hostname: str,

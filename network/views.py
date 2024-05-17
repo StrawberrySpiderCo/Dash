@@ -83,7 +83,7 @@ def edit_ports(request):
         set_interface.delay(host, selected_ports, desired_state)
         if mode != 'None':
             set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
-        update_port_info.delay(host)
+        update_port_info.delay()
         data = {
         'success': True,  
         'message': 'Yippee'
