@@ -251,7 +251,7 @@ def get_device_info(hostname=None):
 def update_host_file_task():
     update_host_file()
 
-@app.task(queue='configure_devices_queue')
+@app.task(queue='get_info_queue')
 def setup_network_devices():
     org_info = Org_Info.objects.get()
     network_ips = set(org_info.network_device_ips)
