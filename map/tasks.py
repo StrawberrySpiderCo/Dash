@@ -22,22 +22,31 @@ from typing import Literal, Union, Optional
 from dash.celery import app
 load_dotenv()
 
+@app.task(queue='get_info_queue')
+def clean_artifacts():
+    cleanup_artifacts_folder()
 
 @app.task(queue='ping_devices_queue')
 def ping_devices_task():
     org_info = Org_Info.objects.get()
     network_ips = set(org_info.network_device_ips)
+    
     for ip in network_ips:
-            result = subprocess.call(['ping', ip, '-c', '2'])
-            online = result == 0
-            device, created = NetworkDevice.objects.update_or_create(
-                ip_address=ip,
-                defaults={
-                    'model': '',
-                    'online': online
-                }
-            )
-            device.save()
+        result = subprocess.call(['ping', ip, '-c', '2'])
+        online = result == 0
+        
+        try:
+            device = NetworkDevice.objects.get(ip_address=ip)
+            
+            if online and not device.online:
+                device.online = True
+                device.save()
+            elif not online and device.online:
+                device.online = False
+                device.save()
+                
+        except NetworkDevice.DoesNotExist:
+            pass
 
 @app.task(queue='configure_devices_queue')
 def cycle_port_task(hostname, interface):
@@ -55,32 +64,28 @@ def update_port_info(hostname=None):
         net_device = NetworkDevice.objects.get(ip_address=ip_address)
         ansible_data = runner_on_ok['task_result']['ansible_facts']
         for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
-            if 'vlan' or 'nvi' in interface_name.lower():
-                pass
-            else:
-                short_name = abbreviated_interface_name(interface_name)
-                defaults = {
-                    'device': net_device,
-                    'description': interface_data['description'],
-                    'mac_address': interface_data['macaddress'],
-                    'mtu': interface_data['mtu'],
-                    'bandwidth': interface_data['bandwidth'],
-                    'media_type': interface_data['mediatype'],
-                    'duplex': interface_data['duplex'],
-                    'line_protocol': interface_data['lineprotocol'],
-                    'oper_status': interface_data['operstatus'],
-                    'interface_type': interface_data['type'],
-                    'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
-                    'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
-                    'short_name': short_name
-                }
-                # Create or update the NetworkInterface object
-                obj, created = NetworkInterface.objects.update_or_create(
-                    device=net_device,
-                    name=interface_name,
-                    defaults=defaults
-                )
-    cleanup_artifacts_folder()
+            short_name = abbreviated_interface_name(interface_name)
+            defaults = {
+                'device': net_device,
+                'description': interface_data['description'],
+                'mac_address': interface_data['macaddress'],
+                'mtu': interface_data['mtu'],
+                'bandwidth': interface_data['bandwidth'],
+                'media_type': interface_data['mediatype'],
+                'duplex': interface_data['duplex'],
+                'line_protocol': interface_data['lineprotocol'],
+                'oper_status': interface_data['operstatus'],
+                'interface_type': interface_data['type'],
+                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
+                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
+                'short_name': short_name
+            }
+            obj, created = NetworkInterface.objects.update_or_create(
+                device=net_device,
+                name=interface_name,
+                defaults=defaults
+            )
+    events = r.events
 
 @app.task(queue='configure_devices_queue')
 def set_interface(hostname: str,
@@ -205,7 +210,6 @@ def gather_running_configs(hostname=None):
         error_msg = ansible_data['msg']
     events = ansible_events.events
     ansible_logging(events)
-    cleanup_artifacts_folder()
 
 @app.task(queue='get_info_queue')
 def get_device_info(hostname=None):
@@ -240,7 +244,6 @@ def get_device_info(hostname=None):
                 )
     events = ansible_events.events
     ansible_logging(events)   
-    cleanup_artifacts_folder()
 
 @app.task(queue='configure_devices_queue')
 def update_host_file():

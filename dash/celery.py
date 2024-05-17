@@ -46,6 +46,7 @@ app.conf.task_routes = {
     'map.tasks.push_startup_configs': {'queue': 'configure_devices_queue'},
     'map.tasks.gather_startup_configs': {'queue': 'get_info_queue'},
     'map.tasks.gather_running_configs': {'queue': 'get_info_queue'},
+    'map.tasks.clean_artifacts': {'queue': 'get_info_queue'},
     'map.tasks.get_device_info': {'queue': 'get_info_queue'},
     'map.tasks.update_host_file': {'queue': 'configure_devices_queue'},
     'map.tasks.setup_network_devices': {'queue': 'configure_devices_queue'},
@@ -76,6 +77,10 @@ app.conf.beat_schedule = {
         'ping_devices_task': {
         'task': 'map.tasks.ping_devices_task',
         'schedule': crontab(minute='*/3'),
+    },
+    'clean_artifacts': {
+        'task': 'map.tasks.clean_artifacts',
+        'schedule': crontab(minute='*/13'),
     },
 }
     #'clean-up': {

@@ -2,6 +2,7 @@ logs
 celerybeat-schedule.bak
 celerybeat-schedule.dat
 celerybeat-schedule.dir
+ansible/artifacts
 *.pyc
 *.log
 webex_access.txt

@@ -81,7 +81,8 @@ def edit_ports(request):
             native_vlan = None
         encapsulation = request.POST.get('encapsulation')
         set_interface.delay(host, selected_ports, desired_state)
-        set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
+        if mode != 'None':
+            set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
         update_port_info.delay(host)
         data = {
         'success': True,  
