@@ -20,19 +20,7 @@ def update_host_file():
     with open(host_file_path, 'w') as host_file:
         host_file.write("[network_devices]\n")
         for ip in network_ips:
-            result = subprocess.call(['ping', ip, '-c', '2'])
-            online = result == 0
-            device, created = NetworkDevice.objects.update_or_create(
-                ip_address=ip,
-                defaults={
-                    'model': '',
-                    'username': org_info.ssh_username,
-                    'password': org_info.ssh_password,
-                    'enable_password': org_info.ssh_enable_password,
-                    'online': online
-                }
-            )
-            device.save()
+            online = NetworkDevice.get(ip_address=ip).online
             if online:
                 host_file.write(f"{ip} ansible_host={ip}\n")
         host_file.write("\n[network_devices:vars]\n")

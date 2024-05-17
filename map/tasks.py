@@ -39,7 +39,7 @@ def ping_devices_task():
             )
             device.save()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def cycle_port_task(hostname, interface):
     r,output = run_ansible_playbook('cycle_port', {'hostname':hostname, 'ports_to_cycle': interface})
     events = r.events

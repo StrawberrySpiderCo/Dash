@@ -38,10 +38,20 @@ app.conf.task_queues = {
 
 app.conf.task_routes = {
     'map.tasks.ping_devices_task': {'queue': 'ping_devices_queue'},
-    'map.tasks.configure_devices_task': {'queue': 'configure_devices_queue'},
-    'map.tasks.get_info_task': {'queue': 'get_info_queue'},
+    'map.tasks.cycle_port_task': {'queue': 'configure_devices_queue'},
+    'map.tasks.update_port_info': {'queue': 'get_info_queue'},
+    'map.tasks.set_interface': {'queue': 'configure_devices_queue'},
+    'map.tasks.set_l2interface': {'queue': 'configure_devices_queue'},
+    'map.tasks.set_l3interface': {'queue': 'configure_devices_queue'},
+    'map.tasks.push_startup_configs': {'queue': 'configure_devices_queue'},
+    'map.tasks.gather_startup_configs': {'queue': 'get_info_queue'},
+    'map.tasks.gather_running_configs': {'queue': 'get_info_queue'},
+    'map.tasks.get_device_info': {'queue': 'get_info_queue'},
+    'map.tasks.update_host_file': {'queue': 'configure_devices_queue'},
+    'map.tasks.setup_network_devices': {'queue': 'configure_devices_queue'},
+    'map.tasks.update_device': {'queue': 'configure_devices_queue'},
+    'map.tasks.setup_github_repo': {'queue': 'configure_devices_queue'},
 }
-
 app.conf.beat_schedule = {
         'clean-up': {
         'task': 'map.tasks.clean_up',
@@ -57,11 +67,15 @@ app.conf.beat_schedule = {
     },
    'update-port-info': {
        'task': 'map.tasks.update_port_info',
-       'schedule': crontab(minute='*/20'),
+       'schedule': crontab(minute='*/5'),
    },
     'gather-running-config': {
         'task': 'map.gather_running_configs',
         'schedule': crontab(hour=4),
+    },
+        'ping_devices_task': {
+        'task': 'map.tasks.ping_devices_task',
+        'schedule': crontab(minute='*/3'),
     },
 }
     #'clean-up': {
