@@ -40,6 +40,7 @@ urlpatterns = [
     path('push/network/configs/<int:device_id>/', network.push_configs, name='push_configs'),
     path('fetch/network/configs/<int:device_id>/', network.fetch_configs, name='fetch_configs'),
     path('fetch/network/device/<int:device_id>/', network.fetch_device_info, name='fetch_device_info'),
+    path('/cycle/port/', network.cycle_port, name='cycle_port'),
     path('fetch/network/device/all/', network.fetch_all_devices_info, name='fetch_all_devices_info'),
     path('setup/', map.setup, name='setup'),
     path('edit_ports_results/', network.edit_ports, name='edit_ports'),

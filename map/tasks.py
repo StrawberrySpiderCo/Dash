@@ -22,6 +22,13 @@ from typing import Literal, Union, Optional
 load_dotenv()
 
 @shared_task
+def cycle_port(hostname, interface):
+    r,output = run_ansible_playbook('cycle_port', {'hostname':hostname, 'ports_to_cycle': interface})
+    events = r.events
+    ansible_logging(events)
+    cleanup_artifacts_folder()
+
+@shared_task
 def update_port_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -187,6 +194,7 @@ def gather_running_configs(hostname=None):
     ansible_logging(events)
     cleanup_artifacts_folder()
 
+@shared_task
 def get_device_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'

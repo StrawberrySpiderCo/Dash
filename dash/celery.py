@@ -34,7 +34,7 @@ app.conf.beat_schedule = {
     },
     'update-port-info': {
         'task': 'map.tasks.get_device_info',
-        'schedule': crontab(minute='*/2'),
+        'schedule': crontab(hour='*/2'),
     },
     'gather-running-config': {
         'task': 'map.gather_running_configs',

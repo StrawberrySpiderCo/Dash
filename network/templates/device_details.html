@@ -233,6 +233,10 @@
         Edit Selected
         <i class="icon solid fa-pen"></i>
       </button>
+      <button onclick="cyclePort()">
+        Cycle Port
+        <i class="icon solid fa-recycle"></i>
+      </button>
 
 
 </div>
@@ -538,7 +542,30 @@ $popup.onclick = function(e){
                             location.reload();
                         }, 20000);
     }
+
+    function cyclePort(){
+      var selectedPorts = document.getElementById('selectedPorts').value;
+      var ipAddress = document.getElementById('ip_address').value;
+      var formData1 = new FormData();
+      formData1.append('ip_address', ipAddress);
+      formData1.append('selected_ports', selectedPorts);
     
+    fetch('{% url "cycle_port" %}', {
+      method: 'POST',
+      body: formData1,
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      }
+    })
+        // Display popup message
+        closePopup();
+        closeIntPopup();
+        document.getElementById('popupContent').innerText = "Request Sent!";
+        $messageContainer.style.display = 'block';
+        setTimeout(function () {
+          $messageContainer.style.opacity = 1;
+        }, 100);
+      }
 </script>
 
 

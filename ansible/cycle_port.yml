@@ -1,0 +1,21 @@
+---
+- name: Port Cycle Playbook
+  hosts: "{{ hostname }}"
+  gather_facts: no
+  vars:
+    ports_to_cycle: "{{ port_list }}"
+
+  tasks:
+    - name: Disable port
+      ios_config:
+        lines:
+          - shutdown
+        parents: "interface {{ item }}"
+      loop: "{{ ports_to_cycle }}"
+
+    - name: Enable port
+      ios_config:
+        lines:
+          - no shutdown
+        parents: "interface {{ item }}"
+      loop: "{{ ports_to_cycle }}"

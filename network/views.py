@@ -7,7 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.decorators import login_required
 from map.models import NetworkDevice, NetworkInterface, NetworkTask,RunningConfig
-from map.tasks import set_interface, set_l2interface, update_port_info, gather_running_configs, gather_startup_configs,push_startup_configs, update_device, setup_network_devices
+from map.tasks import set_interface, set_l2interface, update_port_info, gather_running_configs, gather_startup_configs,push_startup_configs, update_device, setup_network_devices,cycle_port
 from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 from difflib import unified_diff
@@ -118,6 +118,25 @@ def fetch_device_info(request, device_id):
     hostname = device.ip_address
     update_device.delay(hostname)
     return JsonResponse({'device_info': ''})
+
+@login_required
+def cycle_port(request, device_id):
+    port_list = []
+    if request.method == 'POST':
+        selected_ports_str = request.POST.get('selected_ports')
+        try:
+            selected_ports = json.loads(selected_ports_str)
+        except:
+            selected_ports = selected_ports_str.split()
+        host = request.POST.get('ip_address')
+        cycle_port.delay(host, selected_ports)
+        data = {
+        'success': True,  
+        'message': 'Yippee'
+        
+        }
+    return JsonResponse(data)
+    
 
 @login_required
 def push_configs(request, device_id):
