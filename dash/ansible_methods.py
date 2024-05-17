@@ -20,7 +20,7 @@ def update_host_file():
     with open(host_file_path, 'w') as host_file:
         host_file.write("[network_devices]\n")
         for ip in network_ips:
-            online = NetworkDevice.get(ip_address=ip).online
+            online = NetworkDevice.objects.get(ip_address=ip).online
             if online:
                 host_file.write(f"{ip} ansible_host={ip}\n")
         host_file.write("\n[network_devices:vars]\n")

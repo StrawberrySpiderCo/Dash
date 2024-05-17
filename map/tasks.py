@@ -41,9 +41,11 @@ def ping_devices_task():
             if online and not device.online:
                 device.online = True
                 device.save()
+                update_host_file()
             elif not online and device.online:
                 device.online = False
                 device.save()
+                update_host_file()
                 
         except NetworkDevice.DoesNotExist:
             pass
@@ -246,7 +248,7 @@ def get_device_info(hostname=None):
     ansible_logging(events)   
 
 @app.task(queue='configure_devices_queue')
-def update_host_file():
+def update_host_file_task():
     update_host_file()
 
 @app.task(queue='configure_devices_queue')
