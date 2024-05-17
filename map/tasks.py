@@ -22,7 +22,7 @@ from typing import Literal, Union, Optional
 load_dotenv()
 
 @shared_task
-def cycle_port(hostname, interface):
+def cycle_port_task(hostname, interface):
     r,output = run_ansible_playbook('cycle_port', {'hostname':hostname, 'ports_to_cycle': interface})
     events = r.events
     ansible_logging(events)
@@ -228,7 +228,11 @@ def get_device_info(hostname=None):
     events = ansible_events.events
     ansible_logging(events)   
     cleanup_artifacts_folder()
-        
+
+@shared_task
+def update_host_file():
+    update_host_file()
+
 @shared_task
 def setup_network_devices():
     update_host_file()
