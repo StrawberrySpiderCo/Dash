@@ -1,7 +1,7 @@
-Org Name: Strawberry Spider
+Org Name: New Name
 Website IP: 192.168.0.100
-Site Count: 5
-Contact Email: strawberryspider.co@gmail.com
+Site Count: 0
+Contact Email: jtomlin2001@gmail.com
 Contact Phone: 6612059590
 Network Device IPs:
 - 192.168.0.51
