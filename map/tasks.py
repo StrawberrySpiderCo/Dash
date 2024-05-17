@@ -19,7 +19,25 @@ from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
 from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
 from typing import Literal, Union, Optional
+from dash.celery import app
 load_dotenv()
+
+
+@app.task(queue='ping_devices_queue')
+def ping_devices_task():
+    org_info = Org_Info.objects.get()
+    network_ips = set(org_info.network_device_ips)
+    for ip in network_ips:
+            result = subprocess.call(['ping', ip, '-c', '2'])
+            online = result == 0
+            device, created = NetworkDevice.objects.update_or_create(
+                ip_address=ip,
+                defaults={
+                    'model': '',
+                    'online': online
+                }
+            )
+            device.save()
 
 @shared_task
 def cycle_port_task(hostname, interface):
@@ -28,7 +46,7 @@ def cycle_port_task(hostname, interface):
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='get_info_queue')
 def update_port_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -65,7 +83,7 @@ def update_port_info(hostname=None):
                 )
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def set_interface(hostname: str,
             interface: Union[list, str],
             action: Literal['shut','noshut']):
@@ -74,7 +92,7 @@ def set_interface(hostname: str,
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def set_l2interface(hostname: str, 
                 interface: list, 
                 mode: Literal['access', 'trunk', 'delete'], 
@@ -88,7 +106,7 @@ def set_l2interface(hostname: str,
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def set_l3interface(hostname: str = '',
                 interface: list = [],
                 ipv4: dict = {
@@ -149,14 +167,14 @@ def set_l3interface(hostname: str = '',
                                       'ipv4': ipv4,
                                       'ipv6': ipv6})
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def push_startup_configs(hostname, config):
     ansible_events, ansible_results = run_ansible_playbook('push_startup_config', {'hostname': hostname, 'config': config})
     events = ansible_events.events
     ansible_logging(events)
     #cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def gather_startup_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -172,7 +190,7 @@ def gather_startup_configs(hostname=None):
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='get_info_queue')
 def gather_running_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -194,7 +212,7 @@ def gather_running_configs(hostname=None):
     ansible_logging(events)
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='get_info_queue')
 def get_device_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -229,11 +247,11 @@ def get_device_info(hostname=None):
     ansible_logging(events)   
     cleanup_artifacts_folder()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def update_host_file():
     update_host_file()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def setup_network_devices():
     update_host_file()
     get_device_info()
@@ -241,14 +259,14 @@ def setup_network_devices():
     gather_startup_configs()
     gather_running_configs()
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def update_device(hostname):
     update_port_info(hostname)
     get_device_info(hostname)
     gather_startup_configs(hostname)
     gather_running_configs(hostname)
 
-@shared_task
+@app.task(queue='configure_devices_queue')
 def setup_github_repo(org_info_id):
     # Retrieve Org_Info instance
     org_info = Org_Info.objects.get(pk=org_info_id)
