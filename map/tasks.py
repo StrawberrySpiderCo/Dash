@@ -44,7 +44,6 @@ def cycle_port_task(hostname, interface):
     r,output = run_ansible_playbook('cycle_port', {'hostname':hostname, 'ports_to_cycle': interface})
     events = r.events
     ansible_logging(events)
-    cleanup_artifacts_folder()
 
 @app.task(queue='get_info_queue')
 def update_port_info(hostname=None):
@@ -90,7 +89,6 @@ def set_interface(hostname: str,
     r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
     events = r.events
     ansible_logging(events)
-    cleanup_artifacts_folder()
 
 @app.task(queue='configure_devices_queue')
 def set_l2interface(hostname: str, 
@@ -104,7 +102,6 @@ def set_l2interface(hostname: str,
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
     events = r.events
     ansible_logging(events)
-    cleanup_artifacts_folder()
 
 @app.task(queue='configure_devices_queue')
 def set_l3interface(hostname: str = '',
@@ -172,7 +169,6 @@ def push_startup_configs(hostname, config):
     ansible_events, ansible_results = run_ansible_playbook('push_startup_config', {'hostname': hostname, 'config': config})
     events = ansible_events.events
     ansible_logging(events)
-    #cleanup_artifacts_folder()
 
 @app.task(queue='configure_devices_queue')
 def gather_startup_configs(hostname=None):
@@ -188,7 +184,6 @@ def gather_startup_configs(hostname=None):
         device.save()
     events = ansible_events.events
     ansible_logging(events)
-    cleanup_artifacts_folder()
 
 @app.task(queue='get_info_queue')
 def gather_running_configs(hostname=None):
