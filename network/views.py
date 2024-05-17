@@ -159,8 +159,8 @@ def fetch_all_devices_info(request):
     return JsonResponse({'device_info': ''})
 @login_required
 def fetch_devices(request):
-    device_info = NetworkDevice.objects.all()
-    if device_info.exists():
+    device_info = NetworkDevice.objects.get().hostname
+    if device_info:
         data = 'data'
     else:
         data = ''
