@@ -26,6 +26,13 @@ load_dotenv()
 def clean_artifacts():
     cleanup_artifacts_folder()
 
+@app.task(queue='get_info_queue')
+def github_pull():
+    github_token = os.getenv('GITHUB_TOKEN')
+    if github_token:
+        git_update = subprocess.run(['git', 'pull', f'https://x-access-token:{github_token}/StrawberrySpiderCo/Dash'])
+        migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
+
 @app.task(queue='ping_devices_queue')
 def ping_devices_task():
     org_info = Org_Info.objects.get()
