@@ -60,7 +60,7 @@ def cycle_port_task(hostname, interface):
     events = r.events
     ansible_logging(events)
 
-@app.task(queue='get_info_queue')
+@app.task(queue='configure_devices_queue')
 def update_port_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
@@ -101,14 +101,14 @@ def set_interface(hostname: str,
     ansible_logging(events)
 
 @app.task(queue='configure_devices_queue')
-def set_l2interface(hostname: str, 
-                interface: list, 
-                mode: Literal['access', 'trunk', 'delete'], 
-                vlan: Optional[int] = 'None', 
-                voice_vlan: Optional[int] = 'None',
-                native_vlan: Optional[int] = 'None',
-                allowed_vlan: Optional[list] = 'None',
-                encapsulation: Literal['dot1q', 'isl', 'negotiate'] = 'dot1q'):
+def set_l2interface(hostname, 
+                interface, 
+                mode, 
+                vlan = 'None', 
+                voice_vlan = 'None',
+                native_vlan = 'None',
+                allowed_vlan = 'None',
+                encapsulation = 'dot1q'):
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
     events = r.events
     ansible_logging(events)

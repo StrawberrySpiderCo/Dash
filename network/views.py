@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from celery import chain
+from celery import chord
 from django.shortcuts import redirect
 from django import forms
 from json import loads
@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.http import JsonResponse
 from difflib import unified_diff
 import json
-
+from time import sleep
 
 def user_is_admin(user):
     return user.groups.filter(name='Admins').exists()
@@ -81,23 +81,15 @@ def edit_ports(request):
         except ValueError:
             native_vlan = None
         encapsulation = request.POST.get('encapsulation')
-        # Create the chain of tasks
-        tasks_chain = chain(
-            set_interface.s(host, selected_ports, desired_state)
-        )
-
+        set_interface.delay(host, selected_ports, desired_state)
         if mode != 'None':
-            tasks_chain |= set_l2interface.s(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
-        
-        tasks_chain |= update_port_info.s()
-
-        # Execute the chain
-        tasks_chain.apply_async()
-
+            set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
         data = {
-            'success': True,
-            'message': 'Yippee'
+        'success': True,  
+        'message': 'Yippee'
+        
         }
+        update_port_info.delay()
         return JsonResponse(data)
         
 @login_required

@@ -39,7 +39,7 @@ app.conf.task_queues = {
 app.conf.task_routes = {
     'map.tasks.ping_devices_task': {'queue': 'ping_devices_queue'},
     'map.tasks.cycle_port_task': {'queue': 'configure_devices_queue'},
-    'map.tasks.update_port_info': {'queue': 'get_info_queue'},
+    'map.tasks.update_port_info': {'queue': 'configure_devices_queue'},
     'map.tasks.set_interface': {'queue': 'configure_devices_queue'},
     'map.tasks.set_l2interface': {'queue': 'configure_devices_queue'},
     'map.tasks.set_l3interface': {'queue': 'configure_devices_queue'},
