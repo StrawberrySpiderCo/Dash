@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from celery import chain
 from django.shortcuts import redirect
 from django import forms
 from json import loads
@@ -80,14 +81,22 @@ def edit_ports(request):
         except ValueError:
             native_vlan = None
         encapsulation = request.POST.get('encapsulation')
-        set_interface.delay(host, selected_ports, desired_state)
+        # Create the chain of tasks
+        tasks_chain = chain(
+            set_interface.s(host, selected_ports, desired_state)
+        )
+
         if mode != 'None':
-            set_l2interface.delay(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
-        update_port_info.delay()
-        data = {
-        'success': True,  
-        'message': 'Yippee'
+            tasks_chain |= set_l2interface.s(host, selected_ports, mode, vlan, voice_vlan, native_vlan, allowed_vlans, encapsulation)
         
+        tasks_chain |= update_port_info.s()
+
+        # Execute the chain
+        tasks_chain.apply_async()
+
+        data = {
+            'success': True,
+            'message': 'Yippee'
         }
         return JsonResponse(data)
         
