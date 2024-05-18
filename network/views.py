@@ -41,8 +41,6 @@ def port_view(request, device_id):
     sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
     return render(request, 'port_view.html', {'device': device, 'device_interfaces': sorted_interfaces})
 
-
-
 @login_required
 def config_view(request, device_id):
     device = get_object_or_404(NetworkDevice, pk=device_id)
