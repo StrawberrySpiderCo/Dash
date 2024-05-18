@@ -76,7 +76,7 @@ app.conf.beat_schedule = {
     },
         'ping_devices_task': {
         'task': 'map.tasks.ping_devices_task',
-        'schedule': crontab(minute='*/3'),
+        'schedule': crontab(minute='*/1'),
     },
     'clean_artifacts': {
         'task': 'map.tasks.clean_artifacts',

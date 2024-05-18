@@ -40,10 +40,14 @@ def ping_devices_task():
             
             if online and not device.online:
                 device.online = True
+                if online:
+                    device.ansible_status = 'ONLINE'
                 device.save()
                 update_host_file()
             elif not online and device.online:
                 device.online = False
+                if not online == 'runner_on_ok':
+                    device.ansible_status = 'OFFLINE'
                 device.save()
                 update_host_file()
                 
