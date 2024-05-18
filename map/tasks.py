@@ -30,7 +30,16 @@ def clean_artifacts():
 def github_pull():
     github_token = os.getenv('GITHUB_TOKEN')
     if github_token:
-        git_update = subprocess.run(['git', 'pull', f'https://x-access-token:{github_token}/StrawberrySpiderCo/Dash'])
+        # Ensure the GitHub access token is properly formatted
+        github_token_url = f'x-access-token:{github_token}@'
+        
+        # Construct the URL for the git pull
+        git_url = f'https://{github_token_url}github.com/StrawberrySpiderCo/Dash'
+        
+        # Perform git pull
+        git_update = subprocess.run(['git', 'pull', git_url])
+        
+        # Perform database migration
         migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
 
 @app.task(queue='ping_devices_queue')
@@ -309,8 +318,7 @@ def setup_github_repo(org_info_id):
 
     
     if github_token:
-        git_update = subprocess.run(['git', 'pull', f'https://x-access-token:{github_token}/StrawberrySpiderCo/Dash'])
-        migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
+        github_pull()
         repo_name = org_info.org_name.lower().replace(" ", "-")
         org_info.repo_name = f"{repo_name}-dash"
         org_info.save()
