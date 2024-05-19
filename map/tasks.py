@@ -27,7 +27,7 @@ def clean_artifacts():
     cleanup_artifacts_folder()
 
 @app.task(queue='get_info_queue')
-def github_pull():
+def github_pull_from_main():
     github_token = os.getenv('GITHUB_TOKEN')
     if github_token:
         # Ensure the GitHub access token is properly formatted
@@ -56,14 +56,12 @@ def ping_devices_task():
             
             if online and not device.online:
                 device.online = True
-                if online:
-                    device.ansible_status = 'ONLINE'
+                device.ansible_status = 'ONLINE'
                 device.save()
                 update_host_file()
             elif not online and device.online:
                 device.online = False
-                if not online == 'runner_on_ok':
-                    device.ansible_status = 'OFFLINE'
+                device.ansible_status = 'OFFLINE'
                 device.save()
                 update_host_file()
                 
@@ -115,6 +113,7 @@ def set_interface(hostname: str,
     r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
     events = r.events
     ansible_logging(events)
+    update_port_info()
 
 @app.task(queue='configure_devices_queue')
 def set_l2interface(hostname, 
@@ -128,6 +127,7 @@ def set_l2interface(hostname,
     r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
     events = r.events
     ansible_logging(events)
+    update_port_info()
 
 @app.task(queue='configure_devices_queue')
 def set_l3interface(hostname: str = '',

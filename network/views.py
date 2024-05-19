@@ -87,7 +87,6 @@ def edit_ports(request):
         'message': 'Yippee'
         
         }
-        update_port_info.delay()
         return JsonResponse(data)
         
 @login_required
