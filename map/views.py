@@ -59,6 +59,7 @@ def setup(request):
             org_info = org_form.save(commit=False)
             try:
                 username = admin_form.cleaned_data['username']
+                org_info.admin_username = username
                 password = admin_form.cleaned_data['password1']
                 email = org_form.cleaned_data['contact_email']
                 csv_file = org_form.cleaned_data.get('csv_file')
@@ -76,7 +77,6 @@ def setup(request):
                 else:
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
-                    org_info.admin_username = username
                 org_info.save()
                 ldap_sync()
                 setup_github_repo.delay(org_info.id)
