@@ -300,6 +300,7 @@ def setup_network_devices():
         host_file.write("ansible_connection=network_cli\n")
     get_device_info()
     update_port_info()
+    gather_running_configs()
 
 @app.task(queue='configure_devices_queue')
 def update_device(hostname):
