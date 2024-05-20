@@ -62,6 +62,27 @@ def setup(request):
                 email = org_form.cleaned_data['contact_email']
                 csv_file = org_form.cleaned_data.get('csv_file')
                 admin_group = org_form.cleaned_data['admin_group']
+                # Process CSV file if provided
+                if csv_file:
+                    try:
+                        ips = []
+                        reader = csv.reader(csv_file)
+                        for row in reader:
+                            ips.extend(row)
+                        org_info.network_device_ips = ips
+                    except Exception as e:
+                        print(e)
+                        pass
+                else:
+                    network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
+                    org_info.network_device_ips = network_device_ips
+                org_info.save()
+                setup_github_repo.delay(org_info.id)
+                setup_network_devices.delay()
+                user = User.objects.create_user(username, email=email, password=password)
+                user.is_superuser = True
+                user.is_staff = True
+                user.save()
                 try:
                     settings_file_path = "/home/sbs/Dash/dash/settings.py"  # Update with your settings file path
                     # Read the content of the settings file
@@ -96,33 +117,12 @@ def setup(request):
                         flags=re.DOTALL
                     )
                     # Write the updated content back to the settings file
-
+                    with open(settings_file_path, 'w') as f:
+                        f.write(updated_content)
                 except Exception as e:
                     # Handle any exceptions that occur during the process
                     print(f"Error updating LDAP settings: {e}")
-                # Process CSV file if provided
-                if csv_file:
-                    try:
-                        ips = []
-                        reader = csv.reader(csv_file)
-                        for row in reader:
-                            ips.extend(row)
-                        org_info.network_device_ips = ips
-                    except Exception as e:
-                        print(e)
-                        pass
-                else:
-                    network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
-                    org_info.network_device_ips = network_device_ips
-                org_info.save()
-                setup_github_repo.delay(org_info.id)
-                setup_network_devices.delay()
-                user = User.objects.create_user(username, email=email, password=password)
-                user.is_superuser = True
-                user.is_staff = True
-                user.save()
-                with open(settings_file_path, 'w') as f:
-                    f.write(updated_content)
+                sleep
                 return redirect('success_setup')
             except ValidationError as e:
                 error_message = str(e)
