@@ -6,6 +6,18 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    ldap = models.BooleanField(default=False)
+    username = models.CharField(max_length=255, unique=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    class Meta:
+        db_table = 'map_user'
+User.groups.field.remote_field.related_name = 'map_user_groups'
+User.user_permissions.field.remote_field.related_name = 'map_user_permissions'
 
 class Markers(models.Model):
     name = models.CharField(max_length=100)
@@ -194,6 +206,14 @@ class Org_Info(models.Model):
     client_count = models.PositiveIntegerField(default=0)
     site_count = models.PositiveIntegerField(default=0)
     network_device_ips = models.JSONField(default=list)
+    admin_group = models.CharField(max_length=200, default='')
+    tech_group = models.CharField(max_length=200, default='')
+    dc_ip_address = models.CharField(max_length=200, default='')
+    bind_account = models.CharField(max_length=200, default='')
+    bind_password = models.CharField(max_length=200, default='')
+    valid = models.BooleanField(default=False)
+    license = models.CharField(max_length=200, default='')
+    valid_time = models.CharField(max_length=200, default='')
     meraki_api_key = models.CharField(max_length=200, default='', null=True)
     organization_address = models.TextField(max_length=200,blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)

@@ -18,13 +18,21 @@ class AdminCreationForm(UserCreationForm):
 class OrgInfoForm(forms.ModelForm):
     network_device_ips = forms.CharField(label='Network Device IPs', widget=forms.Textarea(attrs={'rows': 5}), required=False)
     csv_file = forms.FileField(label='Upload CSV File', required=False)
-
+    dc_ip_address = forms.CharField(label='LDAP Server IP Address', max_length=100)
+    bind_account = forms.CharField(label='CN=strawberry spider,OU=testOU,DC=test,DC=local', max_length=200)
+    bind_password = forms.CharField(label='Bind Password', widget=forms.PasswordInput)
+    admin_group = forms.CharField(label='DC=test,DC=local', max_length=200)
     class Meta:
         model = Org_Info
-        fields = ['org_name', 'contact_email', 'contact_phone', 'site_count','meraki_api_key','ssh_username', 'ssh_password', 'ssh_enable_password']
+        fields = [
+            'org_name', 'contact_email', 'contact_phone', 'site_count', 'meraki_api_key',
+            'ssh_username', 'ssh_password', 'ssh_enable_password',
+            'dc_ip_address', 'bind_account', 'bind_password', 'admin_group', 'tech_group'
+        ]
+
     def __init__(self, *args, **kwargs):
-       super(OrgInfoForm, self).__init__(*args, **kwargs)
-       self.fields['meraki_api_key'].required = False  # Set the Meraki API key field as not required
+        super(OrgInfoForm, self).__init__(*args, **kwargs)
+        self.fields['meraki_api_key'].required = False  # Set the Meraki API key field as not required
 
     def clean_network_device_ips(self):
         data = self.cleaned_data['network_device_ips']

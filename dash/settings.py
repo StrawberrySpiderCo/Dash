@@ -25,6 +25,10 @@ import socket
 import os
 from pathlib import Path
 from django.contrib.staticfiles.views import serve
+from django_auth_ldap.config import LDAPSearch
+import ldap
+
+
 
 def protected_serve(request, path, insecure=False, **kwargs):
     """
@@ -54,6 +58,7 @@ ALLOWED_HOSTS = ['*']
 
 
 AUTHENTICATION_BACKENDS = [
+    'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
     # Add any custom authentication backends here
     # 'path.to.CustomAuthBackend',
@@ -112,6 +117,32 @@ TEMPLATES = [
 ]
 
 CSRF_TRUSTED_ORIGINS = ['http://192.168.0.100']
+
+# LDAP Server Settings
+AUTH_LDAP_SERVER_URI = ""
+AUTH_LDAP_BIND_DN = "" 
+AUTH_LDAP_BIND_PASSWORD = ""
+
+# Map LDAP attributes to Django user fields
+AUTH_LDAP_USER_ATTR_MAP = {
+    "username": "sAMAccountName",
+    "first_name": "givenName",
+    "last_name": "sn",
+    "email": "mail",
+}
+
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "",  # LDAP search base
+    ldap.SCOPE_SUBTREE,  # Scope
+    "(sAMAccountName=%(user)s)",  # LDAP search filter
+)
+
+# Disable mirroring LDAP groups
+AUTH_LDAP_MIRROR_GROUPS = False
+
+# Enable always updating user data from LDAP
+AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
 
 
 WSGI_APPLICATION = 'dash.wsgi.application'

@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from IPy import IP
+from django.conf import settings
 from django import forms
 import re
 from json import loads
@@ -60,7 +61,11 @@ def setup(request):
                 password = admin_form.cleaned_data['password1']
                 email = org_form.cleaned_data['contact_email']
                 csv_file = org_form.cleaned_data.get('csv_file')
-                
+                admin_group = admin_form.cleaned_data['admin_group']
+                settings.AUTH_LDAP_SERVER_URI = f"ldap://{admin_form.cleaned_data['dc_ip_address']}"
+                settings.AUTH_LDAP_BIND_DN = admin_form.cleaned_data['bind_account']
+                settings.AUTH_LDAP_BIND_PASSWORD = admin_form.cleaned_data['bind_password']
+                settings.AUTH_LDAP_USER_SEARCH = f'LDAPSearch("{admin_group}",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)")'
                 # Process CSV file if provided
                 if csv_file:
                     try:

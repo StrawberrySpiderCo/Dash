@@ -318,7 +318,7 @@ def setup_github_repo(org_info_id):
 
     
     if github_token:
-        github_pull()
+        github_pull_from_main()
         repo_name = org_info.org_name.lower().replace(" ", "-")
         org_info.repo_name = f"{repo_name}-dash"
         org_info.save()
