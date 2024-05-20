@@ -34,6 +34,11 @@ app.conf.task_queues = {
         'exchange_type': 'direct',
         'binding_key': 'get_info_server',
     },
+        'api_queue': {
+        'exchange': 'api_queue',
+        'exchange_type': 'direct',
+        'binding_key': 'api_server',
+    },
 }
 
 app.conf.task_routes = {
@@ -54,6 +59,7 @@ app.conf.task_routes = {
     'map.tasks.update_device': {'queue': 'configure_devices_queue'},
     'map.tasks.setup_github_repo': {'queue': 'configure_devices_queue'},
     'map.tasks.sync_ldap': {'queue': 'configure_devices_queue'},
+    'map.tasks.create_org_api': {'queue': 'api_queue'},
 }
 app.conf.beat_schedule = {
         'clean-up': {

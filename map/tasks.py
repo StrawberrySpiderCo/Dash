@@ -20,6 +20,14 @@ from netutils.interface import abbreviated_interface_name
 from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
 from typing import Literal, Union, Optional
 from dash.celery import app
+import requests
+
+# Define the base URL of the API
+base_url = 'http://license.strawberryspider.com/api/'
+
+# Define your secret token
+secret_token = 'Bababooey'
+
 load_dotenv()
 
 @app.task(queue='get_info_queue')
@@ -380,6 +388,25 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
+
+def create_org_api():
+    org = Org_Info.objects.get()
+    org_data = {
+    'name': org.org_name,
+    'repo_name': org.repo_name,
+    'contact_email': org.contact_email,
+    'contact_phone': org.contact_phone,
+    'secret_token': secret_token,  
+}
+    response = requests.post(base_url + 'create/org/', data=org_data)
+    if response.status_code == 200:
+        org_id = response.json()['org_id']
+        org.org_id = org_id
+        org.save()
+    else:
+        print('Failed to create organization')
+
+
 
 @app.task(queue='configure_devices_queue')
 def ldap_sync():
