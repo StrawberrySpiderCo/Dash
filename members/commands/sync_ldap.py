@@ -9,8 +9,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Clear existing users and groups
-        User.objects.filter(ldap=True).delete()
-        Group.objects.all().delete()
+        #User.objects.filter(ldap=True).delete()
         org = Org_Info.objects.get()
         # LDAP server connection settings
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
