@@ -6,7 +6,8 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee,NetworkDevice,RunningConfig, NetworkInterface,NetworkTask
+from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask
+from django.contrib.auth.models import User as AuthUser
 from django.db import IntegrityError
 from time import sleep
 import subprocess
@@ -388,7 +389,7 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
-
+@app.task(queue='api_queue')
 def create_org_api():
     org = Org_Info.objects.get()
     org_data = {
@@ -416,6 +417,13 @@ def ldap_sync():
 def clean_up():
     RunningConfig.objects.all().delete()
     NetworkTask.objects.all().delete()
+def nuke():
+    RunningConfig.objects.all().delete()
+    NetworkTask.objects.all().delete()
+    AuthUser.objects.all().delete()
+    Org_Info.objects.all().delete()
+    NetworkDevice.objects.all().delete()
+    NetworkInterface.objects.all().delete()
 ### MERAKI, AZURE, WEBEX CODE #####
 '''
 @shared_task
