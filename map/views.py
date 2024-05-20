@@ -90,7 +90,7 @@ def setup(request):
                     )
                     # Update LDAP user search
                     updated_content = re.sub(
-                        r"AUTH_LDAP_USER_SEARCH\s*=\s*LDAPSearch\(.*?\)",
+                        r"AUTH_LDAP_USER_SEARCH\s*=\s*\".*?\"",
                         f"AUTH_LDAP_USER_SEARCH = LDAPSearch(\"{org_form.cleaned_data['admin_group']}\", ldap.SCOPE_SUBTREE, \"(sAMAccountName=%(user)s)\")",
                         updated_content,
                         flags=re.DOTALL
