@@ -119,9 +119,9 @@ TEMPLATES = [
 CSRF_TRUSTED_ORIGINS = ['http://192.168.0.100']
 
 # LDAP Server Settings
-AUTH_LDAP_SERVER_URI = ""
-AUTH_LDAP_BIND_DN = "" 
-AUTH_LDAP_BIND_PASSWORD = ""
+AUTH_LDAP_SERVER_URI = "ldap://174.135.120.210"
+AUTH_LDAP_BIND_DN = "CN=strawberry spider,OU=testOU,DC=test,DC=local" #
+AUTH_LDAP_BIND_PASSWORD = "P@55w0rd1!"
 
 # Map LDAP attributes to Django user fields
 AUTH_LDAP_USER_ATTR_MAP = {
@@ -131,11 +131,7 @@ AUTH_LDAP_USER_ATTR_MAP = {
     "email": "mail",
 }
 
-AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "",  # LDAP search base
-    ldap.SCOPE_SUBTREE,  # Scope
-    "(sAMAccountName=%(user)s)",  # LDAP search filter
-)
+AUTH_LDAP_USER_SEARCH = LDAPSearch("DC=test,DC=local", ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
 
 # Disable mirroring LDAP groups
 AUTH_LDAP_MIRROR_GROUPS = False

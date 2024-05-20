@@ -62,10 +62,45 @@ def setup(request):
                 email = org_form.cleaned_data['contact_email']
                 csv_file = org_form.cleaned_data.get('csv_file')
                 admin_group = org_form.cleaned_data['admin_group']
-                settings.AUTH_LDAP_SERVER_URI = f"ldap://{org_form.cleaned_data['dc_ip_address']}"
-                settings.AUTH_LDAP_BIND_DN = org_form.cleaned_data['bind_account']
-                settings.AUTH_LDAP_BIND_PASSWORD = org_form.cleaned_data['bind_password']
-                settings.AUTH_LDAP_USER_SEARCH = f'LDAPSearch("{admin_group}",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)")'
+                try:
+                    settings_file_path = "/home/sbs/Dash/dash/settings.py"  # Update with your settings file path
+                    # Read the content of the settings file
+                    with open(settings_file_path, 'r') as f:
+                        settings_content = f.read()
+                    # Update LDAP server URI
+                    updated_content = re.sub(
+                        r"AUTH_LDAP_SERVER_URI\s*=\s*\".*?\"",
+                        f"AUTH_LDAP_SERVER_URI = \"ldap://{org_form.cleaned_data['dc_ip_address']}\"",
+                        settings_content,
+                        flags=re.DOTALL
+                    )
+                    # Update LDAP bind DN
+                    updated_content = re.sub(
+                        r"AUTH_LDAP_BIND_DN\s*=\s*\".*?\"",
+                        f"AUTH_LDAP_BIND_DN = \"{org_form.cleaned_data['bind_account']}\"",
+                        updated_content,
+                        flags=re.DOTALL
+                    )
+                    # Update LDAP bind password
+                    updated_content = re.sub(
+                        r"AUTH_LDAP_BIND_PASSWORD\s*=\s*\".*?\"",
+                        f"AUTH_LDAP_BIND_PASSWORD = \"{org_form.cleaned_data['bind_password']}\"",
+                        updated_content,
+                        flags=re.DOTALL
+                    )
+                    # Update LDAP user search
+                    updated_content = re.sub(
+                        r"AUTH_LDAP_USER_SEARCH\s*=\s*LDAPSearch\(.*?\)",
+                        f"AUTH_LDAP_USER_SEARCH = LDAPSearch(\"{org_form.cleaned_data['admin_group']}\", ldap.SCOPE_SUBTREE, \"(sAMAccountName=%(user)s)\")",
+                        updated_content,
+                        flags=re.DOTALL
+                    )
+                    # Write the updated content back to the settings file
+                    with open(settings_file_path, 'w') as f:
+                        f.write(updated_content)
+                except Exception as e:
+                    # Handle any exceptions that occur during the process
+                    print(f"Error updating LDAP settings: {e}")
                 # Process CSV file if provided
                 if csv_file:
                     try:
