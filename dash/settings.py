@@ -131,7 +131,10 @@ AUTH_LDAP_USER_ATTR_MAP = {
     "email": "mail",
 }
 
-AUTH_LDAP_USER_SEARCH = LDAPSearch("DC=test,DC=local", ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
+AUTH_LDAP_USER_SEARCH = LDAPSearch(
+    "DC=test,DC=local", 
+    ldap.SCOPE_SUBTREE, 
+    "(sAMAccountName=%(user)s)",)
 
 # Disable mirroring LDAP groups
 AUTH_LDAP_MIRROR_GROUPS = False

@@ -96,8 +96,7 @@ def setup(request):
                         flags=re.DOTALL
                     )
                     # Write the updated content back to the settings file
-                    with open(settings_file_path, 'w') as f:
-                        f.write(updated_content)
+
                 except Exception as e:
                     # Handle any exceptions that occur during the process
                     print(f"Error updating LDAP settings: {e}")
@@ -122,6 +121,8 @@ def setup(request):
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
+                with open(settings_file_path, 'w') as f:
+                    f.write(updated_content)
                 return redirect('success_setup')
             except ValidationError as e:
                 error_message = str(e)

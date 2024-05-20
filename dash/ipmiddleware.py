@@ -9,13 +9,13 @@ class CheckUserMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        User = get_user_model()
-        if User.objects.exists():
-            # At least one user exists, proceed with the request
-            return self.get_response(request)
-        elif not request.path.startswith(reverse('setup')):
-            # No user exists and request is not already on the setup page
-            return redirect('setup')
-        else:
-            # No user exists but request is already on the setup page, proceed
-            return self.get_response(request)
+        #User = get_user_model()
+        ##if User.objects.exists():
+        ##    # At least one user exists, proceed with the request
+        ##    return self.get_response(request)
+        ##elif not request.path.startswith(reverse('setup')):
+        ##    # No user exists and request is not already on the setup page
+        ##    return redirect('setup')
+        ##else:
+        #    # No user exists but request is already on the setup page, proceed
+        return self.get_response(request)
