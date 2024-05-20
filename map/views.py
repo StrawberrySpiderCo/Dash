@@ -26,7 +26,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices, ldap_sync
+from map.tasks import setup_github_repo, setup_network_devices, ldap_sync, create_org_api
 from time import sleep
 import json
 import os
@@ -78,6 +78,7 @@ def setup(request):
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
+                create_org_api.delay()
                 ldap_sync()
                 setup_github_repo.delay(org_info.id)
                 setup_network_devices.delay()
