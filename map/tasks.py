@@ -380,6 +380,10 @@ def setup_github_repo(org_info_id):
     else:
         return "GitHub credentials not configured properly"
 
+@app.task(queue='configure_devices_queue')
+def ldap_sync():
+    subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash', check=True)
+    
 @shared_task
 def clean_up():
     RunningConfig.objects.all().delete()

@@ -20,7 +20,7 @@ class OrgInfoForm(forms.ModelForm):
     csv_file = forms.FileField(label='Upload CSV File', required=False)
     dc_ip_address = forms.CharField(label='LDAP Server IP Address', max_length=100)
     bind_account = forms.CharField(label='CN=strawberry spider,OU=testOU,DC=test,DC=local', max_length=200)
-    bind_password = forms.CharField(label='Bind Password', widget=forms.PasswordInput)
+    bind_password = forms.CharField(label='Bind Password')
     admin_group = forms.CharField(label='DC=test,DC=local', max_length=200)
     class Meta:
         model = Org_Info

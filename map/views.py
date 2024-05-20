@@ -26,7 +26,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices
+from map.tasks import setup_github_repo, setup_network_devices, ldap_sync
 from time import sleep
 import json
 import os
@@ -34,6 +34,7 @@ import csv
 from django.contrib.auth.decorators import user_passes_test
 from .models import FeatureRequest
 from django.core.exceptions import ValidationError
+from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 
 
@@ -77,52 +78,13 @@ def setup(request):
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
+                ldap_sync()
                 setup_github_repo.delay(org_info.id)
                 setup_network_devices.delay()
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
-                try:
-                    settings_file_path = "/home/sbs/Dash/dash/settings.py"  # Update with your settings file path
-                    # Read the content of the settings file
-                    with open(settings_file_path, 'r') as f:
-                        settings_content = f.read()
-                    # Update LDAP server URI
-                    updated_content = re.sub(
-                        r"AUTH_LDAP_SERVER_URI\s*=\s*\".*?\"",
-                        f"AUTH_LDAP_SERVER_URI = \"ldap://{org_form.cleaned_data['dc_ip_address']}\"",
-                        settings_content,
-                        flags=re.DOTALL
-                    )
-                    # Update LDAP bind DN
-                    updated_content = re.sub(
-                        r"AUTH_LDAP_BIND_DN\s*=\s*\".*?\"",
-                        f"AUTH_LDAP_BIND_DN = \"{org_form.cleaned_data['bind_account']}\"",
-                        updated_content,
-                        flags=re.DOTALL
-                    )
-                    # Update LDAP bind password
-                    updated_content = re.sub(
-                        r"AUTH_LDAP_BIND_PASSWORD\s*=\s*\".*?\"",
-                        f"AUTH_LDAP_BIND_PASSWORD = \"{org_form.cleaned_data['bind_password']}\"",
-                        updated_content,
-                        flags=re.DOTALL
-                    )
-                    # Update LDAP user search
-                    updated_content = re.sub(
-                        r"AUTH_LDAP_USER_SEARCH\s*=\s*LDAPSearch\(\".*?\", ldap.SCOPE_SUBTREE, \".*?\"\)",
-                        f"AUTH_LDAP_USER_SEARCH = LDAPSearch(\"{org_form.cleaned_data['admin_group']}\", ldap.SCOPE_SUBTREE, \"(sAMAccountName=%(user)s)\")",
-                        updated_content,
-                        flags=re.DOTALL
-                        )
-                    # Write the updated content back to the settings file
-                    with open(settings_file_path, 'w') as f:
-                        f.write(updated_content)
-                except Exception as e:
-                    # Handle any exceptions that occur during the process
-                    print(f"Error updating LDAP settings: {e}")
-                sleep
                 return redirect('success_setup')
             except ValidationError as e:
                 error_message = str(e)

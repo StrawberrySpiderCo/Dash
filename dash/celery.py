@@ -53,6 +53,7 @@ app.conf.task_routes = {
     'map.tasks.setup_network_devices': {'queue': 'configure_devices_queue'},
     'map.tasks.update_device': {'queue': 'configure_devices_queue'},
     'map.tasks.setup_github_repo': {'queue': 'configure_devices_queue'},
+    'map.tasks.sync_ldap': {'queue': 'configure_devices_queue'},
 }
 app.conf.beat_schedule = {
         'clean-up': {
@@ -83,8 +84,8 @@ app.conf.beat_schedule = {
         'task': 'map.tasks.clean_artifacts',
         'schedule': crontab(minute='*/13'),
     },
-    'github-pull': {
-        'task': 'map.tasks.github_pull',
+    'ldap_sync': {
+        'task': 'map.tasks.ldap_sync',
         'schedule': crontab(hour='*/1'),
     },
 }

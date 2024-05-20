@@ -2,22 +2,20 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.models import User as AuthUser
+from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 
-class User(AbstractUser):
-    ldap = models.BooleanField(default=False)
-    username = models.CharField(max_length=255, unique=True)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField()
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    isLdap = models.BooleanField(default=False)
+
     class Meta:
-        db_table = 'map_user'
-User.groups.field.remote_field.related_name = 'map_user_groups'
-User.user_permissions.field.remote_field.related_name = 'map_user_permissions'
+        db_table = 'map_user_profile'
 
 class Markers(models.Model):
     name = models.CharField(max_length=100)
@@ -225,6 +223,7 @@ class Org_Info(models.Model):
     ssh_enable_password = models.CharField(max_length=200, default='', null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
+    admin_username = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.org_name

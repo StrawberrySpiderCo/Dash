@@ -26,7 +26,7 @@ import os
 from pathlib import Path
 from django.contrib.staticfiles.views import serve
 from django_auth_ldap.config import LDAPSearch
-import ldap
+
 
 
 
@@ -58,7 +58,7 @@ ALLOWED_HOSTS = ['*']
 
 
 AUTHENTICATION_BACKENDS = [
-    'django_auth_ldap.backend.LDAPBackend',
+    #'django_auth_ldap.backend.LDAPBackend',
     'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
     # Add any custom authentication backends here
     # 'path.to.CustomAuthBackend',
@@ -117,30 +117,6 @@ TEMPLATES = [
 ]
 
 CSRF_TRUSTED_ORIGINS = ['http://192.168.0.100']
-
-# LDAP Server Settings
-AUTH_LDAP_SERVER_URI = "ldap://174.135.120.210"
-AUTH_LDAP_BIND_DN = "CN=strawberry spider,OU=testOU,DC=dirar,DC=local"
-AUTH_LDAP_BIND_PASSWORD = "P@55w0rd1!"
-
-# Map LDAP attributes to Django user fields
-AUTH_LDAP_USER_ATTR_MAP = {
-    "username": "sAMAccountName",
-    "first_name": "givenName",
-    "last_name": "sn",
-    "email": "mail",
-}
-
-AUTH_LDAP_USER_SEARCH = LDAPSearch(
-    "DC=test,DC=local", 
-    ldap.SCOPE_SUBTREE, 
-    "(sAMAccountName=%(user)s)",)
-
-# Disable mirroring LDAP groups
-AUTH_LDAP_MIRROR_GROUPS = False
-
-# Enable always updating user data from LDAP
-AUTH_LDAP_ALWAYS_UPDATE_USER = True
 
 
 
