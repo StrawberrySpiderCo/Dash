@@ -18,10 +18,12 @@ class AdminCreationForm(UserCreationForm):
 class OrgInfoForm(forms.ModelForm):
     network_device_ips = forms.CharField(label='Network Device IPs', widget=forms.Textarea(attrs={'rows': 5}), required=False)
     csv_file = forms.FileField(label='Upload CSV File', required=False)
-    dc_ip_address = forms.CharField(label='LDAP Server IP Address', max_length=100)
-    bind_account = forms.CharField(label='CN=strawberry spider,OU=testOU,DC=test,DC=local', max_length=200)
-    bind_password = forms.CharField(label='Bind Password')
-    admin_group = forms.CharField(label='DC=test,DC=local', max_length=200)
+    dc_ip_address = forms.CharField(label='LDAP Server IP Address (Optional)', max_length=100, required=False)
+    bind_account = forms.CharField(label='Bind Account (Optional)', help_text='e.g. CN=strawberry spider,OU=testOU,DC=test,DC=local', max_length=200, required=False)
+    bind_password = forms.CharField(label='Bind Password (Optional)', help_text='e.g. P@55w0rd1!', required=False)
+    admin_group = forms.CharField(label='Admin Group DN (Optional)', help_text='e.g. CN=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    tech_group = forms.CharField(label='Tech Group DN (Optional)', help_text='e.g. CN=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+
     class Meta:
         model = Org_Info
         fields = [
