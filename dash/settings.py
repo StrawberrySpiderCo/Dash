@@ -121,7 +121,7 @@ CSRF_TRUSTED_ORIGINS = ['http://192.168.0.100']
 # LDAP Server Settings
 AUTH_LDAP_SERVER_URI = "ldap://174.135.120.210"
 AUTH_LDAP_BIND_DN = "CN=strawberry spider,OU=testOU,DC=dirar,DC=local"
-AUTH_LDAP_BIND_PASSWORD = "testtest23!"
+AUTH_LDAP_BIND_PASSWORD = "P@55w0rd1!"
 
 # Map LDAP attributes to Django user fields
 AUTH_LDAP_USER_ATTR_MAP = {

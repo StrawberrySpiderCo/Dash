@@ -111,11 +111,11 @@ def setup(request):
                     )
                     # Update LDAP user search
                     updated_content = re.sub(
-                        r"AUTH_LDAP_USER_SEARCH\s*=\s*\".*?\"",
+                        r"AUTH_LDAP_USER_SEARCH\s*=\s*LDAPSearch\(\".*?\", ldap.SCOPE_SUBTREE, \".*?\"\)",
                         f"AUTH_LDAP_USER_SEARCH = LDAPSearch(\"{org_form.cleaned_data['admin_group']}\", ldap.SCOPE_SUBTREE, \"(sAMAccountName=%(user)s)\")",
                         updated_content,
                         flags=re.DOTALL
-                    )
+                        )
                     # Write the updated content back to the settings file
                     with open(settings_file_path, 'w') as f:
                         f.write(updated_content)
