@@ -174,7 +174,9 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = ''
+
+#STATIC_ROOT = '/home/sbs/Dash/static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -184,12 +186,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 INTERNAL_IPS = [
     '127.0.0.1',
 ]
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'static/images/Map_Photos'),
-    os.path.join(BASE_DIR, 'static/Javascript'),
-    os.path.join(BASE_DIR, 'static/assets/css/'),
-    os.path.join(BASE_DIR, 'static/assets/js/'),
-    os.path.join(BASE_DIR, 'static/assets/'),
-]
+#STATICFILES_DIRS = [
+#    os.path.join(BASE_DIR, 'static'),
+#    os.path.join(BASE_DIR, 'static/images/Map_Photos'),
+#    os.path.join(BASE_DIR, 'static/Javascript'),
+#    os.path.join(BASE_DIR, 'static/assets/css/'),
+#    os.path.join(BASE_DIR, 'static/assets/js/'),
+#    os.path.join(BASE_DIR, 'static/assets/'),
+#]
 

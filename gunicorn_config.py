@@ -2,4 +2,4 @@
 bind = "127.0.0.1:8000"
 workers = 3
 user = "sbs"
-STATIC_ROOT = "/home/sbs/Dash/static/"
+static_files = False
