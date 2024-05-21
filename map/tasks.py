@@ -397,7 +397,7 @@ def create_org_api():
     'repo_name': org.repo_name,
     'contact_email': org.contact_email,
     'contact_phone': org.contact_phone,
-    'secret_token': secret_token,  
+    'hamster_solar': secret_token,  
 }
     response = requests.post(base_url + 'create/org/', data=org_data)
     if response.status_code == 200:
