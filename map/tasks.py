@@ -389,6 +389,7 @@ def setup_github_repo(org_info_id):
         return "Setup completed successfully."
     else:
         return "GitHub credentials not configured properly"
+
 @app.task(queue='api_queue')
 def create_org_api():
     org = Org_Info.objects.get()
