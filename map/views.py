@@ -98,15 +98,22 @@ def setup(request):
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
+                print('ORG saved')
                 create_org_api.delay()
+                print('Sent org api')
                 ldap_sync.delay()
+                print('Sent LDAP sync')
                 setup_github_repo.delay(org_info.id)
+                print('Sent github api')
                 setup_network_devices.delay()
+                print('Sent Network device')
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
+                print('created user')
                 org_info.is_setup = True
+                print('Setup is True')
                 org_info.save()
                 return redirect('success_setup')
             except ValidationError as e:
