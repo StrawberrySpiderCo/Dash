@@ -39,12 +39,19 @@ from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 def update_org_license(request):
     if request.method == 'POST':
         org = Org_Info.objects.get()
-        license_info = request.POST.get('license_info')
-        if license_info['is_free_trail']:
+        license_code = request.POST.get('license_code')
+        expire_date = request.POST.get('expire_date')
+        is_free_trial = request.POST.get('is_free_trial') == 'true'
+
+        if is_free_trial:
             org.free_trail_used = True
-        org.license = license_info['license_code']
-        org.valid_time = license_info['expire_date']
+        org.license = license_code
+        org.valid_time = expire_date
         org.valid = True
+        org.save()
+
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'fail', 'error': 'Invalid request method'})
         
 
 def update_license(request):
