@@ -99,7 +99,7 @@
         <h1>Update License for {{ org.org_name }}</h1>
         <form id="license-form" method="post">
             <input type="hidden" name="org_id" id="org_id" value="{{org.org_id}}">
-            <input type="hidden" name="free_trail" id="free_trail" value="{{org.free_trail_used}}">
+            <input type="hidden" name="free_trail_used" id="free_trail_used" value="{{org.free_trail_used}}">
             <h2 id="license-label">Input License:</h2>
             <input type="text" name="license" id="license" placeholder="25 character license e.g. (STRAWBERRYSPIDERLICENSES)" maxlength="25" oninput="this.value = this.value.toUpperCase(); checkInputLength();"><br><br>
             <div id="error"></div>
