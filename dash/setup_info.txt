@@ -1,4 +1,4 @@
-Org Name: Org Creation
+Org Name: License Test
 Website IP: 192.168.0.100
 Site Count: 0
 Contact Email: jtomlin2001@gmail.com
