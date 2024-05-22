@@ -101,12 +101,12 @@
             <input type="hidden" name="org_id" id="org_id" value="{{org.org_id}}">
             <input type="hidden" name="free_trail_used" id="free_trail_used" value="{{org.free_trail_used}}">
             <h2 id="license-label">Input License:</h2>
-            <input type="text" name="license" id="license" placeholder="25 character license e.g. (STRAWBERRYSPIDERLICENSES)" maxlength="25" oninput="this.value = this.value.toUpperCase(); checkInputLength();"><br><br>
+            <input type="text" name="license" id="license" placeholder="25 character license e.g. (STRAWBERRYSPIDERLICENSECO)" maxlength="25" oninput="this.value = this.value.toUpperCase(); checkInputLength();"><br><br>
             <div id="error"></div>
-            <div id="loading-indicator" class="loading-indicator">
-                <div class="spinner"></div>
-            </div>
         </form>
+        <div id="loading-indicator" class="loading-indicator">
+            <div class="spinner"></div>
+        </div>
     </div>
 </div>
 
@@ -116,14 +116,16 @@
       <p id="popupContent"></p>
     </div>
     </div>
-
+    <!--        licenseInput.style.display = 'none';
+        document.getElementById('license-label').style.display = 'none';
+        document.getElementById('loading-indicator').style.display = 'block';-->
 <script>
+
+
     var licenseInput = document.getElementById("license");
 function checkInputLength() {
     var licenseInput = document.getElementById("license");
     if (licenseInput.value.length === 25) {
-        licenseInput.style.display = 'none';
-        document.getElementById('loading-indicator').style.display = 'block';
             submitForm();
         
     }
@@ -156,10 +158,7 @@ function submitForm() {
     var free_trail = document.getElementById('free_trail_used').value
     var secret = 'Bababooey'; 
     
-    // Hide the license label, text box, and loading spinner
-    document.getElementById('license-label').style.display = 'none';
-    document.getElementById('license').style.display = 'none';
-    document.getElementById('loading-spinner').style.display = 'block';
+
     
     // Prepare the data to send in the request
     var formData = new FormData();
@@ -168,8 +167,7 @@ function submitForm() {
     formData.append('license', license);
     formData.append('free_trail_used', free_trail )
     
-    // Send the POST request
-    fetch('https://license.strawberryspider.com/api/check/license', {
+    fetch('https://license.strawberryspider.com/api/check/license/', {
       method: 'POST',
       body: formData,
       headers: {
@@ -178,14 +176,13 @@ function submitForm() {
     .then(response => response.json())
     .then(data => {
       // Show the license label and text box again, hide the loading spinner, and clear the text box
-      document.getElementById('license-label').style.display = 'block';
-      document.getElementById('license').style.display = 'block';
-      document.getElementById('license').value = '';
-      document.getElementById('loading-spinner').style.display = 'none';
+      //document.getElementById('license-label').style.display = 'block';
+      //document.getElementById('license').style.display = 'block';
+      //document.getElementById('license').value = '';
+      //document.getElementById('loading-spinner').style.display = 'none';
       
       // Handle the response
       if (data.status === 'success') {
-        closePopup();
         fetch('{% url "update_org_license" %}', {
       method: 'POST',
       body: data.license_info,
@@ -193,7 +190,7 @@ function submitForm() {
         'X-CSRFToken': '{{ csrf_token }}'
       }
     })
-        document.getElementById('popupContent').innerText = "Successfully added license to {{org.org_name}}! Redirecting Home...";
+        document.getElementById('error').innerHTML = "<span style='color:green;> Successfully added license to {{org.org_name}}! Redirecting Home...</span>";
         $messageContainer.style.display = 'block';
         setTimeout(function () {
           $messageContainer.style.opacity = 1;
