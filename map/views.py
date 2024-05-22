@@ -36,9 +36,19 @@ from .models import FeatureRequest
 from django.core.exceptions import ValidationError
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
+def update_org_license(request):
+    if request.method == 'POST':
+        org = Org_Info.objects.get()
+        license_info = request.POST.get('license_info')
+        if license_info['is_free_trail']:
+            org.free_trail_used = True
+        org.license = license_info['license_code']
+        org.valid_time = license_info['expire_date']
+        org.valid = True
+        
 
 def update_license(request):
-    org = get_object_or_404()          
+    org = get_object_or_404(Org_Info)          
     return render(request, 'update_license.html', {'org': org})
 
 def user_is_admin(user):

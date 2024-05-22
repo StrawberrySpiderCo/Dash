@@ -32,7 +32,7 @@ from project import views as project
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('update/license', map.update_license),
+    path('update_license/', map.update_license, name='update_license'),
     path('port_view/<int:device_id>/', network.port_view, name='port_view'),
     path('config/<int:device_id>/', network.config_view, name='config_view'),
     path('network/tasks/<int:device_id>/', network.tasks_view, name='tasks_view'),

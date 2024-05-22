@@ -214,6 +214,7 @@ class Org_Info(models.Model):
     valid = models.BooleanField(default=False)
     license = models.CharField(max_length=200, default='')
     valid_time = models.CharField(max_length=200, default='')
+    free_trail_used = models.BooleanField(default=False)
     meraki_api_key = models.CharField(max_length=200, default='', null=True)
     organization_address = models.TextField(max_length=200,blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)
