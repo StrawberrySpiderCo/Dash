@@ -200,6 +200,7 @@ class RunningConfig(models.Model):
 
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
+    is_setup= models.BooleanField(default=False)
     org_id = models.CharField(max_length=200, default='')
     repo_name = models.CharField(max_length=200, default='')
     client_count = models.PositiveIntegerField(default=0)

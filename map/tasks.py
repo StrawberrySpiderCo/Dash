@@ -24,7 +24,7 @@ from dash.celery import app
 import requests
 
 # Define the base URL of the API
-base_url = 'http://license.strawberryspider.com/api/'
+base_url = 'https://license.strawberryspider.com/api/'
 
 # Define your secret token
 secret_token = 'Bababooey'

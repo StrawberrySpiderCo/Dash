@@ -37,6 +37,9 @@ from django.core.exceptions import ValidationError
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 
 
+def update_license(request):
+    org = get_object_or_404()          
+    return render(request, 'update_license.html', {'org': org})
 
 def user_is_admin(user):
     return user.groups.filter(name='Admins').exists()
@@ -86,7 +89,11 @@ def setup(request):
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
-                return redirect('success_setup')
+                org_info.is_setup = True
+                org_info.save()
+                if org_info.license is None:
+                    return redirect('update_license')
+                
             except ValidationError as e:
                 error_message = str(e)
                 return render(request, 'setup.html', {'error_message': error_message})
