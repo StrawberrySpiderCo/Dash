@@ -91,10 +91,10 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'dash.ipmiddleware.LicenseCheckMiddleware',  
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  
+    'dash.license_middleware.LicenseCheckMiddleware',
     'dash.ipmiddleware.CheckUserMiddleware',
-    'dash.block_ip_middleware.BlockIPMiddleware',
+
     #'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
