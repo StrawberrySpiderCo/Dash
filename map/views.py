@@ -90,7 +90,6 @@ def setup(request):
                 else:
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
-                org_info.save()
                 create_org_api.delay()
                 ldap_sync.delay()
                 setup_github_repo.delay(org_info.id)
