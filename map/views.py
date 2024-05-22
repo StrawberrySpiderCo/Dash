@@ -90,6 +90,7 @@ def setup(request):
                 else:
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
+                org_info.save()
                 create_org_api.delay()
                 ldap_sync.delay()
                 setup_github_repo.delay(org_info.id)
@@ -100,9 +101,7 @@ def setup(request):
                 user.save()
                 org_info.is_setup = True
                 org_info.save()
-                if org_info.license is None:
-                    return redirect('update_license')
-                
+                return redirect('success_setup')
             except ValidationError as e:
                 error_message = str(e)
                 return render(request, 'setup.html', {'error_message': error_message})
