@@ -183,6 +183,7 @@ function submitForm() {
       
       // Handle the response
       if (data.status === 'success') {
+        document.getElementById('error').innerHTML = "<span style='color:green;> Successfully added license to {{org.org_name}}! Redirecting Home...</span>";
         fetch('{% url "update_org_license" %}', {
       method: 'POST',
       body: data.license_info,
@@ -193,7 +194,7 @@ function submitForm() {
         document.getElementById('error').innerHTML = "<span style='color:green;> Successfully added license to {{org.org_name}}! Redirecting Home...</span>";
         setTimeout(function() {
           window.location.href = "{% url 'home' %}";
-        }, 3000);
+        }, 10000);
       } else {
         var errorPopup = document.getElementById('error');
         errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;
