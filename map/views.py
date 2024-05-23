@@ -35,28 +35,40 @@ from django.contrib.auth.decorators import user_passes_test
 from .models import FeatureRequest
 from django.core.exceptions import ValidationError
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
+from django.db import transaction
 
 def update_org_license(request):
     if request.method == 'POST':
-        org = Org_Info.objects.get()
         license_code = request.POST.get('license_code')
         expire_date = request.POST.get('expire_date')
         is_free_trial = request.POST.get('is_free_trial') == 'true'
-        if is_free_trial:
-            org.free_trail_used = True
-        org.license = license_code
-        org.valid_time = expire_date
-        org.valid = True
-        org.save()
-        print('org svd')
-        print('Sent org api')
-        ldap_sync.delay()
-        print('Sent LDAP sync')
-        setup_github_repo.delay()
-        print('Sent github api')
-        setup_network_devices.delay()
-        print('Sent Network device')
-        return JsonResponse({'status': license_code})
+
+        try:
+            with transaction.atomic():
+                # Lock the row for update
+                org = Org_Info.objects.select_for_update().get()
+                
+                # Update the org_info fields
+                if is_free_trial:
+                    org.free_trail_used = True
+                org.license = license_code
+                org.valid_time = expire_date
+                org.valid = True
+                org.save()
+            print('org saved')
+            ldap_sync.delay()
+            print('Sent LDAP sync')
+            setup_github_repo.delay()
+            print('Sent github api')
+            setup_network_devices.delay()
+            print('Sent Network device')
+            return JsonResponse({'status': 'success', 'license_code': license_code})
+
+        except Org_Info.DoesNotExist:
+            return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'})
+        except Exception as e:
+            return JsonResponse({'status': 'fail', 'error': str(e)})
+
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'})
         
 
@@ -82,52 +94,65 @@ def setup(request):
         admin_form = AdminCreationForm(request.POST)
         
         if org_form.is_valid() and admin_form.is_valid():
-            org_info = org_form.save(commit=False)
             try:
-                username = admin_form.cleaned_data['username']
-                org_info.admin_username = username
-                password = admin_form.cleaned_data['password1']
-                email = org_form.cleaned_data['contact_email']
-                csv_file = org_form.cleaned_data.get('csv_file')
-                # Process CSV file if provided
+                # Prepare org_info and user data without saving to the database
+                org_info_data = org_form.cleaned_data
+                admin_data = admin_form.cleaned_data
+                
+                username = admin_data['username']
+                password = admin_data['password1']
+                email = org_info_data['contact_email']
+                csv_file = org_info_data.get('csv_file')
+                
+                network_device_ips = []
                 if csv_file:
                     try:
-                        ips = []
                         reader = csv.reader(csv_file)
                         for row in reader:
-                            ips.extend(row)
-                        org_info.network_device_ips = ips
+                            network_device_ips.extend(row)
                     except Exception as e:
                         print(e)
                         pass
                 else:
-                    network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
-                    org_info.network_device_ips = network_device_ips
-                org_info.save()
+                    network_device_ips = org_info_data.get('network_device_ips', [])
+                
+                # Create user
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
                 user.save()
                 print('created user')
-                org = Org_Info.objects.get()
+
+                # Prepare org_data for external API request
                 org_data = {
-                'name': org.org_name,
-                'repo_name': org.repo_name,
-                'contact_email': org.contact_email,
-                'contact_phone': org.contact_phone,
-                'hamster_solar': 'Bababooey'
-                }              
-                response = requests.post('https://license.strawberryspider.com/api/' + 'create/org/', data=org_data)
+                    'name': org_info_data['org_name'],
+                    'repo_name': org_info_data['repo_name'],
+                    'contact_email': org_info_data['contact_email'],
+                    'contact_phone': org_info_data['contact_phone'],
+                    'hamster_solar': 'Bababooey'
+                }
+                response = requests.post('https://license.strawberryspider.com/api/create/org/', data=org_data)
+
                 if response.status_code == 200:
-                    org_id = response.json()['org_id']
-                    print(org_id)
-                    org.org_id = org_id
-                    if org.org_id:
-                        org.is_setup = True
-                        org.save()
+                    org_id = response.json().get('org_id')
+                    if org_id:
+                        # Only now create and save org_info to the database
+                        org_info = Org_Info.objects.create(
+                            org_name=org_info_data['org_name'],
+                            repo_name=org_info_data['repo_name'],
+                            contact_email=org_info_data['contact_email'],
+                            contact_phone=org_info_data['contact_phone'],
+                            network_device_ips=network_device_ips,
+                            admin_username=username,
+                            org_id=org_id,
+                            is_setup=True
+                        )
                         return redirect('update_license')
+                    else:
+                        return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server'})
                 else:
-                    return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
+                    return render(request, 'setup.html', {'error_message': 'Failed to connect to server'})
+
             except ValidationError as e:
                 error_message = str(e)
                 return render(request, 'setup.html', {'error_message': error_message})
@@ -135,6 +160,9 @@ def setup(request):
     else:
         org_form = OrgInfoForm()
         admin_form = AdminCreationForm()
+    
+    return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
+
     
     return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
 

@@ -86,6 +86,7 @@ def cycle_port_task(hostname, interface):
 
 @app.task(queue='configure_devices_queue')
 def update_port_info(hostname=None):
+    
     if hostname is None:
         hostname = 'network_devices'
     r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
