@@ -54,28 +54,29 @@ def github_pull_from_main():
 @app.task(queue='ping_devices_queue')
 def ping_devices_task():
     org_info = Org_Info.objects.get()
-    network_ips = set(org_info.network_device_ips)
-    
-    for ip in network_ips:
-        result = subprocess.call(['ping', ip, '-c', '2'])
-        online = result == 0
+    if org_info.is_setup:
+        network_ips = set(org_info.network_device_ips)
         
-        try:
-            device = NetworkDevice.objects.get(ip_address=ip)
+        for ip in network_ips:
+            result = subprocess.call(['ping', ip, '-c', '2'])
+            online = result == 0
             
-            if online and not device.online:
-                device.online = True
-                device.ansible_status = 'ONLINE'
-                device.save()
-                update_host_file()
-            elif not online and device.online:
-                device.online = False
-                device.ansible_status = 'OFFLINE'
-                device.save()
-                update_host_file()
+            try:
+                device = NetworkDevice.objects.get(ip_address=ip)
                 
-        except NetworkDevice.DoesNotExist:
-            pass
+                if online and not device.online:
+                    device.online = True
+                    device.ansible_status = 'ONLINE'
+                    device.save()
+                    update_host_file()
+                elif not online and device.online:
+                    device.online = False
+                    device.ansible_status = 'OFFLINE'
+                    device.save()
+                    update_host_file()
+                    
+            except NetworkDevice.DoesNotExist:
+                pass
 
 @app.task(queue='configure_devices_queue')
 def cycle_port_task(hostname, interface):
