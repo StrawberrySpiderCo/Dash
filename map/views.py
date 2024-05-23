@@ -136,11 +136,14 @@ def setup(request):
                     print('created user')
                     org_id = response.json().get('org_id')
                     if org_id:
-                        # Only now create and save org_info to the database
                         org_info = Org_Info.objects.create(
                             org_name=org_info_data['org_name'],
                             contact_email=org_info_data['contact_email'],
                             contact_phone=org_info_data['contact_phone'],
+                            ssh_username=org_info_data['ssh_username'],
+                            ssh_password=org_info_data['ssh_password'],
+                            ssh_enable_password=org_info_data['ssh_enable_password'],
+                            meraki_api_key = org_info_data['meraki_api_key'],
                             network_device_ips=network_device_ips,
                             admin_username=username,
                             org_id=org_id,
@@ -162,8 +165,7 @@ def setup(request):
     
     return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
 
-    
-    return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
+
 
 def success_setup(request):
     org_info = Org_Info.objects.get()  # Retrieve the single Org_Info object
