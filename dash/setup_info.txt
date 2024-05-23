@@ -1,6 +1,6 @@
-Org Name: Another one
+Org Name: Finster
 Website IP: 192.168.0.100
-Site Count: 2
+Site Count: 1
 Contact Email: jtomlin2001@gmail.com
 Contact Phone: 6612059590
 Network Device IPs:
