@@ -110,7 +110,6 @@ def setup(request):
                 user.is_staff = True
                 user.save()
                 print('created user')
-                org = Org_Info.objects.get()
                 org_data = {
                 'name': org.org_name,
                 'repo_name': org.repo_name,
@@ -120,13 +119,15 @@ def setup(request):
                 }              
                 response = requests.post('https://license.strawberryspider.com/api/' + 'create/org/', data=org_data)
                 if response.status_code == 200:
-                    print(response.json())
+                    org = Org_Info.objects.get()
                     org_id = response.json()['org_id']
+                    print(org_id)
                     org.org_id = org_id
                     org.save()
                     if org.org_id:
                         org.is_setup = True
                         org.save()
+                        print('org has been saved and changed to setup')
                         return redirect('success_setup')
                 else:
                     return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
