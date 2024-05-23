@@ -1,0 +1,10 @@
+Org Name: Dirar Test
+Website IP: 192.168.0.100
+Site Count: 0
+Contact Email: dirar@gmail.com
+Contact Phone: 6613688880
+Network Device IPs:
+- 192.168.0.51
+- 192.168.0.52
+- 192.168.0.53
+- 192.168.0.54
