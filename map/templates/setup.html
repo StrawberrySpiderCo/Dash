@@ -17,7 +17,9 @@
     
         <!-- Loop over org_form fields -->
         {% for field in org_form.visible_fields %}
+        <br>
         <div class="form-group">
+            
             {{ field.label_tag }}
             {{ field }}
             {% if field.errors %}
@@ -32,8 +34,9 @@
         
         <!-- Loop over network_form fields -->
         {% for field in network_form.visible_fields %}
+        {% if field.name != 'csv_file' %}
         <div class="form-group">
-            {{ field.label_tag }}
+            {{ field.label_tag }} 
             {% if field.name == 'network_device_ips' %}
             <label>Select IP Input Method</label>
             <div>
@@ -53,6 +56,9 @@
                 192.168.0.2
                 192.168.0.3"></textarea>
             </div>
+            {% elif field.name == 'ssh_password' %}
+            <label>If only one SSH password is applicable, it should be used for both this field and the SSH enable password field below.</label>
+            {{ field }}
             {% else %}
                 {{ field }}
             {% endif %}
@@ -60,7 +66,9 @@
             <span class="text-danger">{{ field.errors }}</span>
             {% endif %}
         </div>
+        {% endif %}
         {% endfor %}
+        <br><br>
         
         <br><br>
         <h2>LDAP Account Information</h2>
@@ -68,6 +76,7 @@
         
         <!-- Loop over ldap_form fields -->
         {% for field in ldap_form.visible_fields %}
+        <br>
         <div class="form-group">
             {{ field.label_tag }}
             {{ field }}
@@ -96,6 +105,7 @@
     </form>
     
     <script>
+        var bulkUploadField = document.getElementById("bulk_upload_section") = "none";
     function toggleInputMethod() {
         var bulkUploadField = document.getElementById("bulk_upload_section");
         var manualEntryField = document.getElementById("manual_entry_section");

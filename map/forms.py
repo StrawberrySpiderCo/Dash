@@ -20,8 +20,7 @@ class OrgInfoForm(forms.ModelForm):
     class Meta:
         model = Org_Info
         fields = [
-            'org_name', 'contact_email', 'contact_phone', 'site_count',
-            'organization_address', 'industry', 'organization_logo'
+            'org_name', 'contact_email', 'contact_phone', 'site_count'
         ]
 
 class NetworkAccountForm(forms.ModelForm):
