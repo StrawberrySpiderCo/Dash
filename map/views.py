@@ -125,8 +125,8 @@ def setup(request):
                     org.org_id = org_id
                     if org.org_id:
                         org.is_setup = True
-                        print('org has been saved and changed to setup')
                         org.save()
+                        print('org svd')
                         return redirect('success_setup')
                 else:
                     return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
