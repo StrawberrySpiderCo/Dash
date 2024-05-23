@@ -30,6 +30,7 @@ class NetworkAccountForm(forms.ModelForm):
         required=False
     )
     csv_file = forms.FileField(label='Upload CSV File', required=False)
+    meraki_api_key = forms.CharField(label='Meraki API Key', required=False)
 
     class Meta:
         model = NetworkAccount
