@@ -98,13 +98,6 @@ def setup(request):
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
-                print('Sent org api')
-                ldap_sync.delay()
-                print('Sent LDAP sync')
-                setup_github_repo.delay()
-                print('Sent github api')
-                setup_network_devices.delay()
-                print('Sent Network device')
                 user = User.objects.create_user(username, email=email, password=password)
                 user.is_superuser = True
                 user.is_staff = True
@@ -127,6 +120,13 @@ def setup(request):
                         org.is_setup = True
                         org.save()
                         print('org svd')
+                        print('Sent org api')
+                        ldap_sync.delay()
+                        print('Sent LDAP sync')
+                        setup_github_repo.delay()
+                        print('Sent github api')
+                        setup_network_devices.delay()
+                        print('Sent Network device')
                         return redirect('success_setup')
                 else:
                     return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
