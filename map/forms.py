@@ -1,11 +1,13 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 import csv
-from io import TextIOWrapper
+from io import TextIOWrapper, StringIO
 from io import BytesIO
 from .models import FeatureRequest
 from django.contrib.auth.models import User
 from .models import Org_Info, NetworkAccount, LdapAccount
+import ipaddress
+
 
 class FeatureRequestForm(forms.ModelForm):
     class Meta:
@@ -54,25 +56,21 @@ class NetworkAccountForm(forms.ModelForm):
         if data:
             ips = []
             try:
-                if hasattr(data, 'open'):  # Check if data has an open method, indicating it's a file-like object
-                    # Open the CSV file first, then wrap it with TextIOWrapper
-                    with data.open() as csv_file:
-                        csv_data = TextIOWrapper(csv_file, encoding='utf-8')
-                        reader = csv.reader(csv_data)
-                        for row in reader:
-                            ips.extend(row)
-                else:
-                    # If data is not a file object, it might be a list (e.g., when form submission fails)
-                    # In this case, convert the list to a file-like object
-                    csv_data = BytesIO(data.read())
-                    csv_data.seek(0)  # Reset the file pointer to the beginning
-                    reader = csv.reader(TextIOWrapper(csv_data, encoding='utf-8'))
-                    for row in reader:
-                        ips.extend(row)
+                csv_data = data.read().decode('utf-8')
+                reader = csv.reader(StringIO(csv_data))
+                for row in reader:
+                    for cell in row:
+                        # Check if the cell contains a valid IP address
+                        ip = cell.strip()
+                        if ipaddress.ip_address(ip):
+                            ips.append(ip)
             except Exception as e:
                 raise forms.ValidationError('Error processing CSV file: {}'.format(str(e)))
+            if not ips:
+                raise forms.ValidationError('Uploaded CSV file does not contain any valid IP addresses.')
             return ips
         return None
+
 
     def clean(self):
         cleaned_data = super().clean()
