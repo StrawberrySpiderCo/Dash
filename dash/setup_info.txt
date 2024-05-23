@@ -1,8 +1,8 @@
-Org Name: Frick
+Org Name: wred
 Website IP: 192.168.0.100
 Site Count: 0
 Contact Email: jtomlin2001@gmail.com
-Contact Phone: 6612059590
+Contact Phone: 12341234
 Network Device IPs:
 - 192.168.0.51
 - 192.168.0.52
