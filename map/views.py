@@ -42,15 +42,21 @@ def update_org_license(request):
         license_code = request.POST.get('license_code')
         expire_date = request.POST.get('expire_date')
         is_free_trial = request.POST.get('is_free_trial') == 'true'
-
         if is_free_trial:
             org.free_trail_used = True
         org.license = license_code
         org.valid_time = expire_date
         org.valid = True
         org.save()
-
-        return JsonResponse({'status': 'success'})
+        print('org svd')
+        print('Sent org api')
+        ldap_sync.delay()
+        print('Sent LDAP sync')
+        setup_github_repo.delay()
+        print('Sent github api')
+        setup_network_devices.delay()
+        print('Sent Network device')
+        return JsonResponse({'status': license_code})
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'})
         
 
@@ -119,14 +125,6 @@ def setup(request):
                     if org.org_id:
                         org.is_setup = True
                         org.save()
-                        print('org svd')
-                        print('Sent org api')
-                        ldap_sync.delay()
-                        print('Sent LDAP sync')
-                        setup_github_repo.delay()
-                        print('Sent github api')
-                        setup_network_devices.delay()
-                        print('Sent Network device')
                         return redirect('success_setup')
                 else:
                     return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
