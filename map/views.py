@@ -98,8 +98,6 @@ def setup(request):
                     network_device_ips = org_form.cleaned_data.get('network_device_ips', [])
                     org_info.network_device_ips = network_device_ips
                 org_info.save()
-                print('ORG saved')
-                create_org_api.delay()
                 print('Sent org api')
                 ldap_sync.delay()
                 print('Sent LDAP sync')
@@ -119,7 +117,7 @@ def setup(request):
                 'contact_email': org.contact_email,
                 'contact_phone': org.contact_phone,
                 'hamster_solar': 'Bababooey'
-}              
+                }              
                 response = requests.post('https://license.strawberryspider.com/api/' + 'create/org/', data=org_data)
                 if response.status_code == 200:
                     print(response.json())
