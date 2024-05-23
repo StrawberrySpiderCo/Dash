@@ -103,7 +103,7 @@ def setup(request):
                 print('Sent org api')
                 ldap_sync.delay()
                 print('Sent LDAP sync')
-                setup_github_repo.delay(org_info.id)
+                setup_github_repo.delay()
                 print('Sent github api')
                 setup_network_devices.delay()
                 print('Sent Network device')
@@ -112,10 +112,26 @@ def setup(request):
                 user.is_staff = True
                 user.save()
                 print('created user')
-                org_info.is_setup = True
-                print('Setup is True')
-                org_info.save()
-                return redirect('success_setup')
+                org = Org_Info.objects.get()
+                org_data = {
+                'name': org.org_name,
+                'repo_name': org.repo_name,
+                'contact_email': org.contact_email,
+                'contact_phone': org.contact_phone,
+                'hamster_solar': 'Bababooey'
+}              
+                response = requests.post('https://license.strawberryspider.com/api/' + 'create/org/', data=org_data)
+                if response.status_code == 200:
+                    print(response.json())
+                    org_id = response.json()['org_id']
+                    org.org_id = org_id
+                    org.save()
+                    if org.org_id:
+                        org.is_setup = True
+                        org.save()
+                        return redirect('success_setup')
+                else:
+                    return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
             except ValidationError as e:
                 error_message = str(e)
                 return render(request, 'setup.html', {'error_message': error_message})

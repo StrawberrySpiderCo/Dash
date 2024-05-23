@@ -57,7 +57,7 @@ app.conf.task_routes = {
     'map.tasks.update_host_file_task': {'queue': 'configure_devices_queue'},
     'map.tasks.setup_network_devices': {'queue': 'configure_devices_queue'},
     'map.tasks.update_device': {'queue': 'configure_devices_queue'},
-    'map.tasks.setup_github_repo': {'queue': 'configure_devices_queue'},
+    'map.tasks.setup_github_repo': {'queue': 'api_queue'},
     'map.tasks.sync_ldap': {'queue': 'configure_devices_queue'},
     'map.tasks.create_org_api': {'queue': 'api_queue'},
 }

@@ -318,10 +318,10 @@ def update_device(hostname):
     gather_startup_configs(hostname)
     gather_running_configs(hostname)
 
-@app.task(queue='configure_devices_queue')
-def setup_github_repo(org_info_id):
+@app.task(queue='api_queue')
+def setup_github_repo():
     # Retrieve Org_Info instance
-    org_info = Org_Info.objects.get(pk=org_info_id)
+    org_info = Org_Info.objects.get()
     
     # Create GitHub repository
     github_token = os.getenv('GITHUB_TOKEN')
@@ -406,7 +406,7 @@ def create_org_api():
         org.org_id = org_id
         org.save()
     else:
-        print('Failed to create organization')
+        return('Failed to create organization')
 
 
 
