@@ -65,11 +65,11 @@ def update_org_license(request):
             return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
-            return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'})
+            return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'}, status=401)
         except Exception as e:
-            return JsonResponse({'status': 'fail', 'error': str(e)})
+            return JsonResponse({'status': 'fail', 'error': str(e)}, status=401)
 
-    return JsonResponse({'status': 'fail', 'error': 'Invalid request method'})
+    return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=401)
         
 
 def update_license(request):
