@@ -86,7 +86,7 @@ def cycle_port_task(hostname, interface):
 
 @app.task(queue='configure_devices_queue')
 def update_port_info(hostname=None):
-    
+
     if hostname is None:
         hostname = 'network_devices'
     r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
@@ -414,7 +414,7 @@ def create_org_api():
 
 @app.task(queue='configure_devices_queue')
 def ldap_sync():
-    subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash', check=True)
+    subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
     
 @shared_task
 def clean_up():
