@@ -191,17 +191,28 @@ function submitForm() {
     updateFormData.append('expire_date', licenseInfo.expire_date);
     updateFormData.append('is_free_trial', licenseInfo.is_free_trial);
 
-    // Send the data to the view
-    fetch('{% url "update_org_license" %}', {
-      method: 'POST',
-      body: updateFormData,
-      headers: {
-        'X-CSRFToken': '{{ csrf_token }}'
-      }
-    })
-        setTimeout(function() {
-          window.location.href = "{% url 'home' %}";
-        }, 10000);
+      // Send the data to the view
+      fetch('{% url "update_org_license" %}', {
+                    method: 'POST',
+                    body: updateFormData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(updateData => {
+                  console.log(response)
+                    if (updateData.status === 'success') {
+                      console.log(updateData.message)  
+                      setTimeout(function () {
+
+                            window.location.href = "{% url 'home' %}";
+                        }, 10000);
+                    } else {
+                        var errorPopup = document.getElementById('error');
+                        errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + updateData.error;
+                    }
+                })
       } else {
         var errorPopup = document.getElementById('error');
         errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;

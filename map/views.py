@@ -62,7 +62,7 @@ def update_org_license(request):
             print('Sent github api')
             setup_network_devices.delay()
             print('Sent Network device')
-            return JsonResponse({'status': 'success', 'license_code': license_code})
+            return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
             return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'})
@@ -117,11 +117,7 @@ def setup(request):
                     network_device_ips = org_info_data.get('network_device_ips', [])
                 
                 # Create user
-                user = User.objects.create_user(username, email=email, password=password)
-                user.is_superuser = True
-                user.is_staff = True
-                user.save()
-                print('created user')
+    
 
                 # Prepare org_data for external API request
                 org_data = {
@@ -133,6 +129,11 @@ def setup(request):
                 response = requests.post('https://license.strawberryspider.com/api/create/org/', data=org_data)
 
                 if response.status_code == 200:
+                    user = User.objects.create_user(username, email=email, password=password)
+                    user.is_superuser = True
+                    user.is_staff = True
+                    user.save()
+                    print('created user')
                     org_id = response.json().get('org_id')
                     if org_id:
                         # Only now create and save org_info to the database
