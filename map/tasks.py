@@ -31,7 +31,7 @@ secret_token = 'Bababooey'
 
 load_dotenv()
 
-@app.task(queue='get_info_queue')
+@app.task(queue='configure_devices_queue')
 def clean_artifacts():
     cleanup_artifacts_folder()
 
