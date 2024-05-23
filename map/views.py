@@ -107,16 +107,10 @@ def setup(request):
                 password = admin_data['password1']
                 email = org_info_data['contact_email']
                 csv_file = network_data.get('csv_file')
-                
-                network_device_ips = []
+                print(csv_file)
+
                 if csv_file:
-                    try:
-                        reader = csv.reader(csv_file)
-                        for row in reader:
-                            network_device_ips.extend(row)
-                    except Exception as e:
-                        print(e)
-                        pass
+                    network_device_ips = csv_file
                 else:
                     network_device_ips = network_data.get('network_device_ips', [])
                 # Prepare org_data for external API request
@@ -146,7 +140,7 @@ def setup(request):
                             ssh_username=network_data['ssh_username'],
                             ssh_password=network_data['ssh_password'],
                             ssh_enable_password=network_data['ssh_enable_password'],
-                            network_device_ips=network_data['network_device_ips'],
+                            network_device_ips=network_device_ips,
                             meraki_api_key=network_data['meraki_api_key'],
                         )
                         ldap_account = LdapAccount.objects.create(
