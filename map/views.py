@@ -106,7 +106,7 @@ def setup(request):
                 username = admin_data['username']
                 password = admin_data['password1']
                 email = org_info_data['contact_email']
-                csv_file = org_info_data.get('csv_file')
+                csv_file = network_data.get('csv_file')
                 
                 network_device_ips = []
                 if csv_file:
@@ -118,7 +118,7 @@ def setup(request):
                         print(e)
                         pass
                 else:
-                    network_device_ips = org_info_data.get('network_device_ips', [])
+                    network_device_ips = network_data.get('network_device_ips', [])
                 # Prepare org_data for external API request
                 org_data = {
                     'name': org_info_data['org_name'],

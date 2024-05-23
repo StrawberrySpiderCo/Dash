@@ -48,7 +48,7 @@ class NetworkAccountForm(forms.ModelForm):
             ips = [ip.strip() for ip in data.replace(',', '\n').split('\n')]
             for ip in ips:
                 if not ip:
-                    raise forms.ValidationError('<span style="color:red;">Invalid IP address format.</span>')
+                    raise forms.ValidationError('Invalid IP address format.')
             return ips
 
     def clean_csv_file(self):
@@ -56,36 +56,21 @@ class NetworkAccountForm(forms.ModelForm):
         if data:
             ips = []
             try:
-                csv_data = data.read().decode('utf-8')
-                reader = csv.reader(StringIO(csv_data))
+                csv_data = TextIOWrapper(data.file, encoding='utf-8')
+                reader = csv.reader(csv_data)
                 for row in reader:
-                    for cell in row:
-                        # Check if the cell contains a valid IP address
-                        ip = cell.strip()
-                        if ipaddress.ip_address(ip):
-                            ips.append(ip)
+                    ips.extend(row)
             except Exception as e:
-                raise forms.ValidationError('<span style="color:red;">Error processing CSV file:</span> {}'.format(str(e)))
-            if not ips:
-                raise forms.ValidationError('<span style="color:red;">Uploaded CSV file does not contain any valid IP addresses.</span>')
+                raise forms.ValidationError('Error processing CSV file: {}'.format(str(e)))
             return ips
         return None
-
 
     def clean(self):
         cleaned_data = super().clean()
         network_device_ips = cleaned_data.get('network_device_ips')
         csv_file = cleaned_data.get('csv_file')
-
         if not network_device_ips and not csv_file:
-            raise forms.ValidationError('<span style="color:red;">Please provide either network device IPs or upload a CSV file.</span>')
-
-        if csv_file:
-            # Check if the CSV file contains IPs
-            csv_ips = self.clean_csv_file()
-            if not csv_ips:
-                raise forms.ValidationError('<span style="color:red;">Uploaded CSV file does not contain any IPs.</span>')
-
+            raise forms.ValidationError('Please provide either network device IPs or upload a CSV file.')
         return cleaned_data
 
 class LdapAccountForm(forms.ModelForm):
