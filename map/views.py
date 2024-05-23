@@ -148,7 +148,7 @@ def setup(request):
                             bind_account=ldap_data['bind_account'],
                             bind_password=ldap_data['bind_password'],
                             admin_group=ldap_data['admin_group'],
-                            admin_username=ldap_data['admin_username'],
+                            admin_username=username,
                             tech_group=ldap_data['tech_group'],
                         )
                         return redirect('update_license')
