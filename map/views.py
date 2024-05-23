@@ -125,7 +125,7 @@ def setup(request):
                     if org.org_id:
                         org.is_setup = True
                         org.save()
-                        return redirect('success_setup')
+                        return redirect('update_license')
                 else:
                     return render(request, 'setup.html', {'error_message': 'Org ID not connecting to server'})
             except ValidationError as e:
