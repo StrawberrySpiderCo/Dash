@@ -139,11 +139,6 @@ def setup(request):
                             org_name=org_info_data['org_name'],
                             contact_email=org_info_data['contact_email'],
                             contact_phone=org_info_data['contact_phone'],
-                            site_count=org_info_data['site_count'],
-                            organization_address=org_info_data['organization_address'],
-                            industry=org_info_data['industry'],
-                            organization_logo=org_info_data['organization_logo'],
-                            admin_username=username,
                             org_id=org_id,
                             is_setup=True
                         )
@@ -153,7 +148,6 @@ def setup(request):
                             ssh_enable_password=network_data['ssh_enable_password'],
                             network_device_ips=network_data['network_device_ips'],
                             meraki_api_key=network_data['meraki_api_key'],
-                            client_count=network_data['client_count']
                         )
                         ldap_account = LdapAccount.objects.create(
                             dc_ip_address=ldap_data['dc_ip_address'],
@@ -161,7 +155,7 @@ def setup(request):
                             bind_password=ldap_data['bind_password'],
                             admin_group=ldap_data['admin_group'],
                             admin_username=ldap_data['admin_username'],
-                            tech_group=ldap_data['tech_group']
+                            tech_group=ldap_data['tech_group'],
                         )
                         return redirect('update_license')
                     else:
