@@ -1,6 +1,6 @@
-Org Name: Finster
+Org Name: Frick
 Website IP: 192.168.0.100
-Site Count: 1
+Site Count: 0
 Contact Email: jtomlin2001@gmail.com
 Contact Phone: 6612059590
 Network Device IPs:
