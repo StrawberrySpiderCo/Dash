@@ -1,8 +1,8 @@
-Org Name: wred
+Org Name: qwer
 Website IP: 192.168.0.100
 Site Count: 0
 Contact Email: jtomlin2001@gmail.com
-Contact Phone: 12341234
+Contact Phone: 6612059590
 Network Device IPs:
 - 192.168.0.51
 - 192.168.0.52
