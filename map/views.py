@@ -82,7 +82,8 @@ def user_is_admin(user):
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
-from .forms import OrgInfoForm, AdminCreationForm
+from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccountForm
+from .models import Org_Info, NetworkAccount, LdapAccount
 from django.contrib.auth.models import User
 
 def setup(request):
@@ -91,34 +92,21 @@ def setup(request):
     
     if request.method == 'POST':
         org_form = OrgInfoForm(request.POST, request.FILES)
+        network_form = NetworkAccountForm(request.POST, request.FILES)
+        ldap_form = LdapAccountForm(request.POST)
         admin_form = AdminCreationForm(request.POST)
         
-        if org_form.is_valid() and admin_form.is_valid():
+        if org_form.is_valid() and network_form.is_valid() and ldap_form.is_valid() and admin_form.is_valid():
             try:
-                # Prepare org_info and user data without saving to the database
                 org_info_data = org_form.cleaned_data
+                network_data = network_form.cleaned_data
+                ldap_data = ldap_form.cleaned_data
                 admin_data = admin_form.cleaned_data
                 
                 username = admin_data['username']
                 password = admin_data['password1']
                 email = org_info_data['contact_email']
-                csv_file = org_info_data.get('csv_file')
                 
-                network_device_ips = []
-                if csv_file:
-                    try:
-                        reader = csv.reader(csv_file)
-                        for row in reader:
-                            network_device_ips.extend(row)
-                    except Exception as e:
-                        print(e)
-                        pass
-                else:
-                    network_device_ips = org_info_data.get('network_device_ips', [])
-                
-                # Create user
-    
-
                 # Prepare org_data for external API request
                 org_data = {
                     'name': org_info_data['org_name'],
@@ -133,43 +121,58 @@ def setup(request):
                     user.is_superuser = True
                     user.is_staff = True
                     user.save()
-                    print('created user')
                     org_id = response.json().get('org_id')
                     if org_id:
                         org_info = Org_Info.objects.create(
                             org_name=org_info_data['org_name'],
                             contact_email=org_info_data['contact_email'],
                             contact_phone=org_info_data['contact_phone'],
-                            ssh_username=org_info_data['ssh_username'],
-                            ssh_password=org_info_data['ssh_password'],
-                            ssh_enable_password=org_info_data['ssh_enable_password'],
-                            meraki_api_key = org_info_data['meraki_api_key'],
-                            dc_ip_address = org_info_data['dc_ip_address'],
-                            site_count = org_info_data['site_count'],
-                            bind_account = org_info_data['bind_account'],
-                            bind_password = org_info_data['bind_password'],
-                            admin_group = org_info_data['admin_group'],
-                            tech_group = org_info_data['tech_group'],
-                            network_device_ips=network_device_ips,
+                            site_count=org_info_data['site_count'],
+                            organization_address=org_info_data['organization_address'],
+                            industry=org_info_data['industry'],
+                            organization_logo=org_info_data['organization_logo'],
                             admin_username=username,
                             org_id=org_id,
                             is_setup=True
                         )
+                        network_account = NetworkAccount.objects.create(
+                            ssh_username=network_data['ssh_username'],
+                            ssh_password=network_data['ssh_password'],
+                            ssh_enable_password=network_data['ssh_enable_password'],
+                            network_device_ips=network_data['network_device_ips'],
+                            meraki_api_key=network_data['meraki_api_key'],
+                            client_count=network_data['client_count']
+                        )
+                        ldap_account = LdapAccount.objects.create(
+                            dc_ip_address=ldap_data['dc_ip_address'],
+                            bind_account=ldap_data['bind_account'],
+                            bind_password=ldap_data['bind_password'],
+                            admin_group=ldap_data['admin_group'],
+                            admin_username=ldap_data['admin_username'],
+                            tech_group=ldap_data['tech_group']
+                        )
                         return redirect('update_license')
                     else:
-                        return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server'})
+                        return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
                 else:
-                    return render(request, 'setup.html', {'error_message': 'Failed to connect to server'})
+                    return render(request, 'setup.html', {'error_message': 'Failed to connect to server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
 
             except ValidationError as e:
                 error_message = str(e)
-                return render(request, 'setup.html', {'error_message': error_message})
-    
+                return render(request, 'setup.html', {'error_message': error_message, 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
+
     else:
         org_form = OrgInfoForm()
+        network_form = NetworkAccountForm()
+        ldap_form = LdapAccountForm()
         admin_form = AdminCreationForm()
-    
-    return render(request, 'setup.html', {'org_form': org_form, 'admin_form': admin_form})
+
+    return render(request, 'setup.html', {
+        'org_form': org_form,
+        'network_form': network_form,
+        'ldap_form': ldap_form,
+        'admin_form': admin_form
+    })
 
 
 

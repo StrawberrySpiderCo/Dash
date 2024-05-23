@@ -1,6 +1,6 @@
 import ansible_runner
 import json
-from map.models import Org_Info,NetworkDevice,NetworkInterface,NetworkTask
+from map.models import Org_Info,NetworkDevice,NetworkInterface,NetworkTask,NetworkAccount
 import shutil
 import os
 import subprocess
@@ -11,7 +11,7 @@ inventory_path = r'/home/sbs/Dash/ansible/hosts.ini'
 class AnsiblePlaybookRunError(Exception):
     pass
 def update_host_file():
-    org_info = Org_Info.objects.get()
+    org_info = NetworkAccount.objects.get()
     network_ips = set(org_info.network_device_ips)
     playbook_dir = '/home/sbs/Dash/ansible'
     host_file_path = f"{playbook_dir}/hosts.ini"
@@ -53,7 +53,7 @@ def run_ansible_playbook(task_name, ansible_config):
         }
     }
     """
-    org_info = Org_Info.objects.get()
+    org_info = NetworkAccount.objects.get()
     ansible_config.update({
         'ansible_network_os': 'ios',
         'ansible_connection': 'network_cli',

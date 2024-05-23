@@ -203,30 +203,18 @@ class Org_Info(models.Model):
     is_setup= models.BooleanField(default=False)
     org_id = models.CharField(max_length=200, default='')
     repo_name = models.CharField(max_length=200, default='')
-    client_count = models.PositiveIntegerField(default=0)
     site_count = models.PositiveIntegerField(default=0)
-    network_device_ips = models.JSONField(default=list)
-    admin_group = models.CharField(max_length=200, default='')
-    tech_group = models.CharField(max_length=200, default='')
-    dc_ip_address = models.CharField(max_length=200, default='')
-    bind_account = models.CharField(max_length=200, default='')
-    bind_password = models.CharField(max_length=200, default='')
     valid = models.BooleanField(default=False)
     license = models.CharField(max_length=200, default='')
     valid_time = models.CharField(max_length=200, default='')
     free_trail_used = models.BooleanField(default=False)
-    meraki_api_key = models.CharField(max_length=200, default='', null=True)
     organization_address = models.TextField(max_length=200,blank=True, null=True)
     contact_email = models.EmailField(blank=True, null=True)
     contact_phone = models.CharField(max_length=20, blank=True, null=True)
     industry = models.CharField(max_length=100, blank=True, null=True)
     organization_logo = models.ImageField(upload_to='org_logos/', blank=True, null=True)
-    ssh_username = models.CharField(max_length=200, default='', null=True)
-    ssh_password = models.CharField(max_length=200, default='', null=True)
-    ssh_enable_password = models.CharField(max_length=200, default='', null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
-    admin_username = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.org_name
@@ -237,7 +225,25 @@ class Org_Info(models.Model):
         
         super().save(*args, **kwargs)  # Call the original save method
     
-    
+class NetworkAccount(models.Model):
+    ssh_username = models.CharField(max_length=200, default='', null=True)
+    ssh_password = models.CharField(max_length=200, default='', null=True)
+    ssh_enable_password = models.CharField(max_length=200, default='', null=True)
+    network_device_ips = models.JSONField(default=list)
+    meraki_api_key = models.CharField(max_length=200, default='', null=True)
+    client_count = models.PositiveIntegerField(default=0)
+
+
+class LdapAccount(models.Model):
+    admin_group = models.CharField(max_length=200, default='')
+    tech_group = models.CharField(max_length=200, default='')
+    dc_ip_address = models.CharField(max_length=200, default='')
+    bind_account = models.CharField(max_length=200, default='')
+    bind_password = models.CharField(max_length=200, default='')
+    admin_username = models.CharField(max_length=100, blank=True, null=True)
+
+
+
 class FeatureRequest(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()

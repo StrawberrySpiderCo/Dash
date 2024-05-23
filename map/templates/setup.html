@@ -3,11 +3,6 @@
 {% csrf_token %}
 {% block title %}Setup{% endblock %}
 {% block template %}
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
 {% if error_message %}
     <div class="alert alert-danger" role="alert">
         {{ error_message }}
@@ -20,11 +15,25 @@
         {% csrf_token %}
         {{ org_form.non_field_errors }}
     
-        <!-- Loop over form fields -->
+        <!-- Loop over org_form fields -->
         {% for field in org_form.visible_fields %}
-        {% if field.name != 'csv_file' %}
         <div class="form-group">
-            {{ field.label_tag }} 
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+            <span class="text-danger">{{ field.errors }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <br><br>
+        <h2>Network Account Information</h2>
+        {{ network_form.non_field_errors }}
+        
+        <!-- Loop over network_form fields -->
+        {% for field in network_form.visible_fields %}
+        <div class="form-group">
+            {{ field.label_tag }}
             {% if field.name == 'network_device_ips' %}
             <label>Select IP Input Method</label>
             <div>
@@ -44,9 +53,6 @@
                 192.168.0.2
                 192.168.0.3"></textarea>
             </div>
-            {% elif field.name == 'ssh_password' %}
-            <label>If only one SSH password is applicable, it should be used for both this field and the SSH enable password field below.</label>
-            {{ field }}
             {% else %}
                 {{ field }}
             {% endif %}
@@ -54,21 +60,38 @@
             <span class="text-danger">{{ field.errors }}</span>
             {% endif %}
         </div>
-        {% endif %}
         {% endfor %}
+        
+        <br><br>
+        <h2>LDAP Account Information</h2>
+        {{ ldap_form.non_field_errors }}
+        
+        <!-- Loop over ldap_form fields -->
+        {% for field in ldap_form.visible_fields %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+            <span class="text-danger">{{ field.errors }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
         <br><br>
         <h3>Admin Account Creation</h3>
         {{ admin_form.non_field_errors }}
+        
         <!-- Render admin account creation form fields -->
         {% for field in admin_form.visible_fields %}
-            <div class="form-group">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.errors %}
-                    <span class="text-danger">{{ field.errors }}</span>
-                {% endif %}
-            </div>
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+            {% if field.errors %}
+            <span class="text-danger">{{ field.errors }}</span>
+            {% endif %}
+        </div>
         {% endfor %}
+        
         <input type="submit" class="btn btn-primary" value="Submit">
     </form>
     
@@ -86,13 +109,5 @@
         }
     }
     </script>
-    
-    
-    
-    
-    
-    
-    
 </div>
-
 {% endblock %}

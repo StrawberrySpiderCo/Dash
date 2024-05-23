@@ -4,7 +4,7 @@ import csv
 from io import TextIOWrapper
 from .models import FeatureRequest
 from django.contrib.auth.models import User
-from .models import Org_Info
+from .models import Org_Info, NetworkAccount, LdapAccount
 
 class FeatureRequestForm(forms.ModelForm):
     class Meta:
@@ -15,26 +15,29 @@ class AdminCreationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ['username', 'password1', 'password2']
-class OrgInfoForm(forms.ModelForm):
-    network_device_ips = forms.CharField(label='Network Device IPs', widget=forms.Textarea(attrs={'rows': 5}), required=False)
-    csv_file = forms.FileField(label='Upload CSV File', required=False)
-    dc_ip_address = forms.CharField(label='LDAP Server IP Address (Optional)', max_length=100, required=False)
-    bind_account = forms.CharField(label='Bind Account (Optional) e.g. CN=strawberry spider,OU=users,DC=test,DC=local', max_length=200, required=False)
-    bind_password = forms.CharField(label='Bind Password (Optional) e.g. P@55w0rd1!', required=False)
-    admin_group = forms.CharField(label='Admin Group DN (Optional) e.g. CN=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
-    tech_group = forms.CharField(label='Tech Group DN (Optional) e.g. CN=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
 
+class OrgInfoForm(forms.ModelForm):
     class Meta:
         model = Org_Info
         fields = [
-            'org_name', 'contact_email', 'contact_phone', 'site_count', 'meraki_api_key',
-            'ssh_username', 'ssh_password', 'ssh_enable_password',
-            'dc_ip_address', 'bind_account', 'bind_password', 'admin_group', 'tech_group'
+            'org_name', 'contact_email', 'contact_phone', 'site_count',
+            'organization_address', 'industry', 'organization_logo'
         ]
 
-    def __init__(self, *args, **kwargs):
-        super(OrgInfoForm, self).__init__(*args, **kwargs)
-        self.fields['meraki_api_key'].required = False  # Set the Meraki API key field as not required
+class NetworkAccountForm(forms.ModelForm):
+    network_device_ips = forms.CharField(
+        label='Network Device IPs', 
+        widget=forms.Textarea(attrs={'rows': 5}), 
+        required=False
+    )
+    csv_file = forms.FileField(label='Upload CSV File', required=False)
+
+    class Meta:
+        model = NetworkAccount
+        fields = [
+            'ssh_username', 'ssh_password', 'ssh_enable_password',
+            'meraki_api_key', 'client_count', 'network_device_ips'
+        ]
 
     def clean_network_device_ips(self):
         data = self.cleaned_data['network_device_ips']
@@ -66,3 +69,11 @@ class OrgInfoForm(forms.ModelForm):
         if not network_device_ips and not csv_file:
             raise forms.ValidationError('Please provide either network device IPs or upload a CSV file.')
         return cleaned_data
+
+class LdapAccountForm(forms.ModelForm):
+    class Meta:
+        model = LdapAccount
+        fields = [
+            'dc_ip_address', 'bind_account', 'bind_password',
+            'admin_group', 'tech_group', 'admin_username'
+        ]

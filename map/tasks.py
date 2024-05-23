@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask
+from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask,NetworkAccount
 from django.contrib.auth.models import User as AuthUser
 from django.db import IntegrityError
 from time import sleep
@@ -283,7 +283,7 @@ def update_host_file_task():
 
 @app.task(queue='get_info_queue')
 def setup_network_devices():
-    org_info = Org_Info.objects.get()
+    org_info = NetworkAccount.objects.get()
     network_ips = set(org_info.network_device_ips)
     playbook_dir = '/home/sbs/Dash/ansible'
     host_file_path = f"{playbook_dir}/hosts.ini"

@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django_auth_ldap.config import LDAPSearch
 import ldap
 from django.contrib.auth.models import User, Group
-from map.models import Org_Info, Profile
+from map.models import Org_Info, Profile,LdapAccount
 
 class Command(BaseCommand):
     help = 'Sync LDAP data with Django models'
@@ -12,7 +12,7 @@ class Command(BaseCommand):
         users_to_delete = User.objects.filter(profile__in=profiles_to_delete)
         users_to_delete.delete()
         profiles_to_delete.delete()
-        org = Org_Info.objects.get()
+        org = LdapAccount.objects.get()
         # LDAP server connection settings
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_ALLOW)
         conn = ldap.initialize(f'ldap://{org.dc_ip_address}')
