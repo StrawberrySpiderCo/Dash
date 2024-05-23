@@ -129,12 +129,12 @@ def setup(request):
                 response = requests.post('https://license.strawberryspider.com/api/create/org/', data=org_data)
 
                 if response.status_code == 200:
-                    user = User.objects.create_user(username, email=email, password=password)
-                    user.is_superuser = True
-                    user.is_staff = True
-                    user.save()
                     org_id = response.json().get('org_id')
                     if org_id:
+                        user = User.objects.create_user(username, email=email, password=password)
+                        user.is_superuser = True
+                        user.is_staff = True
+                        user.save()
                         org_info = Org_Info.objects.create(
                             org_name=org_info_data['org_name'],
                             contact_email=org_info_data['contact_email'],
