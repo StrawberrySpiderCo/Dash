@@ -20,7 +20,7 @@ class OrgInfoForm(forms.ModelForm):
     class Meta:
         model = Org_Info
         fields = [
-            'org_name', 'contact_email', 'contact_phone', 'site_count'
+            'org_name', 'contact_email', 'contact_phone'
         ]
 
 class NetworkAccountForm(forms.ModelForm):
@@ -35,7 +35,7 @@ class NetworkAccountForm(forms.ModelForm):
         model = NetworkAccount
         fields = [
             'ssh_username', 'ssh_password', 'ssh_enable_password',
-            'meraki_api_key', 'client_count', 'network_device_ips'
+            'meraki_api_key', 'network_device_ips'
         ]
 
     def clean_network_device_ips(self):
@@ -70,9 +70,15 @@ class NetworkAccountForm(forms.ModelForm):
         return cleaned_data
 
 class LdapAccountForm(forms.ModelForm):
+    dc_ip_address = forms.CharField(label='LDAP Server IP Address (Optional)', max_length=100, required=False)
+    bind_account = forms.CharField(label='Bind Account (Optional) e.g. CN=strawberry spider,OU=users,DC=test,DC=local', max_length=200, required=False)
+    bind_password = forms.CharField(label='Bind Password (Optional) e.g. P@55w0rd1!', required=False)
+    admin_group = forms.CharField(label='Admin Group DN (Optional) e.g. CN=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    tech_group = forms.CharField(label='Tech Group DN (Optional) e.g. CN=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+
     class Meta:
         model = LdapAccount
         fields = [
             'dc_ip_address', 'bind_account', 'bind_password',
-            'admin_group', 'tech_group', 'admin_username'
+            'admin_group', 'tech_group'
         ]
