@@ -126,7 +126,6 @@ def setup(request):
                 # Prepare org_data for external API request
                 org_data = {
                     'name': org_info_data['org_name'],
-                    'repo_name': org_info_data['repo_name'],
                     'contact_email': org_info_data['contact_email'],
                     'contact_phone': org_info_data['contact_phone'],
                     'hamster_solar': 'Bababooey'
@@ -139,7 +138,6 @@ def setup(request):
                         # Only now create and save org_info to the database
                         org_info = Org_Info.objects.create(
                             org_name=org_info_data['org_name'],
-                            repo_name=org_info_data['repo_name'],
                             contact_email=org_info_data['contact_email'],
                             contact_phone=org_info_data['contact_phone'],
                             network_device_ips=network_device_ips,
