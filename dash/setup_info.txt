@@ -1,6 +1,6 @@
-Org Name: GREDFE
+Org Name: WOMP WOMP
 Website IP: 192.168.0.100
 Site Count: 0
 Contact Email: jtomlin2001@gmail.com
-Contact Phone: 12341234
+Contact Phone: 112341234
 Network Device IPs:
