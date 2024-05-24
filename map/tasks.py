@@ -22,6 +22,7 @@ from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_
 from typing import Literal, Union, Optional
 from dash.celery import app
 import requests
+from datetime import datetime, timedelta, timezone
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
@@ -30,6 +31,18 @@ base_url = 'https://license.strawberryspider.com/api/'
 secret_token = 'Bababooey'
 
 load_dotenv()
+@app.task(queue='get_info_queue')
+def check_date():
+    org = Org_Info.objects.get()
+    date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
+    current_time = datetime.now(timezone.utc)
+    if (current_time - date) > timedelta(days=7):
+        org_license = ''
+        org_valid = False
+        print("Actions performed: Set org.license to '{}', org.valid to {}".format(org_license, org_valid))
+    else:
+        print("Date has not passed by 7 days yet.")
+
 
 @app.task(queue='configure_devices_queue')
 def clean_artifacts():

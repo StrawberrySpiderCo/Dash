@@ -60,11 +60,12 @@ app.conf.task_routes = {
     'map.tasks.setup_github_repo': {'queue': 'api_queue'},
     'map.tasks.sync_ldap': {'queue': 'configure_devices_queue'},
     'map.tasks.create_org_api': {'queue': 'api_queue'},
+    'map.tasks.check_date': {'queue': 'get_info_queue'},
 }
 app.conf.beat_schedule = {
         'clean-up': {
         'task': 'map.tasks.clean_up',
-        'schedule': crontab(day_of_month='*/30'),
+        'schedule': crontab(day_of_month='1-31/90'),
     },
     'update_host_file': {
         'task': 'map.tasks.update_host_file',  
@@ -92,8 +93,13 @@ app.conf.beat_schedule = {
     },
     'sync_ldap': {
         'task': 'map.tasks.sync_ldap',
-        'schedule': crontab(hour=4),
+        'schedule': crontab(hour='*/2'),
     },
+    'check_date_every_8_hours': {
+        'task': 'tasks.check_date',
+        'schedule': crontab(hour=4), 
+    },
+
 }
     #'clean-up': {
     #'task': 'map.tasks.clean_up',
