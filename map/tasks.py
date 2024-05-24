@@ -325,6 +325,7 @@ def setup_network_devices():
     get_device_info()
     update_port_info()
     gather_running_configs()
+    gather_startup_configs()
 
 @app.task(queue='configure_devices_queue')
 def update_device(hostname):

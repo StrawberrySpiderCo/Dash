@@ -67,7 +67,6 @@ def update_org_license(request):
 
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=401)
         
-
 def update_license(request):
     org = get_object_or_404(Org_Info)          
     return render(request, 'update_license.html', {'org': org})
@@ -172,8 +171,6 @@ def setup(request):
         'ldap_form': ldap_form,
         'admin_form': admin_form
     })
-
-
 
 def success_setup(request):
     org_info = Org_Info.objects.get()  # Retrieve the single Org_Info object
