@@ -413,7 +413,7 @@ def create_org_api():
 
 
 @app.task(queue='configure_devices_queue')
-def ldap_sync():
+def sync_ldap():
     subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
     
 @shared_task

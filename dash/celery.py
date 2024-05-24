@@ -90,8 +90,8 @@ app.conf.beat_schedule = {
         'task': 'map.tasks.clean_artifacts',
         'schedule': crontab(minute='*/30'),
     },
-    'ldap_sync': {
-        'task': 'map.tasks.ldap_sync',
+    'sync_ldap': {
+        'task': 'map.tasks.sync_ldap',
         'schedule': crontab(hour='*/1'),
     },
 }

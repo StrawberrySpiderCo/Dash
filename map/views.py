@@ -26,7 +26,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices, ldap_sync, create_org_api
+from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api
 from time import sleep
 import json
 import os
@@ -56,12 +56,12 @@ def update_org_license(request):
                 org.valid = True
                 org.save()
             print('org saved')
-            ldap_sync.delay()
             print('Sent LDAP sync')
             setup_github_repo.delay()
             print('Sent github api')
             setup_network_devices.delay()
             print('Sent Network device')
+            sync_ldap()
             return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
