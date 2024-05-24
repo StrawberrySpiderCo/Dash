@@ -35,11 +35,11 @@ load_dotenv()
 def check_date():
     org = Org_Info.objects.get()
     date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
-    current_time = datetime.now(timezone.utc)
+    current_time = datetime.now()
     if (current_time - date) > timedelta(days=7):
-        org_license = ''
-        org_valid = False
-        print("Actions performed: Set org.license to '{}', org.valid to {}".format(org_license, org_valid))
+        org.license = ''
+        org.valid = False
+        org.save()
     else:
         print("Date has not passed by 7 days yet.")
 
