@@ -102,8 +102,8 @@
             <input type="hidden" name="free_trail_used" id="free_trail_used" value="{{org.free_trail_used}}">
             <h2 id="license-label">Input License:</h2>
             <input type="text" name="license" id="license" placeholder="25 character license e.g. (STRAWBERRYSPIDERLICENSECO)" maxlength="25" oninput="this.value = this.value.toUpperCase(); checkInputLength();"><br><br>
-            <div id="error"></div>
         </form>
+        <div id="error"></div>
         <div id="loading-indicator" class="loading-indicator">
             <div class="spinner"></div>
         </div>
@@ -120,16 +120,19 @@
         document.getElementById('license-label').style.display = 'none';
         document.getElementById('loading-indicator').style.display = 'block';-->
         <script>
-
-
+          var licenseLabel = document.getElementById('license-label')
           var licenseInput = document.getElementById("license");
+          var spinner = document.getElementById('loading-indicator')
       function checkInputLength() {
           var licenseInput = document.getElementById("license");
           if (licenseInput.value.length === 25) {
+            licenseInput.style.display = 'none';
+            licenseLabel.style.display = 'none';
+            spinner.style.display = 'block';
                   submitForm();
               
           }
-      
+
       }
       
       var $popupContainer = document.getElementById('popup-container'),
@@ -153,66 +156,67 @@
       
       
       function submitForm() {
-          var license = document.getElementById('license').value;
-          var orgId = document.getElementById('org_id').value 
-          var free_trail = document.getElementById('free_trail_used').value
-          var secret = 'Bababooey'; 
-          
-      
-          
-          // Prepare the data to send in the request
-          var formData = new FormData();
-          formData.append('org_id', orgId);
-          formData.append('hamster_solar', secret);
-          formData.append('license', license);
-          formData.append('free_trail_used', free_trail )
-          
-          fetch('https://license.strawberryspider.com/api/check/license/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-            }
-          })
-          .then(response => response.json())
-          .then(data => {
-            // Show the license label and text box again, hide the loading spinner, and clear the text box
-            //document.getElementById('license-label').style.display = 'block';
-            //document.getElementById('license').style.display = 'block';
-            //document.getElementById('license').value = '';
-            //document.getElementById('loading-spinner').style.display = 'none';
-            
-            // Handle the response
-            if (data.status === 'success') {
-              document.getElementById('error').innerHTML = "<span style='color:green;> Successfully added license to {{org.org_name}}! Redirecting Home...</span>";
-              // Prepare data to send to the view
-          const licenseInfo = data.license_info;
-          const updateFormData = new FormData();
-          updateFormData.append('license_code', licenseInfo.license_code);
-          updateFormData.append('expire_date', licenseInfo.expire_date);
-          updateFormData.append('is_free_trial', licenseInfo.is_free_trial);
-      
-          // Send the data to the view
-          fetch('{% url "update_org_license" %}', {
-            method: 'POST',
-            body: updateFormData,
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}'
-            }
-          })
-              setTimeout(function() {
-                window.location.href = "{% url 'home' %}";
-              }, 1000000);
-            } else {
-              var errorPopup = document.getElementById('error');
-              errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;
-            }
-          })
-          .catch(error => {
-            console.error("Error:", error);
-            var errorPopup = document.getElementById('error');
-            errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + error;
-          });
-      }
+  var license = document.getElementById('license').value;
+  var orgId = document.getElementById('org_id').value 
+  var free_trail = document.getElementById('free_trail_used').value
+  var secret = 'Bababooey'; 
+  var formData = new FormData();
+  formData.append('org_id', orgId);
+  formData.append('hamster_solar', secret);
+  formData.append('license', license);
+  formData.append('free_trail_used', free_trail )
+
+  fetch('https://license.strawberryspider.com/api/check/license/', {
+    method: 'POST',
+    body: formData,
+    headers: {}
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const licenseInfo = data.license_info;
+      const updateFormData = new FormData();
+      updateFormData.append('license_code', licenseInfo.license_code);
+      updateFormData.append('expire_date', licenseInfo.expire_date);
+      updateFormData.append('is_free_trial', licenseInfo.is_free_trial);
+      fetch('{% url "update_org_license" %}', {
+        method: 'POST',
+        body: updateFormData,
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          var errorPopup = document.getElementById('error');
+        errorPopup.innerHTML = "<span style='color:green;'>Yippee! Enjoy</span> " + data.message;
+            window.location.href = "{% url 'home' %}";
+        } else {
+          // Handle unsuccessful update_org_license response
+        }
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        // Handle error in update_org_license fetch
+      });
+    } else {
+      spinner.style.display = 'none';
+          licenseLabel.style.display = 'block';
+          licenseInput.style.display = 'block';
+      var errorPopup = document.getElementById('error');
+      errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;
+    }
+  })
+  .catch(error => {
+    spinner.style.display = 'none';
+          licenseLabel.style.display = 'block';
+          licenseInput.style.display = 'block';
+    console.error("Error:", error);
+    var errorPopup = document.getElementById('error');
+    errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + error;
+  });
+}
       
       </script>
           {% endblock %}
