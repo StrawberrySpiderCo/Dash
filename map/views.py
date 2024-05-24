@@ -55,13 +55,7 @@ def update_org_license(request):
                 org.valid_time = expire_date
                 org.valid = True
                 org.save()
-            print('org saved')
-            print('Sent LDAP sync')
             setup_github_repo.delay()
-            print('Sent github api')
-            setup_network_devices.delay()
-            print('Sent Network device')
-            sync_ldap()
             return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
@@ -151,6 +145,11 @@ def setup(request):
                             admin_username=username,
                             tech_group=ldap_data['tech_group'],
                         )
+                        print('org saved')
+                        print('Sent github api')
+                        setup_network_devices.delay()
+                        print('Sent Network device')
+                        sync_ldap.delay()
                         return redirect('update_license')
                     else:
                         return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
