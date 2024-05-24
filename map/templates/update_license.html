@@ -199,16 +199,18 @@
               'X-CSRFToken': '{{ csrf_token }}'
             }
           })
-          window.location.href = "{% url 'home' %}";
+              setTimeout(function() {
+                window.location.href = "{% url 'home' %}";
+              }, 10000);
             } else {
               var errorPopup = document.getElementById('error');
-              errorPopup.innerHTML = "<span style='color:red;'>Error Here: </span> " + data.message;
+              errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;
             }
           })
           .catch(error => {
             console.error("Error:", error);
             var errorPopup = document.getElementById('error');
-            errorPopup.innerHTML = "<span style='color:red;'>Error There: </span> " + error;
+            errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + error;
           });
       }
       
