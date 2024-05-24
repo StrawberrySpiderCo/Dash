@@ -10,18 +10,7 @@ def get_ldap_settings():
         "AUTH_LDAP_SERVER_URI": f"ldap://{ldap_obj.dc_ip_address}",
         "AUTH_LDAP_BIND_DN": ldap_obj.bind_account,
         "AUTH_LDAP_BIND_PASSWORD": ldap_obj.bind_password,
-        "AUTH_LDAP_USER_SEARCH": rf'''LDAPSearchUnion(
-            LDAPSearch(
-                f"{ldap_obj.tech_group}",
-                ldap.SCOPE_SUBTREE,
-                "(sAMAccountName=%(user)s)"
-            ),
-            LDAPSearch(
-                f"{ldap_obj.admin_group}",
-                ldap.SCOPE_SUBTREE,
-                "(sAMAccountName=%(user)s)"
-            )
-        )''',
+        "AUTH_LDAP_USER_SEARCH": rf'''LDAPSearchUnion(LDAPSearch(f"{ldap_obj.tech_group}",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"),LDAPSearch(f"{ldap_obj.admin_group}",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"))''',
     }
 
     return settings

@@ -71,7 +71,7 @@ AUTHENTICATION_BACKENDS = [
 AUTH_LDAP_SERVER_URI = ''
 AUTH_LDAP_BIND_DN = ''
 AUTH_LDAP_BIND_PASSWORD = ''
-AUTH_LDAP_USER_SEARCH = ''
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(f"OU=Techs,OU=Groups,DC=dirar,DC=local",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"),LDAPSearch(f"OU=Admins,OU=Groups,DC=dirar,DC=local",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"))
 
 AUTH_LDAP_USER_ATTR_MAP = {
   "username": "sAMAccountName",
