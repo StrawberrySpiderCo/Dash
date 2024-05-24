@@ -45,21 +45,20 @@ def update_org_license(request):
         is_free_trial = request.POST.get('is_free_trial') == 'true'
 
         try:
-            org = Org_Info.objects.select_for_update().get()
-            
-            # Update the org_info fields
+            org = Org_Info.objects.get()
             if is_free_trial:
                 org.free_trail_used = True
             org.license = license_code
             org.valid_time = expire_date
             org.valid = True
             org.save()
+            print("ORG SAVED")
             if not org.is_setup:
                 setup_github_repo.delay()
                 setup_network_devices.delay()
                 print('Sent Network device')
                 sync_ldap.delay()
-            return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
+            return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'}, status=200)
 
         except Org_Info.DoesNotExist:
             return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'}, status=401)

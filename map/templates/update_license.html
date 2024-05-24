@@ -201,7 +201,7 @@
           })
               setTimeout(function() {
                 window.location.href = "{% url 'home' %}";
-              }, 10000);
+              }, 1000000);
             } else {
               var errorPopup = document.getElementById('error');
               errorPopup.innerHTML = "<span style='color:red;'>Error: </span> " + data.message;
