@@ -414,7 +414,11 @@ def create_org_api():
 
 @app.task(queue='configure_devices_queue')
 def sync_ldap():
-    subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
+    try:
+        LdapAccount.objects.get()
+        subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
+    except:
+        pass
     
 @shared_task
 def clean_up():

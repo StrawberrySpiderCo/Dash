@@ -92,7 +92,7 @@ app.conf.beat_schedule = {
     },
     'sync_ldap': {
         'task': 'map.tasks.sync_ldap',
-        'schedule': crontab(hour='*/1'),
+        'schedule': crontab(hour=4),
     },
 }
     #'clean-up': {
