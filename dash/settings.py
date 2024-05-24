@@ -25,10 +25,12 @@ import socket
 import os
 from pathlib import Path
 from django.contrib.staticfiles.views import serve
-from django_auth_ldap.config import LDAPSearch
+from django_auth_ldap.config import LDAPSearch,LDAPSearchUnion
+import ldap
 
 
-
+#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dash.settings')
+#django.setup()
 
 def protected_serve(request, path, insecure=False, **kwargs):
     """
@@ -52,18 +54,32 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-sghq-(mx-hkchv&x%wbbh$hb&644#**biczraln(*$)cg$kt58'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
 
 AUTHENTICATION_BACKENDS = [
-    #'django_auth_ldap.backend.LDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',  # Default authentication backend
-    # Add any custom authentication backends here
-    # 'path.to.CustomAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'django_auth_ldap.backend.LDAPBackend',
+    
 ]
+
+
 # Application definition
+# Import the custom settings loader
+AUTH_LDAP_SERVER_URI = ''
+AUTH_LDAP_BIND_DN = ''
+AUTH_LDAP_BIND_PASSWORD = ''
+AUTH_LDAP_USER_SEARCH = ''
+
+AUTH_LDAP_USER_ATTR_MAP = {
+  "username": "sAMAccountName",
+  "first_name": "givenName",
+  "last_name": "sn",
+  "email": "mail",
+}
+
 
 
 LOGIN_URL = '/login'

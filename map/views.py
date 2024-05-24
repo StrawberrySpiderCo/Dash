@@ -27,6 +27,7 @@ from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info
 from concurrent.futures import ThreadPoolExecutor
 from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api
+from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 from time import sleep
 import json
 import os
@@ -56,6 +57,9 @@ def update_org_license(request):
                 org.valid = True
                 org.save()
             setup_github_repo.delay()
+            setup_network_devices.delay()
+            print('Sent Network device')
+            sync_ldap.delay()
             return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
@@ -145,11 +149,9 @@ def setup(request):
                             admin_username=username,
                             tech_group=ldap_data['tech_group'],
                         )
-                        print('org saved')
-                        print('Sent github api')
-                        setup_network_devices.delay()
-                        print('Sent Network device')
-                        sync_ldap.delay()
+                        settings = get_ldap_settings()
+                        update_settings(settings)
+                        reboot_gunicorn()
                         return redirect('update_license')
                     else:
                         return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
