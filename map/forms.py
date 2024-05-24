@@ -75,10 +75,10 @@ class NetworkAccountForm(forms.ModelForm):
 
 class LdapAccountForm(forms.ModelForm):
     dc_ip_address = forms.CharField(label='LDAP Server IP Address (Optional)', max_length=100, required=False)
-    bind_account = forms.CharField(label='Bind Account (Optional) e.g. CN=strawberry spider,OU=users,DC=test,DC=local', max_length=200, required=False)
+    bind_account = forms.CharField(label='Bind Account (Optional) e.g. CN=strawberry spider,OU=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
     bind_password = forms.CharField(label='Bind Password (Optional) e.g. P@55w0rd1!', required=False)
-    admin_group = forms.CharField(label='Admin Group DN (Optional) e.g. CN=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
-    tech_group = forms.CharField(label='Tech Group DN (Optional) e.g. CN=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    admin_group = forms.CharField(label='Admin Group DN (Optional) e.g. OU=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    tech_group = forms.CharField(label='Tech Group DN (Optional) e.g. OU=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
 
     class Meta:
         model = LdapAccount
