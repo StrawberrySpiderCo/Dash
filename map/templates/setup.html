@@ -41,7 +41,7 @@
             {% if field.name == 'network_device_ips' %}
             <label>Select IP Input Method</label>
             <div>
-                <input type="radio" id="bulk_upload" name="ip_input_method" value="bulk_upload" onchange="toggleInputMethod()">
+                <input type="radio" id="bulk_upload" name="ip_input_method" value="bulk_upload" onchange="toggleInputMethod()" checked>
                 <label for="bulk_upload">Bulk Upload</label>
                 <input type="radio" id="manual_entry" name="ip_input_method" value="manual_entry" onchange="toggleInputMethod()">
                 <label for="manual_entry">Manual Entry</label>
