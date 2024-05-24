@@ -38,6 +38,12 @@ from django.core.exceptions import ValidationError
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 from django.db import transaction
 
+def settings(request):
+    org = get_object_or_404(Org_Info)
+    ldap_account = get_object_or_404(LdapAccount)
+    network_account = get_object_or_404(NetworkAccount)
+    return render(request, 'settings.html', {'org': org, 'ldap_account': ldap_account, 'network_account': network_account})
+
 def update_org_license(request):
     if request.method == 'POST':
         license_code = request.POST.get('license_code')
@@ -58,7 +64,7 @@ def update_org_license(request):
                 setup_network_devices.delay()
                 print('Sent Network device')
                 sync_ldap.delay()
-            return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'}, status=200)
+            return JsonResponse({'status': 'success', 'message': 'Friend'}, status=200)
 
         except Org_Info.DoesNotExist:
             return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'}, status=401)
