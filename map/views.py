@@ -45,21 +45,20 @@ def update_org_license(request):
         is_free_trial = request.POST.get('is_free_trial') == 'true'
 
         try:
-            with transaction.atomic():
-                # Lock the row for update
-                org = Org_Info.objects.select_for_update().get()
-                
-                # Update the org_info fields
-                if is_free_trial:
-                    org.free_trail_used = True
-                org.license = license_code
-                org.valid_time = expire_date
-                org.valid = True
-                org.save()
-            setup_github_repo.delay()
-            setup_network_devices.delay()
-            print('Sent Network device')
-            sync_ldap.delay()
+            org = Org_Info.objects.select_for_update().get()
+            
+            # Update the org_info fields
+            if is_free_trial:
+                org.free_trail_used = True
+            org.license = license_code
+            org.valid_time = expire_date
+            org.valid = True
+            org.save()
+            if not org.is_setup:
+                setup_github_repo.delay()
+                setup_network_devices.delay()
+                print('Sent Network device')
+                sync_ldap.delay()
             return JsonResponse({'status': 'success', 'message': 'FUCKING CUNT'})
 
         except Org_Info.DoesNotExist:
