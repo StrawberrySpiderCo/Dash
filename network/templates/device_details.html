@@ -229,6 +229,7 @@
     <p>Interface Type: {{ interface.interface_type }}</p>
     <p>IPv4 Address: {{ interface.ipv4_address }}</p>
     <p>IPv4 Subnet: {{ interface.ipv4_subnet }}</p>
+    {% if is_admin %}
     <button onclick="togglePopup()">
         Edit Selected
         <i class="icon solid fa-pen"></i>
@@ -237,7 +238,7 @@
         Cycle Port
         <i class="icon solid fa-recycle"></i>
       </button>
-
+      {% endif %}
 
 </div>
 </div>

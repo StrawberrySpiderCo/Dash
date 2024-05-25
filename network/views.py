@@ -24,9 +24,10 @@ class IpForm(forms.Form):
 
 @login_required
 def device_details(request, device_id):
+    is_admin = request.user.groups.filter(name='admin').exists()
     device = get_object_or_404(NetworkDevice, pk=device_id)
     sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
-    return render(request, 'device_details.html', {'device': device, 'device_interfaces':sorted_interfaces})
+    return render(request, 'device_details.html', {'device': device, 'device_interfaces':sorted_interfaces,'is_admin': is_admin})
 
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
@@ -37,16 +38,20 @@ def update_device_info(request):
 
 @login_required
 def port_view(request, device_id):
+    is_admin = request.user.groups.filter(name='admin').exists()
     device = get_object_or_404(NetworkDevice, pk=device_id)
     sorted_interfaces = NetworkInterface.objects.filter(device=device).order_by('name')
-    return render(request, 'port_view.html', {'device': device, 'device_interfaces': sorted_interfaces})
+    return render(request, 'port_view.html', {'device': device, 'device_interfaces': sorted_interfaces,'is_admin': is_admin})
 
 @login_required
 def config_view(request, device_id):
+    is_admin = request.user.groups.filter(name='admin').exists()
     device = get_object_or_404(NetworkDevice, pk=device_id)
     device_configs = RunningConfig.objects.filter(device=device)
-    return render(request, 'config_view.html', {'device': device, 'device_configs': device_configs})
+    return render(request, 'config_view.html', {'device': device, 'device_configs': device_configs,'is_admin': is_admin})
 
+@user_passes_test(user_is_admin, login_url='invalid_login')
+@login_required
 def edit_ports(request):
     port_list = []
     if request.method == 'POST':
@@ -118,6 +123,7 @@ def fetch_device_info(request, device_id):
     update_device.delay(hostname)
     return JsonResponse({'device_info': ''})
 
+@user_passes_test(user_is_admin, login_url='invalid_login')
 @login_required
 def cycle_port(request):
     port_list = []
@@ -136,7 +142,7 @@ def cycle_port(request):
         }
     return JsonResponse(data)
     
-
+@user_passes_test(user_is_admin, login_url='invalid_login')
 @login_required
 def push_configs(request, device_id):
     if request.method == 'POST':
@@ -155,6 +161,7 @@ def push_configs(request, device_id):
 def fetch_all_devices_info(request):
     setup_network_devices.delay()
     return JsonResponse({'device_info': ''})
+
 @login_required
 def fetch_devices(request):
     if NetworkDevice.objects.exists():
@@ -166,9 +173,10 @@ def fetch_devices(request):
 @login_required
 def network_view(request):
     device_info = NetworkDevice.objects.all().order_by('ip_address')
+    
     context = {
-            'device_info': device_info
-        }
+            'device_info': device_info,
+                        }
     return render(request, 'network.html', context)
 
 

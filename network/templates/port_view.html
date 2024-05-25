@@ -129,12 +129,12 @@
 
 </style>
 <h2>Port View - <a style="color: rgb(143, 137, 228)!important; text-decoration: none;" href="{% url 'device_details' device_id=device.id %}" >{{ device.hostname }}</a> - {{ device.ip_address }}</h2>
-
+{% if is_admin %}
 <button onclick="togglePopup()">
   Edit Selected
   <i class="icon solid fa-pen"></i>
 </button>
-
+{% endif %}
 <button style="float: right;" onclick="toggleColumnPopup()">
   Filter Columns
   <i class="icon solid fa-filter"></i>
