@@ -128,6 +128,9 @@
 				function redirectToLogin() {
 	window.location.href = "{% url 'login_user' %}";
 }
+function redirectToHome() {
+	window.location.href = "{% url 'home' %}";
+}
 				function redirectToLogout() {
 	window.location.href = "{% url 'logout_user' %}";
 }

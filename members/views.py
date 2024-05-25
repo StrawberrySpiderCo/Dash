@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 def create_user(request):
@@ -33,16 +34,20 @@ def login_user(request):
     if request.method == "POST":
         username = request.POST["username"]
         password = request.POST["password"]
-        user = authenticate(request, username=username, password=password)
-        print(request.user.is_authenticated)
-        if user is not None:
-            login(request, user)
-            return redirect('/')
-            # Redirect to a success page.
-        else:
-            messages.success(request, "There was an error logging in. Please contact the website administrator.")
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = None
 
-            # Return an 'invalid login' error message.
+        if user is not None:
+            authenticated_user = authenticate(request, username=username, password=password)
+            if authenticated_user is not None:
+                login(request, authenticated_user)
+                return redirect('/')
+            else:
+                messages.error(request, "Invalid password. Please try again.")
+        else:
+            messages.error(request, "Username does not exist. Please try again.")
 
     # Handle the case when the request method is not POST
     return render(request, 'login.html')

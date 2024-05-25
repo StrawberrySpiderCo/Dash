@@ -3,17 +3,17 @@
 {% csrf_token %}
 {% block title %}Settings{% endblock %}
 {% block template %}
-<h1>Settings</h1>
-
+<h1>Settings</h1> <a href="{% url 'update_admin' %}" style="text-decoration: underline; color:  var(--border-color);">Click here</a> to update local admin account  <a href="{% url 'update_license' %}" style="text-decoration: underline; color:  var(--border-color);">Click here</a> to update license 
+<br><br>
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <h2>Organization Info</h2>
+    <h3>Organization Info</h3>
     {{ org_form.as_p }}
 
-    <h2>LDAP Account</h2>
+    <h3>LDAP Account</h3>
     {{ ldap_form.as_p }}
 
-    <h2>Network Account</h2>
+    <h3>Network Account</h3>
     {{ network_form.as_p }}
 
     <button type="submit">Save Changes</button>

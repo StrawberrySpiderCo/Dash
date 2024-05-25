@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Admin Successful{% endblock %}
+{% block template %}
+<div class="container">
+    <h1>Admin Change Successful - <a href="{% url 'home' %}" style="text-decoration: underline; color: lightblue;">Click here</a> to login to admin account</h1>
+</div>
+{% endblock %}

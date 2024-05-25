@@ -95,6 +95,7 @@
 
 </style>
 <div id="popup-container" class="popup-container">
+
     <div id="popup" class="popup">
         <h1>Update License for {{ org.org_name }}</h1>
         <form id="license-form" method="post">
@@ -102,7 +103,16 @@
             <input type="hidden" name="free_trail_used" id="free_trail_used" value="{{org.free_trail_used}}">
             <h2 id="license-label">Input License:</h2>
             <input type="text" name="license" id="license" placeholder="25 character license e.g. (STRAWBERRYSPIDERLICENSECO)" maxlength="25" oninput="this.value = this.value.toUpperCase(); checkInputLength();"><br><br>
+            
         </form>
+        {% if org.valid %}
+            <div>
+              <p>Current License: {{org.license}}</p>
+              <p>Expiration Date: {{org.valid_time}}</p>
+              <button onclick="redirectToHome()"> Home </button>
+          </div>
+          
+            {%endif%}
         <div id="error"></div>
         <div id="loading-indicator" class="loading-indicator">
             <div class="spinner"></div>

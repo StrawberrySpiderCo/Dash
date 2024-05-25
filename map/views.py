@@ -43,10 +43,39 @@ from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 from django.db import transaction
 def user_is_admin(user):
     return user.groups.filter(name='admin').exists()
+def user_is_local_admin(user):
+    return user.is_superuser
+
+@user_passes_test(user_is_local_admin, login_url='invalid_login')
+def update_admin(request):
+    if request.method == 'POST':
+        admin_form = AdminCreationForm(request.POST)
+        if admin_form.is_valid():
+            admin_data = admin_form.cleaned_data
+            username = admin_data['username']
+            password = admin_data['password1']
+            User.objects.filter(is_superuser=True).delete()
+            user = User.objects.create_user(username, password=password)
+            user.is_superuser = True
+            user.is_staff = True
+            django_admin_group = Group.objects.get(name='admin')
+            django_tech_group = Group.objects.get(name='tech')
+            user.groups.add(django_admin_group)
+            user.groups.add(django_tech_group)
+            user.save()
+            return redirect('admin_update_success')
+    else:
+        admin_form = AdminCreationForm()
+
+    return render(request, 'update_admin.html', {
+        'admin_form': admin_form
+    })
 
 def settings_success(request):
     return render(request, 'settings_success.html')
 
+def admin_update_success(request):
+    return render(request, 'admin_update_success.html')
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
 def settings(request):
