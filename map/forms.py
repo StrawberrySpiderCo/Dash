@@ -41,7 +41,10 @@ class NetworkAccountFormSettings(forms.ModelForm):
 
     class Meta:
         model = NetworkAccount
-        fields = '__all__'
+        fields = [
+                        'ssh_username', 'ssh_password', 'ssh_enable_password',
+             'network_device_ips','meraki_api_key',
+        ]
 
     def __init__(self, *args, **kwargs):
         super(NetworkAccountFormSettings, self).__init__(*args, **kwargs)
