@@ -63,7 +63,6 @@ urlpatterns = [
     path('tools/', tools.tools_view, name='tools'),
     path('network/', network.network_view, name='network'),
     path('update_device_info/', network.update_device_info, name='update_device_info'),
-    path('update_vlan_info/', tools.update_vlan_info, name='update_vlan_info'),
     path('clone_rf/', tools.clone_rf, name='clone_rf'),
     path('sites/', sites.sites_view, name='sites'),
     path('ping/', map.ping_view, name="ping_view"),

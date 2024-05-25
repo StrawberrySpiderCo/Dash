@@ -74,6 +74,7 @@ def update_admin(request):
 def settings_success(request):
     return render(request, 'settings_success.html')
 
+
 def admin_update_success(request):
     return render(request, 'admin_update_success.html')
 
@@ -437,11 +438,6 @@ def ipam_view(request):
     sites = Site.objects.all()
     return render(request, 'ipam.html', {'sites': sites})
 
-@login_required
-@user_passes_test(user_is_admin, login_url='invalid_login')
-def update_vlan_info(request):
-    update_vlan_info_task.delay()
-    return redirect('ipam')
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
 def multiplicity_view(request):
