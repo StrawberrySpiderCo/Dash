@@ -93,7 +93,7 @@
 
 							<!-- Header -->
 								<header id="header">
-									<p class="button top-button-left" onclick="redirectToRequest()">Request a feature <i class="icon solid fa-comment"></i> </p>
+									<p class="button top-button-left" onclick="redirectToRequests()">Request A Feature / Create Support Ticket <i class="icon solid fa-comment"></i> </p>
 									{% if user.is_authenticated %}
 									<p class="button top-button-right-mid" onclick="redirectToLogout()">Logout <i class="icon solid fa-user-slash"></i></p>
 									<p class="button top-button-right" onclick="history.back()">Back <i class="icon solid fa-backward"></i></a></p>
@@ -127,8 +127,14 @@
 			<script src="{% static 'assets/js/util.js' %}"></script>
 			<script src="{% static 'assets/js/main.js' %}"></script>
 			<script>
+								function redirectToRequests() {
+	window.location.href = "{% url 'feature_request' %}";
+	
+}
+				
 				function redirectToLogin() {
 	window.location.href = "{% url 'login_user' %}";
+	
 }
 function redirectToHome() {
 	window.location.href = "{% url 'home' %}";

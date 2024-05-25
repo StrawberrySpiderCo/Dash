@@ -162,12 +162,9 @@ def update_license(request):
     org = get_object_or_404(Org_Info)          
     return render(request, 'update_license.html', {'org': org})
 
-
-
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
-
 def setup(request):
     if Org_Info.objects.exists():
         return redirect('home')
