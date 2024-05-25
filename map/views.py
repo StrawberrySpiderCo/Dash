@@ -24,11 +24,15 @@ import aiohttp
 import asyncio
 from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
-from map.models import Device_Info, Client_Info, Org_Info
+from map.models import Device_Info, Client_Info, Org_Info, LdapAccount, NetworkAccount
+from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccountForm, OrgInfoFormSettings, LdapAccountFormSettings, NetworkAccountFormSettings
+from .models import Org_Info, NetworkAccount, LdapAccount
+from django.contrib.auth.models import User, Group
 from concurrent.futures import ThreadPoolExecutor
 from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api
 from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 from time import sleep
+from django.forms import ModelForm
 import json
 import os
 import csv
@@ -37,12 +41,73 @@ from .models import FeatureRequest
 from django.core.exceptions import ValidationError
 from django_auth_ldap.config import LDAPSearch, GroupOfNamesType
 from django.db import transaction
+def user_is_admin(user):
+    return user.groups.filter(name='admin').exists()
 
+def settings_success(request, changes, ldap_changed):
+    if ldap_changed:
+        reboot_gunicorn()
+    return render(request, 'settings_success.html', {'changes': changes})
+
+
+@user_passes_test(user_is_admin, login_url='invalid_login')
 def settings(request):
     org = get_object_or_404(Org_Info)
     ldap_account = get_object_or_404(LdapAccount)
     network_account = get_object_or_404(NetworkAccount)
-    return render(request, 'settings.html', {'org': org, 'ldap_account': ldap_account, 'network_account': network_account})
+    changes = []
+
+    if request.method == 'POST':
+        org_form = OrgInfoFormSettings(request.POST, request.FILES, instance=org)
+        ldap_form = LdapAccountFormSettings(request.POST, instance=ldap_account)
+        network_form = NetworkAccountFormSettings(request.POST, request.FILES, instance=network_account)
+
+        if org_form.is_valid() and ldap_form.is_valid() and network_form.is_valid():
+            if org_form.has_changed():
+                old_org_data = {field: getattr(org, field) for field in org_form.changed_data}
+                org_form.save()
+                new_org_data = {field: getattr(org, field) for field in org_form.changed_data}
+                changes.append("Organization info updated:")
+                for field, old_value in old_org_data.items():
+                    new_value = new_org_data.get(field)
+                    changes.append(f"  - {field}: {old_value} -> {new_value}")
+
+            if network_form.has_changed():
+                old_ips = set(network_account.network_device_ips)
+                new_ips = set(filter(None, re.split(r'[,\s]+', network_form.cleaned_data['network_device_ips'])))
+                network_account.network_device_ips = list(new_ips)
+                network_account.save()
+
+                added_ips = new_ips - old_ips
+                removed_ips = old_ips - new_ips
+
+                if added_ips or removed_ips:
+                    setup_network_devices.delay(list(added_ips), list(removed_ips))
+                    changes.append("Network devices updated.")
+                else:
+                    setup_network_devices.delay()
+
+            if ldap_form.has_changed():
+                old_ldap_data = {field: getattr(ldap_account, field) for field in ldap_form.changed_data}
+                ldap_form.save()
+                new_ldap_data = {field: getattr(ldap_account, field) for field in ldap_form.changed_data}
+                changes.append("LDAP settings updated:")
+                for field, old_value in old_ldap_data.items():
+                    new_value = new_ldap_data.get(field)
+                    changes.append(f"  - {field}: {old_value} -> {new_value}")
+                ldap_changed = True
+
+            return redirect('settings_success', kwargs={'changes': changes, 'ldap_changed': ldap_changed})
+    else:
+        org_form = OrgInfoFormSettings(instance=org)
+        ldap_form = LdapAccountFormSettings(instance=ldap_account)
+        network_form = NetworkAccountFormSettings(instance=network_account)
+
+    return render(request, 'settings.html', {
+        'org_form': org_form,
+        'ldap_form': ldap_form,
+        'network_form': network_form,
+    })
 
 def update_org_license(request):
     if request.method == 'POST':
@@ -77,15 +142,11 @@ def update_license(request):
     org = get_object_or_404(Org_Info)          
     return render(request, 'update_license.html', {'org': org})
 
-def user_is_admin(user):
-    return user.groups.filter(name='Admins').exists()
+
 
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
-from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccountForm
-from .models import Org_Info, NetworkAccount, LdapAccount
-from django.contrib.auth.models import User
 
 def setup(request):
     if Org_Info.objects.exists():
@@ -129,6 +190,10 @@ def setup(request):
                         user = User.objects.create_user(username, email=email, password=password)
                         user.is_superuser = True
                         user.is_staff = True
+                        django_admin_group = Group.objects.get(name='admin')
+                        django_tech_group = Group.objects.get(name='tech')
+                        user.groups.add(django_admin_group)
+                        user.groups.add(django_tech_group)
                         user.save()
                         org_info = Org_Info.objects.create(
                             org_name=org_info_data['org_name'],

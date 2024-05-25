@@ -295,9 +295,24 @@ def update_host_file_task():
     update_host_file()
 
 @app.task(queue='get_info_queue')
-def setup_network_devices():
-    org_info = NetworkAccount.objects.get()
-    network_ips = set(org_info.network_device_ips)
+def setup_network_devices(added_ips=None, removed_ips=None):
+    if added_ips is None and removed_ips is None:
+        org_info = NetworkAccount.objects.get()
+        network_ips = set(org_info.network_device_ips)
+    else:
+        # Update network devices based on added and removed IPs
+        org_info = NetworkAccount.objects.get()
+        network_ips = set(org_info.network_device_ips)
+
+        if added_ips:
+            network_ips.update(added_ips)
+
+        if removed_ips:
+            network_ips.difference_update(removed_ips)
+
+        # Remove devices that are no longer in the list
+        NetworkDevice.objects.exclude(ip_address__in=network_ips).delete()
+
     playbook_dir = '/home/sbs/Dash/ansible'
     host_file_path = f"{playbook_dir}/hosts.ini"
     if os.path.exists(host_file_path):
@@ -322,6 +337,7 @@ def setup_network_devices():
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
+
     get_device_info()
     update_port_info()
     gather_running_configs()

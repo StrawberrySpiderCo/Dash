@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Settings Success{% endblock %}
+{% block template %}
+<h1>Changes Saved Successfully</h1>
+<ul>
+    {% for change in changes %}
+        <li>{{ change }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

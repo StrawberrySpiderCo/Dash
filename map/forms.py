@@ -9,6 +9,47 @@ from .models import Org_Info, NetworkAccount, LdapAccount
 import ipaddress
 
 
+class OrgInfoFormSettings(forms.ModelForm):
+    class Meta:
+        model = Org_Info
+        fields = [
+            'org_name',
+        ]
+
+class LdapAccountFormSettings(forms.ModelForm):
+    dc_ip_address = forms.CharField(label='LDAP Server IP Address (Optional)', max_length=100, required=False)
+    bind_account = forms.CharField(label='Bind Account (Optional) e.g. CN=strawberry spider,OU=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    bind_password = forms.CharField(label='Bind Password (Optional) e.g. P@55w0rd1!', required=False)
+    admin_group = forms.CharField(label='Admin Group DN (Optional) e.g. OU=Admins,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+    tech_group = forms.CharField(label='Tech Group DN (Optional) e.g. OU=Techs,OU=Groups,DC=test,DC=local', max_length=200, required=False)
+
+    class Meta:
+        model = LdapAccount
+        fields = [
+            'dc_ip_address', 'bind_account', 'bind_password',
+            'admin_group', 'tech_group'
+        ]
+
+class NetworkAccountFormSettings(forms.ModelForm):
+    meraki_api_key = forms.CharField(label='Meraki API Key', required=False)
+
+    network_device_ips = forms.CharField(
+        help_text='Add or remove IP addresses separated by commas e.g. 192.168.0.1,192.168.0.2',
+        widget=forms.Textarea(attrs={'rows': 4, 'cols': 40}),
+        
+    )
+
+    class Meta:
+        model = NetworkAccount
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(NetworkAccountFormSettings, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.network_device_ips:
+            self.initial['network_device_ips'] = ','.join(self.instance.network_device_ips)
+
+
+
 class FeatureRequestForm(forms.ModelForm):
     class Meta:
         model = FeatureRequest

@@ -1,7 +1,21 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
-{% block title %}Sites{% endblock %}
+{% block title %}Settings{% endblock %}
 {% block template %}
 <h1>Settings</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h2>Organization Info</h2>
+    {{ org_form.as_p }}
+
+    <h2>LDAP Account</h2>
+    {{ ldap_form.as_p }}
+
+    <h2>Network Account</h2>
+    {{ network_form.as_p }}
+
+    <button type="submit">Save Changes</button>
+</form>
 {% endblock %}
