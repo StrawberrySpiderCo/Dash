@@ -44,10 +44,11 @@ from django.db import transaction
 def user_is_admin(user):
     return user.groups.filter(name='admin').exists()
 
-def settings_success(request, changes, ldap_changed):
-    if ldap_changed:
+def settings_success(request):
+    ldap = LdapAccount.objects.get()
+    if ldap.changed:
         reboot_gunicorn()
-    return render(request, 'settings_success.html', {'changes': changes})
+    return render(request, 'settings_success.html')
 
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
@@ -56,7 +57,7 @@ def settings(request):
     ldap_account = get_object_or_404(LdapAccount)
     network_account = get_object_or_404(NetworkAccount)
     changes = []
-
+    ldap_changed = False
     if request.method == 'POST':
         org_form = OrgInfoFormSettings(request.POST, request.FILES, instance=org)
         ldap_form = LdapAccountFormSettings(request.POST, instance=ldap_account)
@@ -65,8 +66,9 @@ def settings(request):
         if org_form.is_valid() and ldap_form.is_valid() and network_form.is_valid():
             if org_form.has_changed():
                 old_org_data = {field: getattr(org, field) for field in org_form.changed_data}
-                org_form.save()
-                new_org_data = {field: getattr(org, field) for field in org_form.changed_data}
+                org_instance = org_form.save(commit=False)  # Save but don't commit changes to database yet
+                org_instance.save()  # Now save changes to database
+                new_org_data = {field: getattr(org_instance, field) for field in org_form.changed_data}
                 changes.append("Organization info updated:")
                 for field, old_value in old_org_data.items():
                     new_value = new_org_data.get(field)
@@ -74,30 +76,30 @@ def settings(request):
 
             if network_form.has_changed():
                 old_ips = set(network_account.network_device_ips)
-                new_ips = set(filter(None, re.split(r'[,\s]+', network_form.cleaned_data['network_device_ips'])))
-                network_account.network_device_ips = list(new_ips)
-                network_account.save()
-
+                new_ips_raw = network_form.cleaned_data['network_device_ips']
+                new_ips = set(filter(None, re.split(r'[,\s]+', new_ips_raw)))
                 added_ips = new_ips - old_ips
                 removed_ips = old_ips - new_ips
 
                 if added_ips or removed_ips:
+                    network_account.network_device_ips = new_ips_raw  # Update with raw input including formatting
+                    network_account.save()
                     setup_network_devices.delay(list(added_ips), list(removed_ips))
                     changes.append("Network devices updated.")
                 else:
-                    setup_network_devices.delay()
+                    changes.append("No changes made to network devices.")
 
             if ldap_form.has_changed():
                 old_ldap_data = {field: getattr(ldap_account, field) for field in ldap_form.changed_data}
-                ldap_form.save()
-                new_ldap_data = {field: getattr(ldap_account, field) for field in ldap_form.changed_data}
+                ldap_instance = ldap_form.save(commit=False)
+                ldap_instance.save()
+                new_ldap_data = {field: getattr(ldap_instance, field) for field in ldap_form.changed_data}
                 changes.append("LDAP settings updated:")
                 for field, old_value in old_ldap_data.items():
                     new_value = new_ldap_data.get(field)
                     changes.append(f"  - {field}: {old_value} -> {new_value}")
                 ldap_changed = True
-
-            return redirect('settings_success', kwargs={'changes': changes, 'ldap_changed': ldap_changed})
+            return redirect('settings_success')
     else:
         org_form = OrgInfoFormSettings(instance=org)
         ldap_form = LdapAccountFormSettings(instance=ldap_account)
