@@ -722,11 +722,6 @@ def clone_rf(request):
         else:
             output_messages.append(f"Failed to gather SSID info. Error: {res.status_code}")
     return render(request, 'clone_rf_results.html',  {'output_messages': output_messages})
-@user_passes_test(user_is_admin, login_url='invalid_login')
-@login_required
-def update_device_info(request):
-    update_device_info_task.delay()
-    return redirect('network')
 @login_required
 def network_view(request):
     device_info = Device_Info.objects.all()
