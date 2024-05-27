@@ -808,5 +808,5 @@ def feature_request_view(request):
 @login_required
 def user_feature_requests(request):
     user = request.user
-    feature_requests = FeatureRequest.objects.filter(user=user)
+    feature_requests = FeatureRequest.objects.filter(user=user).order_by('-created_at')
     return render(request, 'user_feature_requests.html', {'feature_requests': feature_requests})
