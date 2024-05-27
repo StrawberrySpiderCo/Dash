@@ -78,6 +78,10 @@ def settings_success(request):
 def admin_update_success(request):
     return render(request, 'admin_update_success.html')
 
+def ticket_details(request):
+    ticket_id = request.GET.get('ticket_id')
+    return render(request, 'ticket.html', {'ticket_id': ticket_id})
+
 @user_passes_test(user_is_admin, login_url='invalid_login')
 def settings(request):
     org = get_object_or_404(Org_Info)

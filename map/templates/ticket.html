@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Ticket{% endblock %}
+{% block template %}
+<title>Ticket Details</title>
+</head>
+<body>
+    <h1>Ticket Details</h1>
+    <div id="ticket-details"></div>
+    <h2>Update Ticket</h2>
+    <form id="update-ticket-form">
+        <label for="communication">Communication:</label>
+        <textarea id="communication" name="communication" required></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketId = urlParams.get('ticket_id');
+
+    fetch('https://license.strawberryspider.com/api/tickets/detail/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ticket_id: ticketId }),
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers.get('Content-Type'));
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        } else {
+            throw new Error('Response is not JSON');
+        }
+    })
+    .then(data => {
+        document.getElementById('ticket-details').innerText = JSON.stringify(data, null, 2);
+    })
+    .catch(error => console.error('Error:', error));
+});
+
+        document.getElementById('update-ticket-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(event.target);
+            var jsonData = {};
+            formData.forEach((value, key) => jsonData[key] = value);
+
+            fetch(`https://license.strawberryspider.com/api/tickets/${ticketId}/update/`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+{% endblock %}

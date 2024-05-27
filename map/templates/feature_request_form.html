@@ -3,18 +3,43 @@
 {% csrf_token %}
 {% block title %}Feature Request{% endblock %}
 {% block template %}
-<div>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+<h1>Create Ticket</h1>
+<form id="create-ticket-form">
+    <label for="org_name">Organization Name:</label>
+    <input type="text" id="org_name" name="org_name" required><br>
+    <label for="org_id">Organization ID:</label>
+    <input type="text" id="org_id" name="org_id" required><br>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br>
+    <label for="type">Type:</label>
+    <select id="type" name="type" required>
+        <option value="request">Request</option>
+        <option value="issue">Issue</option>
+    </select><br>
+    <label for="user">User:</label>
+    <input type="text" id="user" name="user" required><br>
     <button type="submit">Submit</button>
 </form>
-<button onclick="redirectToOpenRequest()">View Submitted Requests</button>
 
-</div>
 <script>
-function redirectToOpenRequest(){
-    window.location.href = "{% url 'user_feature_requests' %}"
-}
+    document.getElementById('create-ticket-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(event.target);
+        var jsonData = {};
+        formData.forEach((value, key) => jsonData[key] = value);
+
+        fetch('https://license.strawberryspider.com/api/tickets/create/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            window.location.href = `/ticket?ticket_id=${data.ticket_id}`;
+        })
+        .catch(error => console.error('Error:', error));
+    });
 </script>
 {% endblock %}
