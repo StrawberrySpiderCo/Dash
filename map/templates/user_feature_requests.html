@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+{% block title %}Requests{% endblock %}
+{% block template %}
+    <h1>Your Requests</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for request in feature_requests %}
+            <tr style="cursor: pointer; text-decoration: underline; color: var(--border-color);" onclick="redirectToTicket('{{ request.uid }}', '{{ request.title }}')">
+                <td>{{ request.title }}</td>
+                <td>{{ request.created_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        function redirectToTicket(uid, title) {
+            const encodedTitle = encodeURIComponent(title);
+            window.location.href = `/ticket?ticket_id=${uid}&title=${encodedTitle}`;
+        }
+    </script>
+{% endblock %}

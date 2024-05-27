@@ -4,78 +4,165 @@
 {% block title %}Ticket{% endblock %}
 {% block template %}
 <title>Ticket Details</title>
-</head>
-<body>
-    <h1>Ticket Details</h1>
-    <div id="ticket-details"></div>
-    <h2>Update Ticket</h2>
-    <form id="update-ticket-form">
-        <label for="communication">Communication:</label>
-        <textarea id="communication" name="communication" required></textarea><br>
-        <button type="submit">Submit</button>
-    </form>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+    .container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    }
+    .top-half, .bottom-half {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+    }
+    .ticket-details {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .ticket-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .ticket-description {
+        background-color: var(--left-menu-color);
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        height: 150px;
+        overflow-y: auto;
+    }
+    .message-bubble {
+        max-width: 70%;
+        padding: 10px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .message-left {
+        background-color: #e1ffc7;
+        align-self: flex-start;
+        color:black;
+    }
+    .message-right {
+        background-color: #c7e1ff;
+        align-self: flex-end;
+        color:black;
+    }
+    .message-container {
+        display: flex;
+        flex-direction: column;
+        max-height: 20vh;
+        overflow-y: auto;
+    }
+</style>
+<h2>Ticket Details</h2>
+    <div class="container">
+        <div class="top-half">
+            <div class="ticket-header">
+                <div><strong>Title:</strong> <span id="title"></span></div>
+                <div><strong>Created Date:</strong> <span id="created-date"></span></div>
+                <div><strong>Status:</strong> <span id="status"></span></div>
+                <div><strong>Type:</strong> <span id="type"></span></div>
+            </div>
+            <div class="ticket-description">
+                <p><strong>Description:</strong></p>
+                <p id="description"></p>
+            </div>
+        </div>
+        <div class="bottom-half">
+<h2>Messages</h2>
+<div class="message-container" id="message-container"></div>
+<br>
+<form id="update-ticket-form" style="position: relative;">
+    <div style="position: relative; display: flex; ">
+        <textarea id="communication" name="communication" required placeholder="Send a message" style="height: auto !important;  padding-right: 80px; overflow: auto;"></textarea>
+        <button type="submit" style="position: absolute; bottom: 10px; right: 35px;">Send</button>
+    </div>
+</form>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-    const ticketId = urlParams.get('ticket_id');
-document.addEventListener("DOMContentLoaded", function() {
     
+    
+        </div>
+        <script>
+            const messageContainer = document.getElementById('message-container');
 
-    fetch('https://license.strawberryspider.com/api/tickets/detail/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ticket_id: ticketId }),
-    })
-    .then(response => {
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers.get('Content-Type'));
+const urlParams = new URLSearchParams(window.location.search);
+        const ticketId = urlParams.get('ticket_id');
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch('https://license.strawberryspider.com/api/tickets/detail/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ticket_id: ticketId }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('title').innerText = data.title;
+                document.getElementById('created-date').innerText = new Date(data.created_date).toLocaleString();
+                document.getElementById('status').innerText = data.status;
+                document.getElementById('type').innerText = data.type;
+                document.getElementById('description').innerText = data.description;
 
-        const contentType = response.headers.get('Content-Type');
-        if (contentType && contentType.includes('application/json')) {
-            return response.json();
-        } else {
-            throw new Error('Response is not JSON');
-        }
-    })
-    .then(data => {
-        document.getElementById('ticket-details').innerText = JSON.stringify(data, null, 2);
-    })
-    .catch(error => console.error('Error:', error));
-});
+                const messages = data.communication.messages;
+                const messageContainer = document.getElementById('message-container');
+                messages.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message-bubble');
+                    messageDiv.classList.add(message.sender === 'sbs_tech' ? 'message-left' : 'message-right');
+                    messageDiv.innerHTML = `<strong>${message.sender}:</strong> <span>${new Date(message.time).toLocaleString()}</span><br>${message.message}`;
+                    messageContainer.appendChild(messageDiv);
+                    
+                });
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            })
+            .catch(error => console.error('Error:', error));
+        });
 
-document.getElementById('update-ticket-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    const urlParams = new URLSearchParams(window.location.search);
-    const ticketId = urlParams.get('ticket_id');
-    var formData = new FormData(event.target);
-    var jsonData = {};
-    formData.forEach((value, key) => jsonData[key] = value);
-    jsonData['ticket_id'] = ticketId; // Add the ticket ID to the request body
-    jsonData['sender'] = '{{user.username}}'; // Or 'tech', depending on who is sending the message
+        document.getElementById('update-ticket-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const urlParams = new URLSearchParams(window.location.search);
+            const ticketId = urlParams.get('ticket_id');
+            var formData = new FormData(event.target);
+            var jsonData = {};
+            formData.forEach((value, key) => jsonData[key] = value);
+            jsonData['ticket_id'] = ticketId;
+            jsonData['sender'] = '{{user.username}}';
 
-    fetch('https://license.strawberryspider.com/api/tickets/update/', {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(jsonData),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        window.location.reload();
-    })
-    .catch(error => console.error('Error:', error));
-});
+            fetch('https://license.strawberryspider.com/api/tickets/update/', {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                window.location.reload();
+            })
+            .catch(error => console.error('Error:', error));
+        });
     </script>
 {% endblock %}

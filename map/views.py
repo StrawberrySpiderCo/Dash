@@ -83,7 +83,7 @@ def ticket_details(request):
     title = request.GET.get('title')
     user = request.user
     org = get_object_or_404(Org_Info)
-    feature_request = FeatureRequest.objects.create(
+    feature_request = FeatureRequest.objects.update_or_create(
         title=title,
         uid=ticket_id,
         user=user
@@ -805,7 +805,8 @@ def feature_request_view(request):
     org = get_object_or_404(Org_Info)
     return render(request, 'feature_request_form.html', {'org': org, 'user': user})
 
-
+@login_required
 def user_feature_requests(request):
-    feature_requests = FeatureRequest.objects.filter(user=request.user)
+    user = request.user
+    feature_requests = FeatureRequest.objects.filter(user=user)
     return render(request, 'user_feature_requests.html', {'feature_requests': feature_requests})

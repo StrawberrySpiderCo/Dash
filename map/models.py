@@ -248,6 +248,7 @@ class LdapAccount(models.Model):
 class FeatureRequest(models.Model):
     title = models.CharField(max_length=100, default='')
     uid = models.CharField(max_length=100, default='')
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE,  default=1)
 
     def __str__(self):
