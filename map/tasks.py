@@ -30,7 +30,6 @@ base_url = 'https://license.strawberryspider.com/api/'
 # Define your secret token
 secret_token = 'Bababooey'
 
-load_dotenv()
 @app.task(queue='get_info_queue')
 def check_date():
     org = Org_Info.objects.get()
