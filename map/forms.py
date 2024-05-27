@@ -56,7 +56,7 @@ class NetworkAccountFormSettings(forms.ModelForm):
 class FeatureRequestForm(forms.ModelForm):
     class Meta:
         model = FeatureRequest
-        fields = ['title', 'description']
+        fields = ['title', 'uid']
 
 class AdminCreationForm(UserCreationForm):
     class Meta:

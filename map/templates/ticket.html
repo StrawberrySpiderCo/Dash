@@ -16,9 +16,10 @@
     </form>
 
     <script>
-document.addEventListener("DOMContentLoaded", function() {
-    const urlParams = new URLSearchParams(window.location.search);
+        const urlParams = new URLSearchParams(window.location.search);
     const ticketId = urlParams.get('ticket_id');
+document.addEventListener("DOMContentLoaded", function() {
+    
 
     fetch('https://license.strawberryspider.com/api/tickets/detail/', {
         method: 'POST',
@@ -48,24 +49,33 @@ document.addEventListener("DOMContentLoaded", function() {
     .catch(error => console.error('Error:', error));
 });
 
-        document.getElementById('update-ticket-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            var formData = new FormData(event.target);
-            var jsonData = {};
-            formData.forEach((value, key) => jsonData[key] = value);
+document.getElementById('update-ticket-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketId = urlParams.get('ticket_id');
+    var formData = new FormData(event.target);
+    var jsonData = {};
+    formData.forEach((value, key) => jsonData[key] = value);
+    jsonData['ticket_id'] = ticketId; // Add the ticket ID to the request body
+    jsonData['sender'] = '{{user.username}}'; // Or 'tech', depending on who is sending the message
 
-            fetch(`https://license.strawberryspider.com/api/tickets/${ticketId}/update/`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(jsonData),
-            })
-            .then(response => response.json())
-            .then(data => {
-                window.location.reload();
-            })
-            .catch(error => console.error('Error:', error));
-        });
+    fetch('https://license.strawberryspider.com/api/tickets/update/', {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(jsonData),
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        window.location.reload();
+    })
+    .catch(error => console.error('Error:', error));
+});
     </script>
 {% endblock %}

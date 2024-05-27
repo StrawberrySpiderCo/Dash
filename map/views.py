@@ -80,7 +80,15 @@ def admin_update_success(request):
 
 def ticket_details(request):
     ticket_id = request.GET.get('ticket_id')
-    return render(request, 'ticket.html', {'ticket_id': ticket_id})
+    title = request.GET.get('title')
+    user = request.user
+    org = get_object_or_404(Org_Info)
+    feature_request = FeatureRequest.objects.create(
+        title=title,
+        uid=ticket_id,
+        user=user
+    )
+    return render(request, 'ticket.html', {'ticket_id': ticket_id, 'org':org, 'user': user})
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
 def settings(request):
@@ -791,20 +799,13 @@ def update_site(request, site_id):
     return render(request, 'site_update.html', {'site': site})
 
 from django.shortcuts import render, redirect
-from .forms import FeatureRequestForm
 @login_required
 def feature_request_view(request):
-    if request.method == 'POST':
-        form = FeatureRequestForm(request.POST)
-        if form.is_valid():
-            feature_request = form.save(commit=False)
-            feature_request.user = request.user  
-            feature_request.save()
-            return redirect('user_feature_requests')
-    else:
-        form = FeatureRequestForm()
+    user = request.user
+    org = get_object_or_404(Org_Info)
+    return render(request, 'feature_request_form.html', {'org': org, 'user': user})
 
-    return render(request, 'feature_request_form.html', {'form': form})
+
 def user_feature_requests(request):
     feature_requests = FeatureRequest.objects.filter(user=request.user)
     return render(request, 'user_feature_requests.html', {'feature_requests': feature_requests})
