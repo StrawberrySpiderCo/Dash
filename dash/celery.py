@@ -12,6 +12,11 @@ timezone = 'PST'
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dash.settings')
 
+import os
+
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'default_broker_url')
+
+
 app = Celery('dash')
 
 app.config_from_object('django.conf:settings', namespace='CELERY')
