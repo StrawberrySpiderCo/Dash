@@ -161,6 +161,8 @@ def update_org_license(request):
                 setup_network_devices.delay()
                 print('Sent Network device')
                 sync_ldap.delay()
+                org.is_setup=True
+                org.save()
             return JsonResponse({'status': 'success', 'message': 'Friend'}, status=200)
 
         except Org_Info.DoesNotExist:
@@ -229,7 +231,7 @@ def setup(request):
                             contact_email=org_info_data['contact_email'],
                             contact_phone=org_info_data['contact_phone'],
                             org_id=org_id,
-                            is_setup=True
+
                         )
                         network_account = NetworkAccount.objects.create(
                             ssh_username=network_data['ssh_username'],
