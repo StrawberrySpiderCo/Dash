@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask,NetworkAccount, LdapAccount
+from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask,NetworkAccount, LdapAccount, FeatureRequest
 from django.contrib.auth.models import User as AuthUser
 from django.db import IntegrityError
 from time import sleep
@@ -465,6 +465,7 @@ def nuke():
     NetworkInterface.objects.all().delete()
     NetworkAccount.objects.all().delete()
     LdapAccount.objects.all().delete()
+    FeatureRequest.objects.all().delete()
 ### MERAKI, AZURE, WEBEX CODE #####
 '''
 @shared_task
