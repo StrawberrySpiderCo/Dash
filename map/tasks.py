@@ -30,6 +30,8 @@ base_url = 'https://license.strawberryspider.com/api/'
 # Define your secret token
 secret_token = 'Bababooey'
 
+github_token = os.getenv('GITHUB_TOKEN')
+
 @app.task(queue='get_info_queue')
 def check_date():
     org = Org_Info.objects.get()
@@ -356,9 +358,8 @@ def setup_github_repo():
     if org_info.repo_name:
         pass
     else:
-        # Create GitHub repository
-        github_token = os.getenv('GITHUB_TOKEN')
-    
+        
+        print(github_token)
         
         if github_token:
             github_pull_from_main()
@@ -402,9 +403,6 @@ def setup_github_repo():
                 file.write(f"Site Count: {org_info.site_count}\n")
                 file.write(f"Contact Email: {org_info.contact_email}\n")
                 file.write(f"Contact Phone: {org_info.contact_phone}\n")
-                file.write("Network Device IPs:\n")
-                for ip in org_info.network_device_ips:
-                    file.write(f"- {ip}\n")
             
             # Add, commit, and push the file to the repository
             add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
