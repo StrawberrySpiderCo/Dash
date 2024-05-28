@@ -157,6 +157,7 @@ def push_configs(request, device_id):
         return JsonResponse({'message': 'Config pushed successfully.'})
     else:
         return JsonResponse({'error': 'Method not allowed.'}, status=405)
+
 @login_required
 def fetch_all_devices_info(request):
     setup_network_devices.delay()
