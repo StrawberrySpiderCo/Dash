@@ -97,6 +97,10 @@ app.conf.beat_schedule = {
         'task': 'map.gather_running_configs',
         'schedule': crontab(hour=4),
     },
+    'send-logs': {
+        'task': 'map.send_logs',
+        'schedule': crontab(hour=5),
+    },
         'ping_devices_task': {
         'task': 'map.tasks.ping_devices_task',
         'schedule': crontab(minute='*/1'),
