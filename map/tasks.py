@@ -101,7 +101,17 @@ def github_pull_from_main():
     else:
         logger_network.warning("GitHub token not found in environment variables.")
 
-
+@app.task(queue='get_info_queue')
+def github_pull():
+    try:
+        logger_network.info("Starting GitHub pull task.")
+        subprocess.run(['git', 'pull'])
+        logger_network.info("GitHub pull task completed successfully.")
+        reboot_gunicorn()
+    except Exception as e:
+        logger_network.error(f"An error occurred during GitHub pull: {str(e)}")
+        raise
+    
 @app.task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
