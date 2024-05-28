@@ -19,13 +19,17 @@ from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
 from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
+from django.core.exceptions import ObjectDoesNotExist
 from typing import Literal, Union, Optional
 from dash.celery import app
 import requests
 from datetime import datetime, timedelta, timezone
+import logging
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
+
+logger_network = logging.getLogger('map')
 
 # Define your secret token
 secret_token = 'Bababooey'
@@ -34,68 +38,114 @@ github_token = os.getenv('GITHUB_TOKEN')
 
 @app.task(queue='get_info_queue')
 def check_date():
-    org = Org_Info.objects.get()
-    date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
-    current_time = datetime.now()
-    if (current_time - date) > timedelta(days=7):
-        org.license = ''
-        org.valid = False
-        org.save()
-    else:
-        print("Date has not passed by 7 days yet.")
+    try:
+        org = Org_Info.objects.get()
+        date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
+        current_time = datetime.now()
+        logger_network.info(f"Checking date for organization {org.name} at {current_time.isoformat()}")
+        
+        if (current_time - date) > timedelta(days=7):
+            org.license = ''
+            org.valid = False
+            org.save()
+            logger_network.info(f"License expired for organization {org.name}. License set to empty and validity set to False.")
+        else:
+            remaining_days = (date + timedelta(days=7) - current_time).days
+            logger_network.info(f"License for organization {org.name} is still valid. {remaining_days} days remaining until expiration.")
+            print("Date has not passed by 7 days yet.")
+    except ObjectDoesNotExist:
+        logger_network.error("Organization information could not be found.")
+    except Exception as e:
+        logger_network.error(f"An error occurred in check_date task: {str(e)}")
+        raise
 
 
 @app.task(queue='configure_devices_queue')
 def clean_artifacts():
-    cleanup_artifacts_folder()
+    try:
+        logger_network.info("Starting artifact cleanup task.")
+        cleanup_artifacts_folder()
+        logger_network.info("Artifact cleanup task completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during artifact cleanup: {str(e)}")
+        raise
 
 @app.task(queue='get_info_queue')
 def github_pull_from_main():
     github_token = os.getenv('GITHUB_TOKEN')
     if github_token:
-        # Ensure the GitHub access token is properly formatted
-        github_token_url = f'x-access-token:{github_token}@'
-        
-        # Construct the URL for the git pull
-        git_url = f'https://{github_token_url}github.com/StrawberrySpiderCo/Dash'
-        
-        # Perform git pull
-        git_update = subprocess.run(['git', 'pull', git_url])
-        
-        # Perform database migration
-        migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
+        try:
+            # Ensure the GitHub access token is properly formatted
+            github_token_url = f'x-access-token:{github_token}@'
+            
+            # Construct the URL for the git pull
+            git_url = f'https://{github_token_url}github.com/StrawberrySpiderCo/Dash'
+            
+            # Perform git pull
+            logger_network.info("Starting git pull from main.")
+            git_update = subprocess.run(['git', 'pull', git_url], check=True)
+            logger_network.info("Git pull from main completed successfully.")
+            
+            # Perform database migration
+            logger_network.info("Starting database migration.")
+            migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
+            logger_network.info("Database migration completed successfully.")
+        except subprocess.CalledProcessError as e:
+            logger_network.error(f"Subprocess error during git pull or migration: {str(e)}")
+            raise
+        except Exception as e:
+            logger_network.error(f"An error occurred during GitHub pull or migration: {str(e)}")
+            raise
+    else:
+        logger_network.warning("GitHub token not found in environment variables.")
+
 
 @app.task(queue='ping_devices_queue')
 def ping_devices_task():
-    org_info = NetworkAccount.objects.get()
-    network_ips = set(org_info.network_device_ips)
-    
-    for ip in network_ips:
-        result = subprocess.call(['ping', ip, '-c', '2'])
-        online = result == 0
+    try:
+        org_info = NetworkAccount.objects.get()
+        network_ips = set(org_info.network_device_ips)
+        logger_network.info("Starting ping devices task.")
         
-        try:
-            device = NetworkDevice.objects.get(ip_address=ip)
+        for ip in network_ips:
+            result = subprocess.call(['ping', ip, '-c', '2'])
+            online = result == 0
             
-            if online and not device.online:
-                device.online = True
-                device.ansible_status = 'ONLINE'
-                device.save()
-                update_host_file()
-            elif not online and device.online:
-                device.online = False
-                device.ansible_status = 'OFFLINE'
-                device.save()
-                update_host_file()
+            try:
+                device = NetworkDevice.objects.get(ip_address=ip)
+                if online and not device.online:
+                    device.online = True
+                    device.ansible_status = 'ONLINE'
+                    device.save()
+                    update_host_file()
+                    logger_network.info(f"Device {ip} is now online. Status updated.")
+                elif not online and device.online:
+                    device.online = False
+                    device.ansible_status = 'OFFLINE'
+                    device.save()
+                    update_host_file()
+                    logger_network.info(f"Device {ip} is now offline. Status updated.")
+            except NetworkDevice.DoesNotExist:
+                logger_network.warning(f"Device with IP {ip} does not exist in the database.")
                 
-        except NetworkDevice.DoesNotExist:
-            pass
+        logger_network.info("Ping devices task completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during ping devices task: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def cycle_port_task(hostname, interface):
-    r,output = run_ansible_playbook('cycle_port', {'hostname':hostname, 'ports_to_cycle': interface})
-    events = r.events
-    ansible_logging(events)
+    try:
+        logger_network.info(f"Starting cycle port task for hostname: {hostname}, interface: {interface}.")
+        r, output = run_ansible_playbook('cycle_port', {'hostname': hostname, 'ports_to_cycle': interface})
+        events = r.events
+        ansible_logging(events)
+        logger_network.info(f"Cycle port task for hostname: {hostname}, interface: {interface} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during cycle port task for hostname: {hostname}, interface: {interface}: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def update_port_info(hostname=None):
@@ -132,26 +182,49 @@ def update_port_info(hostname=None):
 
 @app.task(queue='configure_devices_queue')
 def set_interface(hostname: str,
-            interface: Union[list, str],
-            action: Literal['shut','noshut']):
-    r,output = run_ansible_playbook('set_interfaceShut', {'hostname':hostname, 'interface_name': interface, 'input_action':action})
-    events = r.events
-    ansible_logging(events)
-    update_port_info()
+                  interface: Union[list, str],
+                  action: Literal['shut', 'noshut']):
+    try:
+        logger_network.info(f"Starting set interface task for hostname: {hostname}, interface: {interface}, action: {action}.")
+        r, output = run_ansible_playbook('set_interfaceShut', {'hostname': hostname, 'interface_name': interface, 'input_action': action})
+        events = r.events
+        ansible_logging(events)
+        logger_network.info(f"Set interface task for hostname: {hostname}, interface: {interface}, action: {action} completed successfully.")
+        update_port_info()
+    except Exception as e:
+        logger_network.error(f"An error occurred during set interface task for hostname: {hostname}, interface: {interface}, action: {action}: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def set_l2interface(hostname, 
-                interface, 
-                mode, 
-                vlan = 'None', 
-                voice_vlan = 'None',
-                native_vlan = 'None',
-                allowed_vlan = 'None',
-                encapsulation = 'dot1q'):
-    r,output = run_ansible_playbook('set_l2interface', {'hostname':hostname, 'interface_name': interface, 'switchport_mode': mode, 'vlan_id': vlan, 'voice_vlan': voice_vlan, 'native_vlan': native_vlan, 'allowed_vlans': allowed_vlan,'encapsulation': encapsulation})
-    events = r.events
-    ansible_logging(events)
-    update_port_info()
+                    interface, 
+                    mode, 
+                    vlan='None', 
+                    voice_vlan='None',
+                    native_vlan='None',
+                    allowed_vlan='None',
+                    encapsulation='dot1q'):
+    try:
+        logger_network.info(f"Starting set L2 interface task for hostname: {hostname}, interface: {interface}, mode: {mode}, vlan: {vlan}, voice_vlan: {voice_vlan}, native_vlan: {native_vlan}, allowed_vlan: {allowed_vlan}, encapsulation: {encapsulation}.")
+        r, output = run_ansible_playbook('set_l2interface', {
+            'hostname': hostname, 
+            'interface_name': interface, 
+            'switchport_mode': mode, 
+            'vlan_id': vlan, 
+            'voice_vlan': voice_vlan, 
+            'native_vlan': native_vlan, 
+            'allowed_vlans': allowed_vlan, 
+            'encapsulation': encapsulation
+        })
+        events = r.events
+        ansible_logging(events)
+        logger_network.info(f"Set L2 interface task for hostname: {hostname}, interface: {interface} completed successfully.")
+        update_port_info()
+    except Exception as e:
+        logger_network.error(f"An error occurred during set L2 interface task for hostname: {hostname}, interface: {interface}, mode: {mode}, vlan: {vlan}, voice_vlan: {voice_vlan}, native_vlan: {native_vlan}, allowed_vlan: {allowed_vlan}, encapsulation: {encapsulation}: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def set_l3interface(hostname: str = '',
@@ -216,79 +289,143 @@ def set_l3interface(hostname: str = '',
 
 @app.task(queue='configure_devices_queue')
 def push_startup_configs(hostname, config):
-    ansible_events, ansible_results = run_ansible_playbook('push_startup_config', {'hostname': hostname, 'config': config})
-    events = ansible_events.events
-    ansible_logging(events)
+    try:
+        logger_network.info(f"Starting push startup configs task for hostname: {hostname}.")
+        ansible_events, ansible_results = run_ansible_playbook('push_startup_config', {'hostname': hostname, 'config': config})
+        events = ansible_events.events
+        ansible_logging(events)
+        logger_network.info(f"Push startup configs task for hostname: {hostname} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during push startup configs task for hostname: {hostname}: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def gather_startup_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
-    ansible_events, ansible_results = run_ansible_playbook('get_startup_config', {'hostname': hostname})
-    for runner_on_ok in ansible_results['runner_on_ok']:
-        ip_address = (runner_on_ok['hostname'])
-        stdout = ansible_results['runner_on_ok'][0]['task_result']['stdout']
-        stdout_with_newlines = '\n'.join(stdout[0].split(', '))
-        device = NetworkDevice.objects.get(ip_address=ip_address)
-        device.startup_config = stdout_with_newlines
-        device.save()
-    events = ansible_events.events
-    ansible_logging(events)
+    try:
+        logger_network.info(f"Starting gather startup configs task for hostname: {hostname}.")
+        ansible_events, ansible_results = run_ansible_playbook('get_startup_config', {'hostname': hostname})
+        
+        for runner_on_ok in ansible_results['runner_on_ok']:
+            ip_address = runner_on_ok['hostname']
+            stdout = runner_on_ok['task_result']['stdout']
+            stdout_with_newlines = '\n'.join(stdout[0].split(', '))
+            
+            try:
+                device = NetworkDevice.objects.get(ip_address=ip_address)
+                device.startup_config = stdout_with_newlines
+                device.save()
+                logger_network.info(f"Startup config for device {ip_address} saved successfully.")
+            except NetworkDevice.DoesNotExist:
+                logger_network.warning(f"Device with IP {ip_address} does not exist in the database.")
+            except Exception as e:
+                logger_network.error(f"An error occurred while saving startup config for device {ip_address}: {str(e)}")
+                raise
+        
+        events = ansible_events.events
+        ansible_logging(events)
+        logger_network.info(f"Gather startup configs task for hostname: {hostname} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during gather startup configs task for hostname: {hostname}: {str(e)}")
+        raise
+
 
 @app.task(queue='get_info_queue')
 def gather_running_configs(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
-    ansible_events, ansible_results = run_ansible_playbook('get_running_config', {'hostname': hostname})
-    for runner_on_ok in ansible_results['runner_on_ok']:
-        ip_address = (runner_on_ok['hostname'])
-        ansible_data = runner_on_ok['task_result']['ansible_facts']
-        running_config = ansible_data['ansible_net_config']
-        device = NetworkDevice.objects.get(ip_address=ip_address)
-        RunningConfig.objects.create(
-            device=device,
-            config_text=running_config
-        )
-    for runner_on_failed in ansible_results['runner_on_failed']:
-        ip_address = (runner_on_failed['hostname'])
-        ansible_data = runner_on_failed['task_result']
-        error_msg = ansible_data['msg']
-    events = ansible_events.events
-    ansible_logging(events)
+    try:
+        logger_network.info(f"Starting gather running configs task for hostname: {hostname}.")
+        ansible_events, ansible_results = run_ansible_playbook('get_running_config', {'hostname': hostname})
+        
+        for runner_on_ok in ansible_results['runner_on_ok']:
+            ip_address = runner_on_ok['hostname']
+            ansible_data = runner_on_ok['task_result']['ansible_facts']
+            running_config = ansible_data['ansible_net_config']
+            
+            try:
+                device = NetworkDevice.objects.get(ip_address=ip_address)
+                RunningConfig.objects.create(
+                    device=device,
+                    config_text=running_config
+                )
+                logger_network.info(f"Running config for device {ip_address} saved successfully.")
+            except NetworkDevice.DoesNotExist:
+                logger_network.warning(f"Device with IP {ip_address} does not exist in the database.")
+            except Exception as e:
+                logger_network.error(f"An error occurred while saving running config for device {ip_address}: {str(e)}")
+                raise
+        
+        for runner_on_failed in ansible_results['runner_on_failed']:
+            ip_address = runner_on_failed['hostname']
+            ansible_data = runner_on_failed['task_result']
+            error_msg = ansible_data['msg']
+            logger_network.error(f"Failed to gather running config for device {ip_address}: {error_msg}")
+        
+        events = ansible_events.events
+        ansible_logging(events)
+        logger_network.info(f"Gather running configs task for hostname: {hostname} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during gather running configs task for hostname: {hostname}: {str(e)}")
+        raise
+
 
 @app.task(queue='get_info_queue')
 def get_device_info(hostname=None):
     if hostname is None:
         hostname = 'network_devices'
-    ansible_events, ansible_results = run_ansible_playbook('get_all',{'hostname':hostname})
-    for runner_on_ok in ansible_results['runner_on_ok']:
-        ip_address = (runner_on_ok['hostname'])
-        ansible_data = runner_on_ok['task_result']['ansible_facts']
-        hostname = ansible_data['ansible_net_hostname']
-        model = ansible_data['ansible_net_model']
-        firmware_version = ansible_data['ansible_net_version']
-        serial_number = ansible_data['ansible_net_serialnum']
-        image = ansible_data['ansible_net_image']
-        net_device = NetworkDevice.objects.get(ip_address=ip_address)
-        net_device.hostname = hostname
-        net_device.model = model
-        net_device.serial_number = serial_number
-        net_device.firmware_version = firmware_version
-        net_device.image = image
-        net_device.ansible_status = 'runner_on_ok'
-        net_device.save()
-    for runner_on_failed in ansible_results['runner_on_failed']:
-        ip_address = (runner_on_failed['hostname'])
-        ansible_data = runner_on_failed['task_result']
-        error_msg = ansible_data['msg']
-        NetworkDevice.objects.update_or_create(
+    try:
+        logger_network.info(f"Starting get device info task for hostname: {hostname}.")
+        ansible_events, ansible_results = run_ansible_playbook('get_all', {'hostname': hostname})
+        
+        for runner_on_ok in ansible_results['runner_on_ok']:
+            ip_address = runner_on_ok['hostname']
+            ansible_data = runner_on_ok['task_result']['ansible_facts']
+            hostname = ansible_data['ansible_net_hostname']
+            model = ansible_data['ansible_net_model']
+            firmware_version = ansible_data['ansible_net_version']
+            serial_number = ansible_data['ansible_net_serialnum']
+            image = ansible_data['ansible_net_image']
+            
+            try:
+                net_device = NetworkDevice.objects.get(ip_address=ip_address)
+                net_device.hostname = hostname
+                net_device.model = model
+                net_device.serial_number = serial_number
+                net_device.firmware_version = firmware_version
+                net_device.image = image
+                net_device.ansible_status = 'runner_on_ok'
+                net_device.save()
+                logger_network.info(f"Device info for {ip_address} updated successfully.")
+            except NetworkDevice.DoesNotExist:
+                logger_network.warning(f"Device with IP {ip_address} does not exist in the database.")
+            except Exception as e:
+                logger_network.error(f"An error occurred while updating device info for {ip_address}: {str(e)}")
+                raise
+        
+        for runner_on_failed in ansible_results['runner_on_failed']:
+            ip_address = runner_on_failed['hostname']
+            ansible_data = runner_on_failed['task_result']
+            error_msg = ansible_data['msg']
+            try:
+                NetworkDevice.objects.update_or_create(
                     ip_address=ip_address,
-                    defaults={
-                        'ansible_status': error_msg
-                    }
+                    defaults={'ansible_status': error_msg}
                 )
-    events = ansible_events.events
-    ansible_logging(events)   
+                logger_network.warning(f"Failed to gather device info for {ip_address}: {error_msg}")
+            except Exception as e:
+                logger_network.error(f"An error occurred while updating device status for {ip_address}: {str(e)}")
+                raise
+        
+        events = ansible_events.events
+        ansible_logging(events)
+        logger_network.info(f"Get device info task for hostname: {hostname} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during get device info task for hostname: {hostname}: {str(e)}")
+        raise
+
 
 @app.task(queue='configure_devices_queue')
 def update_host_file_task():
@@ -296,159 +433,289 @@ def update_host_file_task():
 
 @app.task(queue='get_info_queue')
 def setup_network_devices(added_ips=None, removed_ips=None):
-    if added_ips is None and removed_ips is None:
-        org_info = NetworkAccount.objects.get()
-        network_ips = set(org_info.network_device_ips)
-    else:
-        # Update network devices based on added and removed IPs
-        org_info = NetworkAccount.objects.get()
-        network_ips = set(org_info.network_device_ips)
+    try:
+        logger_network.info("Starting setup network devices task.")
+        
+        if added_ips is None and removed_ips is None:
+            org_info = NetworkAccount.objects.get()
+            network_ips = set(org_info.network_device_ips)
+            logger_network.info("Retrieved network device IPs from the organization info.")
+        else:
+            # Update network devices based on added and removed IPs
+            org_info = NetworkAccount.objects.get()
+            network_ips = set(org_info.network_device_ips)
+            logger_network.info("Updating network device IPs based on added and removed IPs.")
 
-        if added_ips:
-            network_ips.update(added_ips)
+            if added_ips:
+                network_ips.update(added_ips)
+                logger_network.info(f"Added IPs: {added_ips}")
 
-        if removed_ips:
-            network_ips.difference_update(removed_ips)
+            if removed_ips:
+                network_ips.difference_update(removed_ips)
+                logger_network.info(f"Removed IPs: {removed_ips}")
 
-        # Remove devices that are no longer in the list
-        NetworkDevice.objects.exclude(ip_address__in=network_ips).delete()
+            # Remove devices that are no longer in the list
+            NetworkDevice.objects.exclude(ip_address__in=network_ips).delete()
+            logger_network.info("Removed devices that are no longer in the list.")
 
-    playbook_dir = '/home/sbs/Dash/ansible'
-    host_file_path = f"{playbook_dir}/hosts.ini"
-    if os.path.exists(host_file_path):
-        os.remove(host_file_path)
-    with open(host_file_path, 'w') as host_file:
-        host_file.write("[network_devices]\n")
-        for ip in network_ips:
-            result = subprocess.call(['ping', ip, '-c', '2'])
-            online = result == 0
-            device, created = NetworkDevice.objects.update_or_create(
-                ip_address=ip,
-                defaults={
-                    'model': '',
-                    'username': org_info.ssh_username,
-                    'password': org_info.ssh_password,
-                    'enable_password': org_info.ssh_enable_password,
-                    'online': online
-                }
-            )
-            device.save()
-            host_file.write(f"{ip} ansible_host={ip}\n")
-        host_file.write("\n[network_devices:vars]\n")
-        host_file.write("ansible_network_os=ios\n")
-        host_file.write("ansible_connection=network_cli\n")
+        playbook_dir = '/home/sbs/Dash/ansible'
+        host_file_path = f"{playbook_dir}/hosts.ini"
+        if os.path.exists(host_file_path):
+            os.remove(host_file_path)
+            logger_network.info("Existing hosts.ini file removed.")
+        
+        with open(host_file_path, 'w') as host_file:
+            host_file.write("[network_devices]\n")
+            for ip in network_ips:
+                result = subprocess.call(['ping', ip, '-c', '2'])
+                online = result == 0
+                device, created = NetworkDevice.objects.update_or_create(
+                    ip_address=ip,
+                    defaults={
+                        'model': '',
+                        'username': org_info.ssh_username,
+                        'password': org_info.ssh_password,
+                        'enable_password': org_info.ssh_enable_password,
+                        'online': online
+                    }
+                )
+                device.save()
+                logger_network.info(f"Device {ip} {'created' if created else 'updated'} with online status {online}.")
+                host_file.write(f"{ip} ansible_host={ip}\n")
+            
+            host_file.write("\n[network_devices:vars]\n")
+            host_file.write("ansible_network_os=ios\n")
+            host_file.write("ansible_connection=network_cli\n")
+            logger_network.info("hosts.ini file written with network devices and variables.")
 
-    get_device_info()
-    update_port_info()
-    gather_running_configs()
-    gather_startup_configs()
+        get_device_info()
+        logger_network.info("get_device_info task called.")
+        
+        update_port_info()
+        logger_network.info("update_port_info task called.")
+        
+        gather_running_configs()
+        logger_network.info("gather_running_configs task called.")
+        
+        gather_startup_configs()
+        logger_network.info("gather_startup_configs task called.")
+        
+        logger_network.info("Setup network devices task completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during setup network devices task: {str(e)}")
+        raise
 
 @app.task(queue='configure_devices_queue')
 def update_device(hostname):
-    update_port_info(hostname)
-    get_device_info(hostname)
-    gather_startup_configs(hostname)
-    gather_running_configs(hostname)
+    try:
+        logger_network.info(f"Starting update device task for hostname: {hostname}.")
+        
+        update_port_info(hostname)
+        logger_network.info(f"update_port_info task called for hostname: {hostname}.")
+        
+        get_device_info(hostname)
+        logger_network.info(f"get_device_info task called for hostname: {hostname}.")
+        
+        gather_startup_configs(hostname)
+        logger_network.info(f"gather_startup_configs task called for hostname: {hostname}.")
+        
+        gather_running_configs(hostname)
+        logger_network.info(f"gather_running_configs task called for hostname: {hostname}.")
+        
+        logger_network.info(f"Update device task for hostname: {hostname} completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during update device task for hostname: {hostname}: {str(e)}")
+        raise
+
 
 @app.task(queue='api_queue')
 def setup_github_repo():
-    # Retrieve Org_Info instance
-    org_info = Org_Info.objects.get()
-    
-    print(github_token)
-    
-    if github_token:
-        github_pull_from_main()
-        repo_name = org_info.org_name.lower().replace(" ", "-")
-        org_info.repo_name = f"{repo_name}-dash"
-        org_info.save()
-        headers = {'Authorization': f'token {github_token}'}
-        payload = {
-            'name': repo_name+'-dash',
-            'private': True 
-        }
-        response = requests.post(
-            'https://api.github.com/user/repos',
-            json=payload,
-            headers=headers
-        )
-        if response.status_code != 201:
-            return f"Failed to create repository on GitHub: {response.text}"
+    try:
+        logger_network.info("Starting GitHub repository setup task.")
         
-        new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
-        # Change the remote URL
-        remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
-        if remote_change.returncode != 0:
-            return "Failed to change remote URL."
-
-        # Rename the default branch to 'main'
-        branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
-        if branch_rename.returncode != 0:
-            return "Failed to rename the default branch to 'main'."
-
-        # Push changes to the new repository
-        push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'])
-        if push_changes.returncode != 0:
-            return "Failed to push changes to the new repository."
-        server_ip = get_system_ip()
-        # Write setup info to a file
-        file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
-        with open(file_path, 'w') as file:
-            file.write(f"Org Name: {org_info.org_name}\n")
-            file.write(f"Website IP: {server_ip}\n")
-            file.write(f"Site Count: {org_info.site_count}\n")
-            file.write(f"Contact Email: {org_info.contact_email}\n")
-            file.write(f"Contact Phone: {org_info.contact_phone}\n")
+        # Retrieve Org_Info instance
+        org_info = Org_Info.objects.get()
+        logger_network.info(f"Retrieved Org_Info instance for organization: {org_info.org_name}")
         
-        # Add, commit, and push the file to the repository
-        add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
-        if add_file.returncode != 0:
-            return "Failed to add the file to the Git repository."
+        github_token = os.getenv('GITHUB_TOKEN')
+        if github_token:
+            logger_network.info("GitHub token found, proceeding with repository setup.")
+            
+            github_pull_from_main()
+            logger_network.info("Pulled latest changes from GitHub main branch.")
+            
+            repo_name = org_info.org_name.lower().replace(" ", "-")
+            org_info.repo_name = f"{repo_name}-dash"
+            org_info.save()
+            logger_network.info(f"Repository name set to: {org_info.repo_name}")
 
-        commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
-        if commit_changes.returncode != 0:
-            return "Failed to commit the changes."
+            headers = {'Authorization': f'token {github_token}'}
+            payload = {
+                'name': repo_name + '-dash',
+                'private': True 
+            }
+            response = requests.post(
+                'https://api.github.com/user/repos',
+                json=payload,
+                headers=headers
+            )
+            if response.status_code != 201:
+                logger_network.error(f"Failed to create repository on GitHub: {response.text}")
+                return f"Failed to create repository on GitHub: {response.text}"
+            
+            new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
+            # Change the remote URL
+            remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
+            if remote_change.returncode != 0:
+                logger_network.error("Failed to change remote URL.")
+                return "Failed to change remote URL."
+            logger_network.info("Remote URL changed successfully.")
 
-        push_changes = subprocess.run(['git', 'push'])
-        if push_changes.returncode != 0:
-            return "Failed to push changes to the remote repository."
+            # Rename the default branch to 'main'
+            branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
+            if branch_rename.returncode != 0:
+                logger_network.error("Failed to rename the default branch to 'main'.")
+                return "Failed to rename the default branch to 'main'."
+            logger_network.info("Default branch renamed to 'main' successfully.")
 
-        return "Setup completed successfully."
-    else:
-        return "GitHub credentials not configured properly"
-    
+            # Push changes to the new repository
+            push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'])
+            if push_changes.returncode != 0:
+                logger_network.error("Failed to push changes to the new repository.")
+                return "Failed to push changes to the new repository."
+            logger_network.info("Changes pushed to the new repository successfully.")
+
+            server_ip = get_system_ip()
+            # Write setup info to a file
+            file_path = os.path.join('/home/sbs/Dash/dash', 'setup_info.txt')
+            with open(file_path, 'w') as file:
+                file.write(f"Org Name: {org_info.org_name}\n")
+                file.write(f"Website IP: {server_ip}\n")
+                file.write(f"Site Count: {org_info.site_count}\n")
+                file.write(f"Contact Email: {org_info.contact_email}\n")
+                file.write(f"Contact Phone: {org_info.contact_phone}\n")
+            logger_network.info("Setup info written to file.")
+
+            # Add, commit, and push the file to the repository
+            add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
+            if add_file.returncode != 0:
+                logger_network.error("Failed to add the file to the Git repository.")
+                return "Failed to add the file to the Git repository."
+
+            commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
+            if commit_changes.returncode != 0:
+                logger_network.error("Failed to commit the changes.")
+                return "Failed to commit the changes."
+
+            push_changes = subprocess.run(['git', 'push'])
+            if push_changes.returncode != 0:
+                logger_network.error("Failed to push changes to the remote repository.")
+                return "Failed to push changes to the remote repository."
+            logger_network.info("Setup info file pushed to the repository successfully.")
+
+            return "Setup completed successfully."
+        else:
+            logger_network.error("GitHub credentials not configured properly.")
+            return "GitHub credentials not configured properly"
+    except Exception as e:
+        logger_network.error(f"An error occurred during GitHub repository setup task: {str(e)}")
+        raise
+
+@shared_task(queue='api_queue')
+def send_logs():
+    try:
+        org = Org_Info.objects.get()
+        org_id = org.org_id
+        log_file_path = '/home/sbs/Dash/django_debug.log'
+        
+        logger_network.info(f"Starting log file upload for org_id: {org_id}")
+        
+        with open(log_file_path, 'rb') as f:
+            files = {'log_file': f}
+            data = {'org_id': org_id}
+            response = requests.post(base_url + '/logs/', files=files, data=data)
+            
+            if response.status_code == 200:
+                logger_network.info("File uploaded successfully.")
+            else:
+                logger_network.error(f"Failed to upload file: {response.text}")
+    except Org_Info.DoesNotExist:
+        logger_network.error("Org_Info object does not exist.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during log file upload: {str(e)}")
+        raise
+
+
+
 @app.task(queue='api_queue')
 def create_org_api():
-    org = Org_Info.objects.get()
-    org_data = {
-    'name': org.org_name,
-    'repo_name': org.repo_name,
-    'contact_email': org.contact_email,
-    'contact_phone': org.contact_phone,
-    'hamster_solar': secret_token,  
-}
-    response = requests.post(base_url + 'create/org/', data=org_data)
-    if response.status_code == 200:
-        org_id = response.json()['org_id']
-        org.org_id = org_id
-        org.save()
-    else:
-        return('Failed to create organization')
+    try:
+        logger_network.info("Starting create organization API task.")
+        
+        org = Org_Info.objects.get()
+        logger_network.info(f"Retrieved Org_Info instance for organization: {org.org_name}")
+
+        org_data = {
+            'name': org.org_name,
+            'repo_name': org.repo_name,
+            'contact_email': org.contact_email,
+            'contact_phone': org.contact_phone,
+            'hamster_solar': secret_token,  
+        }
+        
+        response = requests.post(base_url + 'create/org/', data=org_data)
+        
+        if response.status_code == 200:
+            org_id = response.json()['org_id']
+            org.org_id = org_id
+            org.save()
+            logger_network.info(f"Organization {org.org_name} created successfully with org_id: {org_id}")
+        else:
+            logger_network.error(f"Failed to create organization: {response.text}")
+            return 'Failed to create organization'
+    except Exception as e:
+        logger_network.error(f"An error occurred during create organization API task: {str(e)}")
+        raise
+
 
 
 
 @app.task(queue='configure_devices_queue')
 def sync_ldap():
     try:
+        logger_network.info("Starting LDAP sync task.")
+        
         LdapAccount.objects.get()
-        subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
-    except:
-        pass
+        logger_network.info("LdapAccount instance retrieved successfully.")
+        
+        result = subprocess.run(['python3', 'manage.py', 'sync_ldap'], cwd='/home/sbs/Dash')
+        if result.returncode == 0:
+            logger_network.info("LDAP sync completed successfully.")
+        else:
+            logger_network.error(f"LDAP sync failed with return code: {result.returncode}")
+    except LdapAccount.DoesNotExist:
+        logger_network.warning("LdapAccount instance does not exist.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during LDAP sync task: {str(e)}")
+        raise
+
     
 @shared_task
 def clean_up():
-    RunningConfig.objects.all().delete()
-    NetworkTask.objects.all().delete()
+    try:
+        logger_network.info("Starting clean-up task.")
+        
+        RunningConfig.objects.all().delete()
+        logger_network.info("All RunningConfig records deleted.")
+        
+        NetworkTask.objects.all().delete()
+        logger_network.info("All NetworkTask records deleted.")
+        
+        logger_network.info("Clean-up task completed successfully.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during clean-up task: {str(e)}")
+        raise
+
 def nuke():
     RunningConfig.objects.all().delete()
     NetworkTask.objects.all().delete()

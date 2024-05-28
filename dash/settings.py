@@ -105,6 +105,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'dash.loggingmiddleware.LoggingMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',  
@@ -176,6 +177,62 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',  # Change from DEBUG to INFO
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_debug.log'),
+            'formatter': 'verbose'
+        },
+        'console': {
+            'level': 'INFO',  # Change from DEBUG to INFO
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',  # Change from DEBUG to INFO
+            'propagate': True,
+        },
+        'map': {  
+            'handlers': ['console', 'file'],
+            'level': 'INFO',  # Change from DEBUG to INFO
+            'propagate': False,
+        },
+        'dash': { 
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',  # Change from DEBUG to INFO
+            'propagate': False,
+        },
+        'network': {  
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',  # Change from DEBUG to INFO
+            'propagate': False,
+        },
+        'members': { 
+            'handlers': ['console', 'file'],
+            'level': 'INFO',  # Change from DEBUG to INFO
+            'propagate': False,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/

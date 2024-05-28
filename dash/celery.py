@@ -8,6 +8,8 @@ from celery.schedules import crontab
 
 from datetime import datetime
 
+from django.conf import settings
+
 timezone = 'PST'
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dash.settings')
@@ -22,6 +24,12 @@ app = Celery('dash')
 app.config_from_object('django.conf:settings', namespace='CELERY')
 
 app.autodiscover_tasks()
+
+from celery.signals import setup_logging
+@setup_logging.connect
+def configure_logging(**kwargs):
+    from logging.config import dictConfig
+    dictConfig(settings.LOGGING)
 
 app.conf.task_queues = {
     'ping_devices_queue': {

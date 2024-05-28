@@ -45,31 +45,42 @@ def user_is_admin(user):
     return user.groups.filter(name='admin').exists()
 def user_is_local_admin(user):
     return user.is_superuser
+logger = logging.getLogger('map')
+
 
 @user_passes_test(user_is_local_admin, login_url='invalid_login')
 def update_admin(request):
-    if request.method == 'POST':
-        admin_form = AdminCreationForm(request.POST)
-        if admin_form.is_valid():
-            admin_data = admin_form.cleaned_data
-            username = admin_data['username']
-            password = admin_data['password1']
-            User.objects.filter(is_superuser=True).delete()
-            user = User.objects.create_user(username, password=password)
-            user.is_superuser = True
-            user.is_staff = True
-            django_admin_group = Group.objects.get(name='admin')
-            django_tech_group = Group.objects.get(name='tech')
-            user.groups.add(django_admin_group)
-            user.groups.add(django_tech_group)
-            user.save()
-            return redirect('admin_update_success')
-    else:
-        admin_form = AdminCreationForm()
+    try:
+        if request.method == 'POST':
+            admin_form = AdminCreationForm(request.POST)
+            if admin_form.is_valid():
+                admin_data = admin_form.cleaned_data
+                username = admin_data['username']
+                password = admin_data['password1']
+                
+                User.objects.filter(is_superuser=True).delete()
+                logger.info("Existing superusers deleted.")
+                
+                user = User.objects.create_user(username, password=password)
+                user.is_superuser = True
+                user.is_staff = True
+                django_admin_group = Group.objects.get(name='admin')
+                django_tech_group = Group.objects.get(name='tech')
+                user.groups.add(django_admin_group)
+                user.groups.add(django_tech_group)
+                user.save()
+                
+                logger.info(f"New superuser created: {username}")
+                return redirect('admin_update_success')
+        else:
+            admin_form = AdminCreationForm()
 
-    return render(request, 'update_admin.html', {
-        'admin_form': admin_form
-    })
+        return render(request, 'update_admin.html', {
+            'admin_form': admin_form
+        })
+    except Exception as e:
+        logger.error(f"Error in update admin view: {str(e)}")
+        raise
 
 def settings_success(request):
     return render(request, 'settings_success.html')
@@ -79,67 +90,85 @@ def admin_update_success(request):
     return render(request, 'admin_update_success.html')
 
 def ticket_details(request):
-    ticket_id = request.GET.get('ticket_id')
-    title = request.GET.get('title')
-    user = request.user
-    org = get_object_or_404(Org_Info)
-    feature_request = FeatureRequest.objects.update_or_create(
-        title=title,
-        uid=ticket_id,
-        user=user
-    )
-    return render(request, 'ticket.html', {'ticket_id': ticket_id, 'org':org, 'user': user})
+    try:
+        ticket_id = request.GET.get('ticket_id')
+        title = request.GET.get('title')
+        user = request.user
+        org = get_object_or_404(Org_Info)
+        logger.info(f"Ticket details accessed by user: {user.username}, ticket_id: {ticket_id}, title: {title}")
+        
+        feature_request, created = FeatureRequest.objects.update_or_create(
+            title=title,
+            uid=ticket_id,
+            user=user
+        )
+        if created:
+            logger.info(f"Feature request created for ticket_id: {ticket_id}, title: {title}, user: {user.username}")
+        else:
+            logger.info(f"Feature request updated for ticket_id: {ticket_id}, title: {title}, user: {user.username}")
+        
+        return render(request, 'ticket.html', {'ticket_id': ticket_id, 'org': org, 'user': user})
+    except Exception as e:
+        logger.error(f"Error in ticket details view: {str(e)}")
+        raise
+
 
 @user_passes_test(user_is_admin, login_url='invalid_login')
 def settings(request):
-    org = get_object_or_404(Org_Info)
-    ldap_account = get_object_or_404(LdapAccount)
-    network_account = get_object_or_404(NetworkAccount)
-    changes = []
-    ldap_changed = False
-    if request.method == 'POST':
-        org_form = OrgInfoFormSettings(request.POST, request.FILES, instance=org)
-        ldap_form = LdapAccountFormSettings(request.POST, instance=ldap_account)
-        network_form = NetworkAccountFormSettings(request.POST, request.FILES, instance=network_account)
+    try:
+        org = get_object_or_404(Org_Info)
+        ldap_account = get_object_or_404(LdapAccount)
+        network_account = get_object_or_404(NetworkAccount)
+        logger.info("Settings view accessed.")
+        
+        if request.method == 'POST':
+            org_form = OrgInfoFormSettings(request.POST, request.FILES, instance=org)
+            ldap_form = LdapAccountFormSettings(request.POST, instance=ldap_account)
+            network_form = NetworkAccountFormSettings(request.POST, request.FILES, instance=network_account)
 
-        if org_form.is_valid() and ldap_form.is_valid() and network_form.is_valid():
-            if org_form.has_changed():
-                org_form.save()
-                print("Organization info updated.")
+            if org_form.is_valid() and ldap_form.is_valid() and network_form.is_valid():
+                if org_form.has_changed():
+                    org_form.save()
+                    logger.info("Organization info updated.")
 
-            if network_form.has_changed():
-                new_ips = set(filter(None, re.split(r'[,\s]+', network_form.cleaned_data['network_device_ips'])))
-                old_ips = set(network_account.network_device_ips)
-                network_account.network_device_ips = list(new_ips)
-                network_account.save()
+                if network_form.has_changed():
+                    new_ips = set(filter(None, re.split(r'[,\s]+', network_form.cleaned_data['network_device_ips'])))
+                    old_ips = set(network_account.network_device_ips)
+                    network_account.network_device_ips = list(new_ips)
+                    network_account.save()
 
-                added_ips = new_ips - old_ips
-                removed_ips = old_ips - new_ips
+                    added_ips = new_ips - old_ips
+                    removed_ips = old_ips - new_ips
 
-                if added_ips or removed_ips:
-                    setup_network_devices.delay(list(added_ips), list(removed_ips))
-                    print("Network devices updated.")
-                else:
-                    setup_network_devices.delay()
+                    if added_ips or removed_ips:
+                        setup_network_devices.delay(list(added_ips), list(removed_ips))
+                        logger.info(f"Network devices updated. Added IPs: {added_ips}, Removed IPs: {removed_ips}")
+                    else:
+                        setup_network_devices.delay()
+                        logger.info("Network devices updated without IP changes.")
 
-            if ldap_form.has_changed():
-                ldap_form.save()
-                settings = get_ldap_settings()
-                update_settings(settings)
-                reboot_gunicorn()
-                print("LDAP settings updated.")
+                if ldap_form.has_changed():
+                    ldap_form.save()
+                    settings = get_ldap_settings()
+                    update_settings(settings)
+                    reboot_gunicorn()
+                    logger.info("LDAP settings updated.")
 
-            return redirect('settings_success')
-    else:
-        org_form = OrgInfoFormSettings(instance=org)
-        ldap_form = LdapAccountFormSettings(instance=ldap_account)
-        network_form = NetworkAccountFormSettings(instance=network_account)
+                return redirect('settings_success')
+        else:
+            org_form = OrgInfoFormSettings(instance=org)
+            ldap_form = LdapAccountFormSettings(instance=ldap_account)
+            network_form = NetworkAccountFormSettings(instance=network_account)
 
-    return render(request, 'settings.html', {
-        'org_form': org_form,
-        'ldap_form': ldap_form,
-        'network_form': network_form,
-    })
+        return render(request, 'settings.html', {
+            'org_form': org_form,
+            'ldap_form': ldap_form,
+            'network_form': network_form,
+        })
+    except Exception as e:
+        logger.error(f"Error in settings view: {str(e)}")
+        raise
+
 
 def update_org_license(request):
     if request.method == 'POST':
@@ -155,19 +184,27 @@ def update_org_license(request):
             org.valid_time = expire_date
             org.valid = True
             org.save()
-            print("ORG SAVED")
-            return JsonResponse({'status': 'success', 'message': 'Friend'}, status=200)
+            logger.info(f"Organization license updated successfully for org: {org.org_name}")
+            return JsonResponse({'status': 'success', 'message': 'Organization license updated successfully'}, status=200)
 
         except Org_Info.DoesNotExist:
+            logger.warning("Org_Info not found when trying to update license.")
             return JsonResponse({'status': 'fail', 'error': 'Org_Info not found'}, status=401)
         except Exception as e:
+            logger.error(f"Error updating organization license: {str(e)}")
             return JsonResponse({'status': 'fail', 'error': str(e)}, status=401)
 
+    logger.warning("Invalid request method for updating organization license.")
     return JsonResponse({'status': 'fail', 'error': 'Invalid request method'}, status=401)
         
 def update_license(request):
-    org = get_object_or_404(Org_Info)          
-    return render(request, 'update_license.html', {'org': org})
+    try:
+        org = get_object_or_404(Org_Info)
+        logger.info(f"Update license view accessed for org: {org.org_name}")
+        return render(request, 'update_license.html', {'org': org})
+    except Exception as e:
+        logger.error(f"Error in update license view: {str(e)}")
+        raise
 
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
@@ -193,7 +230,7 @@ def setup(request):
                 password = admin_data['password1']
                 email = org_info_data['contact_email']
                 csv_file = network_data.get('csv_file')
-                print(csv_file)
+                logger.info(f"CSV file uploaded: {csv_file}")
 
                 if csv_file:
                     network_device_ips = csv_file
@@ -225,7 +262,6 @@ def setup(request):
                             contact_phone=org_info_data['contact_phone'],
                             org_id=org_id,
                             is_setup=True
-
                         )
                         network_account = NetworkAccount.objects.create(
                             ssh_username=network_data['ssh_username'],
@@ -246,17 +282,20 @@ def setup(request):
                         update_settings(settings)
                         setup_github_repo.delay()
                         setup_network_devices.delay()
-                        print('Sent Network device')
+                        logger.info("Sent Network device setup task.")
                         sync_ldap.delay()
                         reboot_gunicorn()
                         return redirect('update_license')
                     else:
+                        logger.error("Failed to retrieve org ID from server.")
                         return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
                 else:
+                    logger.error("Failed to connect to server.")
                     return render(request, 'setup.html', {'error_message': 'Failed to connect to server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
 
             except ValidationError as e:
                 error_message = str(e)
+                logger.error(f"Validation error: {error_message}")
                 return render(request, 'setup.html', {'error_message': error_message, 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})
 
     else:
@@ -801,12 +840,22 @@ def update_site(request, site_id):
 from django.shortcuts import render, redirect
 @login_required
 def feature_request_view(request):
-    user = request.user
-    org = get_object_or_404(Org_Info)
-    return render(request, 'feature_request_form.html', {'org': org, 'user': user})
+    try:
+        user = request.user
+        org = get_object_or_404(Org_Info)
+        logger.info(f"Feature request view accessed by user: {user.username}, org: {org.org_name}")
+        return render(request, 'feature_request_form.html', {'org': org, 'user': user})
+    except Exception as e:
+        logger.error(f"Error in feature request view: {str(e)}")
+        raise
 
 @login_required
 def user_feature_requests(request):
-    user = request.user
-    feature_requests = FeatureRequest.objects.filter(user=user).order_by('-created_at')
-    return render(request, 'user_feature_requests.html', {'feature_requests': feature_requests})
+    try:
+        user = request.user
+        feature_requests = FeatureRequest.objects.filter(user=user).order_by('-created_at')
+        logger.info(f"User feature requests accessed by user: {user.username}, number of requests: {feature_requests.count()}")
+        return render(request, 'user_feature_requests.html', {'feature_requests': feature_requests})
+    except Exception as e:
+        logger.error(f"Error in user feature requests view: {str(e)}")
+        raise
