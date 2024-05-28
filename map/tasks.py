@@ -26,7 +26,7 @@ import requests
 from datetime import datetime, timedelta, timezone
 import logging
 import gzip
-
+from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
@@ -648,6 +648,7 @@ def send_logs():
                 logger_network.info("File uploaded successfully.")
                 os.remove(log_file_path)
                 os.remove(compressed_log_file_path)
+                reboot_gunicorn()
             else:
                 logger_network.error(f"Failed to upload file: {response.text}")
     except Org_Info.DoesNotExist:
