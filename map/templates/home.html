@@ -48,26 +48,25 @@
 									</header>
 									<div class="features">
 										<article>
-											<span class="icon solid fa-server" onclick="redirectToPortal()"></span>
+											<span style="cursor: pointer;" class="icon solid fa-server" onclick="redirectToNetwork()"></span>
 											<div class="content">
 												<h3>Network View</h3>
 												<p>Network Visability and Automation Tool</p>
 											</div>
-										</article>									</div>
-									<div class="features">
+										</article>
 										<article>
-											<span class="icon solid fa-database" onclick="redirectToPortal()"></span>
+											<span style="cursor: pointer;" class="icon solid fa-database" onclick="redirectToPortal()"></span>
 											<div class="content">
 												<h3>Microsoft Portals</h3>
 												<p>Added microsoft admin portals</p>
 											</div>
-										</article>									</div>
+										</article>								</div>
 								</section>
 <script>
 				function redirectToPortal(){
 					window.location.href = "{% url 'microsoft_portals' %}"
 				}
-				function redirectToPortal(){
+				function redirectToNetwork(){
 					window.location.href = "{% url 'network' %}"
 				}
 
