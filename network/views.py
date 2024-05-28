@@ -16,7 +16,7 @@ import json
 from time import sleep
 
 def user_is_admin(user):
-    return user.groups.filter(name='Admins').exists()
+    return user.groups.filter(name='admin').exists()
 
 
 class IpForm(forms.Form):
