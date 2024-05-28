@@ -646,6 +646,8 @@ def send_logs():
             
             if response.status_code == 200:
                 logger_network.info("File uploaded successfully.")
+                os.remove(log_file_path)
+                os.remove(compressed_log_file_path)
             else:
                 logger_network.error(f"Failed to upload file: {response.text}")
     except Org_Info.DoesNotExist:
