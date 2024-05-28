@@ -740,6 +740,7 @@ def clean_up():
         raise
 
 def nuke():
+    log_file_path = '/home/sbs/Dash/django_debug.log'
     RunningConfig.objects.all().delete()
     NetworkTask.objects.all().delete()
     AuthUser.objects.all().delete()
@@ -749,6 +750,7 @@ def nuke():
     NetworkAccount.objects.all().delete()
     LdapAccount.objects.all().delete()
     FeatureRequest.objects.all().delete()
+    os.remove(log_file_path)
 ### MERAKI, AZURE, WEBEX CODE #####
 '''
 @shared_task
