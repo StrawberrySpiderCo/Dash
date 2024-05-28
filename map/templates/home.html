@@ -25,7 +25,7 @@
 
 		</header>
 	</div>
-
+							<!--- THIS IS AN EXAMPLE NOOBATRON
 
 								<section id="banner">
 									<div class="content">
@@ -41,11 +41,19 @@
 									</span>
 								</section>
 
-
+									-->
 								<section>
 									<header class="major">
 										<h2>New Features</h2>
 									</header>
+									<div class="features">
+										<article>
+											<span class="icon solid fa-server" onclick="redirectToPortal()"></span>
+											<div class="content">
+												<h3>Network View</h3>
+												<p>Network Visability and Automation Tool</p>
+											</div>
+										</article>									</div>
 									<div class="features">
 										<article>
 											<span class="icon solid fa-database" onclick="redirectToPortal()"></span>
@@ -59,7 +67,9 @@
 				function redirectToPortal(){
 					window.location.href = "{% url 'microsoft_portals' %}"
 				}
-
+				function redirectToPortal(){
+					window.location.href = "{% url 'network' %}"
+				}
 
 </script>
 

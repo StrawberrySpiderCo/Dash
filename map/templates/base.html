@@ -44,26 +44,26 @@
 								<ul>
 									<li ><a class="icon solid fa-home" href="{% url 'home' %}"> Home</a></li>
 									<li><a class="icon solid fa-map" href="{% url 'map' %}"> Map</a></li>
-									<li><a class="icon solid fa-globe" href="{% url 'sites' %}"> Sites</a></li>
+									<li><a class="icon solid fa-globe" href="{% url 'sites' %}"> Sites 👷🔨</a></li>
 									<li>
-										<span class="opener"><i class="icon solid fa-list"></i> Projects</span>
+										<span class="opener"><i class="icon solid fa-list"></i> Projects 👷🔨</span>
 										<ul>
-											<li style="color: var(--text-color);"><a href="{% url 'meetings' %}">Meetings</a></li>
-											<li style="color: var(--text-color);"><a href="{% url 'projects' %}">All Projects</a></li>
-											<li style="color: var(--text-color);"><a href="{% url 'my_projects' %}">My Projects</a></li>
-											<li style="color: var(--text-color);"><a href="{% url 'project_dashboard' %}">Project Dashboard</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'meetings' %}">Meetings 👷🔨</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'projects' %}">All Projects 👷🔨</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'my_projects' %}">My Projects 👷🔨</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'project_dashboard' %}">Project Dashboard 👷🔨</a></li>
 										</ul>
 									</li>
 									
 									<li><a class="icon solid fa-network-wired" href="{% url 'network' %}"> Network</a></li>
 									<li>
-										<span class="opener"><i class="icon solid fa-toolbox"></i> Tools</span>
+										<span class="opener"><i class="icon solid fa-toolbox"></i> Tools </span>
 										<ul>
 											<li style="color: var(--text-color);"><a href="{% url 'microsoft_portals' %}">Microsoft Portals</a></li>
-											<li style="color: var(--text-color);"><a href="{% url 'ipam' %}">IPAM</a></li>
+											<li style="color: var(--text-color);"><a href="{% url 'ipam' %}">IPAM 👷🔨</a></li>
 										</ul>
 									</li>
-									<li><a href="{% url 'wikis' %}"><i class="icon solid fa-book"></i> Wiki</a></li>
+									<li><a href="{% url 'wikis' %}"><i class="icon solid fa-book"></i> Wiki 👷🔨</a></li>
 									{% if user.is_authenticated and user.is_superuser %}
 									<li><a href="{% url 'settings' %}"><i class="icon solid fa-gear"></i> Settings</a></li>
 									{% endif %}

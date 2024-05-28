@@ -1,9 +1,19 @@
 {% extends 'base.html' %}
 {% load static %}
 {% csrf_token %}
-{% block title %}Sites{% endblock %}
+{% block title %}Under Construction{% endblock %}
 {% block template %}
-<div>
+
+      <h1 >
+      ⚠️ Under Construction ⚠️
+<br><br>
+     🚧👷🔨👷‍♀️🚧
+      <br>
+      This page is currently under construction. Please check back later.
+    </h1>
+<!--
+
+  <div>
   <h1>Site List</h1>
   <ul>
       {% for site in sites|dictsort:"name" %}
@@ -12,4 +22,5 @@
       {% endfor %}
       </ul>
     </div>
+-->
 {% endblock %}
