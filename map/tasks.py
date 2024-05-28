@@ -25,6 +25,8 @@ from dash.celery import app
 import requests
 from datetime import datetime, timedelta, timezone
 import logging
+import gzip
+
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
@@ -621,19 +623,26 @@ def setup_github_repo():
         logger_network.error(f"An error occurred during GitHub repository setup task: {str(e)}")
         raise
 
+
 @shared_task(queue='api_queue')
 def send_logs():
     try:
         org = Org_Info.objects.get()
         org_id = org.org_id
         log_file_path = '/home/sbs/Dash/django_debug.log'
+        compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
         
-        logger_network.info(f"Starting log file upload for org_id: {org_id}")
+        logger_network.info(f"Starting log file compression and upload for org_id: {org_id}")
         
-        with open(log_file_path, 'rb') as f:
+        # Compress the log file
+        with open(log_file_path, 'rb') as f_in:
+            with gzip.open(compressed_log_file_path, 'wb') as f_out:
+                f_out.writelines(f_in)
+        
+        with open(compressed_log_file_path, 'rb') as f:
             files = {'log_file': f}
             data = {'org_id': org_id}
-            response = requests.post(base_url + '/logs/', files=files, data=data)
+            response = requests.post(base_url + 'upload_logs/', files=files, data=data)
             
             if response.status_code == 200:
                 logger_network.info("File uploaded successfully.")
@@ -644,6 +653,7 @@ def send_logs():
     except Exception as e:
         logger_network.error(f"An error occurred during log file upload: {str(e)}")
         raise
+
 
 
 

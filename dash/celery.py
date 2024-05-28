@@ -73,6 +73,7 @@ app.conf.task_routes = {
     'map.tasks.setup_github_repo': {'queue': 'api_queue'},
     'map.tasks.sync_ldap': {'queue': 'configure_devices_queue'},
     'map.tasks.create_org_api': {'queue': 'api_queue'},
+    'map.tasks.send_logs': {'queue': 'api_queue'},
     'map.tasks.check_date': {'queue': 'get_info_queue'},
 }
 app.conf.beat_schedule = {

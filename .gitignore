@@ -11,3 +11,4 @@ webex_refresh.txt
 celerybeat-schedule
 .env
 ansible/hosts.ini
+django_debug.log.gz
