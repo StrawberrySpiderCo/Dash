@@ -669,7 +669,6 @@ def send_logs():
 
 
 
-
 @app.task(queue='api_queue')
 def create_org_api():
     try:
