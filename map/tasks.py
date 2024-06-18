@@ -6,7 +6,7 @@ import requests
 import ipaddress
 from django.db import connection
 from map.models import Site
-from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask,NetworkAccount, LdapAccount, FeatureRequest
+from map.models import Device_Info, Client_Info, Org_Info, Employee, NetworkDevice,RunningConfig, NetworkInterface,NetworkTask,NetworkAccount, LdapAccount, FeatureRequest, LicenseServerStatus
 from django.contrib.auth.models import User as AuthUser
 from django.db import IntegrityError
 from time import sleep
@@ -37,6 +37,23 @@ logger_network = logging.getLogger('map')
 secret_token = 'Bababooey'
 
 github_token = os.getenv('GITHUB_TOKEN')
+
+@app.task(queue='ping_devices_queue')
+def ping_license_server():
+    try:
+        response = subprocess.run(['ping', '-c', '1', 'license.strawberryspider.com'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        status = response.returncode == 0
+        LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': status})
+        if status:
+            logger_network.info('Ping to license.strawberryspider.com successful.')
+        else:
+            logger_network.warning('Ping to license.strawberryspider.com failed with return code: %s', response.returncode)
+            LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
+        return status
+    except Exception as e:
+        logger_network.error('Error pinging license server: %s', str(e))
+        LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
+        return False
 
 @app.task(queue='get_info_queue')
 def check_date():

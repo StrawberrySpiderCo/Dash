@@ -26,7 +26,7 @@ from asgiref.sync import async_to_sync, sync_to_async
 from django.contrib.auth.decorators import login_required
 from map.models import Device_Info, Client_Info, Org_Info, LdapAccount, NetworkAccount
 from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccountForm, OrgInfoFormSettings, LdapAccountFormSettings, NetworkAccountFormSettings
-from .models import Org_Info, NetworkAccount, LdapAccount
+from .models import Org_Info, NetworkAccount, LdapAccount, LicenseServerStatus
 from django.contrib.auth.models import User, Group
 from concurrent.futures import ThreadPoolExecutor
 from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api
@@ -387,6 +387,10 @@ def purrception_view(request):
     org = get_object_or_404(Org_Info, pk=1)
     return render(request, 'purrception.html', {'org': org})
 
+def ping_license_server(request):
+    status = LicenseServerStatus.objects.first()
+    return JsonResponse({'status': status.status if status else False})
+    
 @login_required
 def purrception_results(request):
     output_messages = []

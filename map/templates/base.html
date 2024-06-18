@@ -14,6 +14,41 @@
 
 		<!--<link rel="icon" type="image/x-icon" href="{% static 'images/Map_Photos/CSV_Grey_Logo.png' %}" />-->
 	</head>
+	<style>
+		.popup-container {
+  display: none; 
+  position: fixed;
+  background: rgba(0, 0, 0, 0.6);
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity:0;
+  transition: opacity 0.5s; 
+}
+
+.popup {
+  position: fixed; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: fit-content;
+  height: fit-content;
+  background-color: var(--left-menu-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 5px;
+  font-family: var(--font-family);
+  z-index: 9999;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+	</style>
 	<body class="is-preload">
 
 		<!-- Wrapper -->
@@ -119,6 +154,12 @@
 					</div>
 
 			</div>
+			<div id="popup-container" class="popup-container">
+				<div class="popup">
+					<h2>Connection to License Server Failed</h2>
+					<p>Please ensure you are connected to the internet and try again.</p>
+				</div>
+				</div>
 
 		<!-- Scripts -->
 			<script src="{% static 'assets/js/jquery.min.js' %}"></script>
@@ -127,6 +168,42 @@
 			<script src="{% static 'assets/js/util.js' %}"></script>
 			<script src="{% static 'assets/js/main.js' %}"></script>
 			<script>
+
+var $popupContainer = document.getElementById('popup-container'),
+  $popup = $popupContainer.querySelector('.popup');				
+function checkLicenseServer() {
+	fetch('{% url "ping_license_server" %}', {
+        method: 'GET',
+        credentials: 'same-origin',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+	.then(response => response.json())
+        .then(data => {
+            if (data.status) {
+                    $popupContainer.style.opacity = 0;
+   					setTimeout(function () {
+   					  $popupContainer.style.display = 'none'
+  					 }, 300);
+                } else {
+					$popupContainer.style.display = 'block';
+  					//fade In 
+  					 setTimeout(function () {
+  					   $popupContainer.style.opacity = 1;
+  					 }, 100);
+                }
+            })
+            .catch(error => {
+                $popupContainer.style.opacity = 0;
+   				setTimeout(function () {
+   				  $popupContainer.style.display = 'none'
+   				}, 300);
+            });
+			
+    }
+
+    setInterval(checkLicenseServer, 5000);
 								function redirectToRequests() {
 	window.location.href = "{% url 'feature_request' %}";
 	

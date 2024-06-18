@@ -13,5 +13,8 @@ class LoggingMiddleware:
         start_time = time.time()
         response = self.get_response(request)
         duration = time.time() - start_time
-        logger.info(f"{request.method} {request.path} completed in {duration:.2f}s")
+        if request.path == '/ping_license_server/':
+            pass
+        else:
+            logger.info(f"{request.method} {request.path} completed in {duration:.2f}s")
         return response

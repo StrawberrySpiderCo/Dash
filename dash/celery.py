@@ -56,6 +56,7 @@ app.conf.task_queues = {
 
 app.conf.task_routes = {
     'map.tasks.ping_devices_task': {'queue': 'ping_devices_queue'},
+    'map.tasks.ping_license_server': {'queue': 'ping_devices_queue'},
     'map.tasks.cycle_port_task': {'queue': 'configure_devices_queue'},
     'map.tasks.update_port_info': {'queue': 'configure_devices_queue'},
     'map.tasks.set_interface': {'queue': 'configure_devices_queue'},
@@ -109,6 +110,10 @@ app.conf.beat_schedule = {
         'task': 'map.tasks.ping_devices_task',
         'schedule': crontab(minute='*/1'),
     },
+   #    'ping_license_server': {
+   #    'task': 'map.tasks.ping_license_server',
+   #    'schedule': crontab(minute='*/2'),
+   #},
     'clean_artifacts': {
         'task': 'map.tasks.clean_artifacts',
         'schedule': crontab(minute='*/30'),

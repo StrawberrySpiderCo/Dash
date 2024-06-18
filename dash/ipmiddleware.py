@@ -10,6 +10,11 @@ class CheckUserMiddleware:
 
     def __call__(self, request):
         User = get_user_model()
+        
+        # Allow ping_license_server endpoint to pass through
+        if request.path == reverse('ping_license_server'):
+            return self.get_response(request)
+        
         if User.objects.exists():
             # At least one user exists, proceed with the request
             return self.get_response(request)
@@ -17,6 +22,6 @@ class CheckUserMiddleware:
             # No user exists and request is not already on the setup page
             return redirect('setup')
         else:
-           # No user exists but request is already on the setup page, proceed
+            # No user exists but request is already on the setup page, proceed
             return self.get_response(request)
         

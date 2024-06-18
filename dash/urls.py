@@ -31,7 +31,8 @@ from wiki import views as wiki
 from project import views as project
 
 urlpatterns = [
-    #path('admin/', admin.site.urls),
+    path('admin/', admin.site.urls),
+    path('ping_license_server/', map.ping_license_server, name='ping_license_server'),
     path('ticket/', map.ticket_details, name='ticket_details'),
     path('settings/', map.settings, name='settings'),
     path('settings/success/', map.settings_success, name='settings_success'),

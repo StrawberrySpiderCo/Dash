@@ -197,7 +197,10 @@ class RunningConfig(models.Model):
         Method to represent instances of this model as strings.
         """
         return f"Configuration for {self.device} created at {self.created_at}"
-
+class LicenseServerStatus(models.Model):
+    status = models.BooleanField(default=False)
+    last_checked = models.DateTimeField(auto_now=True)
+    
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
     is_setup= models.BooleanField(default=False)
