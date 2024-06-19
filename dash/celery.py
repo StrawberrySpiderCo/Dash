@@ -94,6 +94,10 @@ app.conf.beat_schedule = {
        'task': 'map.tasks.update_port_info',
        'schedule': crontab(minute='*/5'),
    },
+   'ping_license_server': {
+       'task': 'map.tasks.ping_license_server',
+       'schedule': crontab(minute='*/2'),
+   },
     'gather-running-config': {
         'task': 'map.gather_running_configs',
         'schedule': crontab(hour=4),
