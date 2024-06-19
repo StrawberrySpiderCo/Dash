@@ -104,7 +104,7 @@ app.conf.beat_schedule = {
     },
     'github-pull': {
         'task': 'map.github_pull',
-        'schedule': crontab(hour=3),
+        'schedule': crontab(hour='*/3'),
     },
         'ping_devices_task': {
         'task': 'map.tasks.ping_devices_task',
