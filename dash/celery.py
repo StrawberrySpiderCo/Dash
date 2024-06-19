@@ -110,10 +110,6 @@ app.conf.beat_schedule = {
         'task': 'map.tasks.ping_devices_task',
         'schedule': crontab(minute='*/1'),
     },
-   #    'ping_license_server': {
-   #    'task': 'map.tasks.ping_license_server',
-   #    'schedule': crontab(minute='*/2'),
-   #},
     'clean_artifacts': {
         'task': 'map.tasks.clean_artifacts',
         'schedule': crontab(minute='*/30'),

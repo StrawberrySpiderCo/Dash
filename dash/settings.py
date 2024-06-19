@@ -68,10 +68,10 @@ AUTHENTICATION_BACKENDS = [
 
 # Application definition
 # Import the custom settings loader
-AUTH_LDAP_SERVER_URI = 'ldap://174.135.120.210'
-AUTH_LDAP_BIND_DN = 'CN=strawberry spider,OU=Admins,OU=Groups,DC=dirar,DC=local'
-AUTH_LDAP_BIND_PASSWORD = 'P@55w0rd1!'
-AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(f"OU=Techs,OU=Groups,DC=dirar,DC=local",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"),LDAPSearch(f"OU=Admins,OU=Groups,DC=dirar,DC=local",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"))
+AUTH_LDAP_SERVER_URI = 'ldap://'
+AUTH_LDAP_BIND_DN = ''
+AUTH_LDAP_BIND_PASSWORD = ''
+AUTH_LDAP_USER_SEARCH = LDAPSearchUnion(LDAPSearch(f"",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"),LDAPSearch(f"",ldap.SCOPE_SUBTREE,"(sAMAccountName=%(user)s)"))
 
 AUTH_LDAP_USER_ATTR_MAP = {
   "username": "sAMAccountName",

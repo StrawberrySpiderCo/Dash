@@ -29,7 +29,7 @@ from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccou
 from .models import Org_Info, NetworkAccount, LdapAccount, LicenseServerStatus
 from django.contrib.auth.models import User, Group
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api
+from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api, ping_license_server
 from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 from time import sleep
 from django.forms import ModelForm
@@ -210,6 +210,7 @@ class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
 def setup(request):
+    ping_license_server.delay()
     if Org_Info.objects.exists():
         return redirect('home')
     
@@ -387,7 +388,8 @@ def purrception_view(request):
     org = get_object_or_404(Org_Info, pk=1)
     return render(request, 'purrception.html', {'org': org})
 
-def ping_license_server(request):
+def license_server(request):
+    ping_license_server.delay()
     status = LicenseServerStatus.objects.first()
     return JsonResponse({'status': status.status if status else False})
     
