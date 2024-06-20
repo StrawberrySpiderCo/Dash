@@ -124,7 +124,7 @@ app.conf.beat_schedule = {
     },
     'check_date_every_8_hours': {
         'task': 'tasks.check_date',
-        'schedule': crontab(hour=4), 
+        'schedule': crontab(hour='*/8'), 
     },
 
 }

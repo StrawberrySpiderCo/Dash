@@ -59,19 +59,41 @@ def ping_license_server():
 def check_date():
     try:
         org = Org_Info.objects.get()
-        date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
-        current_time = datetime.now()
-        logger_network.info(f"Checking date for organization {org.name} at {current_time.isoformat()}")
-        
-        if (current_time - date) > timedelta(days=7):
-            org.license = ''
-            org.valid = False
-            org.save()
-            logger_network.info(f"License expired for organization {org.name}. License set to empty and validity set to False.")
+        if org.is_setup:
+            data = {
+            'org_id': org.org_id,
+            'license': org.license,
+            'free_trial_used': False
+            }
+            response = requests.post(base_url + 'check/license/', data=data)
+            if response.status_code == 200:
+                logger_network.info("Connected to license")
+                response_data = response.json()
+                expire_date = response_data['license_info']['expire_date']
+                logger_network.info(f"Connected to license server and received date {expire_date}")
+                if expire_date != org.valid_time:
+                    logger_network.info(f"License Date differs from Org | License: {expire_date} Org: {org.valid_time}")
+                    org.valid_time = expire_date
+                    org.save()
+                    logger_network.info(f"Saved new Date {org.valid_time}")
+            else:
+               logger_network.info("Could not connect to License server using old data")
+            try:
+                date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%S.%fZ')
+            except ValueError:
+                date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%SZ')
+            current_time = datetime.now()
+            if (current_time - date) > timedelta(days=7):
+                org.license = ''
+                org.valid = False
+                org.save()
+                logger_network.info(f"License expired for organization {org.org_name}. License set to empty and validity set to False.")
+            else:
+                remaining_days = (date + timedelta(days=7) - current_time).days
+                logger_network.info(f"License for organization {org.org_name} is still valid. {remaining_days} days remaining until expiration.")
+                print("Date has not passed by 7 days yet.")
         else:
-            remaining_days = (date + timedelta(days=7) - current_time).days
-            logger_network.info(f"License for organization {org.name} is still valid. {remaining_days} days remaining until expiration.")
-            print("Date has not passed by 7 days yet.")
+            pass
     except ObjectDoesNotExist:
         logger_network.error("Organization information could not be found.")
     except Exception as e:
