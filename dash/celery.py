@@ -99,15 +99,15 @@ app.conf.beat_schedule = {
        'schedule': crontab(minute='*/2'),
    },
     'gather-running-config': {
-        'task': 'map.gather_running_configs',
+        'task': 'map.tasks.gather_running_configs',
         'schedule': crontab(hour=4),
     },
     'send-logs': {
-        'task': 'map.send_logs',
+        'task': 'map.tasks.send_logs',
         'schedule': crontab(hour=5),
     },
     'github-pull': {
-        'task': 'map.github_pull',
+        'task': 'map.tasks.github_pull',
         'schedule': crontab(hour='*/3'),
     },
         'ping_devices_task': {
@@ -123,7 +123,7 @@ app.conf.beat_schedule = {
         'schedule': crontab(hour='*/2'),
     },
     'check_date_every_8_hours': {
-        'task': 'tasks.check_date',
+        'task': 'map.tasks.check_date',
         'schedule': crontab(hour='*/8'), 
     },
 
