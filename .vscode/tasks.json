@@ -1,0 +1,76 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+      {
+          "label": "GUNICORN",
+          "type": "shell",
+          "command": "journalctl -u gunicorn.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "GUNICORN"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "API",
+          "type": "shell",
+          "command": "journalctl -u celery_api.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "API"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "PING",
+          "type": "shell",
+          "command": "journalctl -u celery_worker_ping.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "PING"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "CONFIGURE",
+          "type": "shell",
+          "command": "journalctl -u celery_worker_configure.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "CONFIGURE"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "GET_INFO",
+          "type": "shell",
+          "command": "journalctl -u celery_worker_get_info.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "GET_INFO"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "BEAT",
+          "type": "shell",
+          "command": "journalctl -u celery_beat.service -f",
+          "presentation": {
+              "panel": "dedicated",
+              "group": "BEAT"
+          },
+          "problemMatcher": []
+      },
+      {
+          "label": "Run All Services",
+          "dependsOn": [
+              "GUNICORN",
+              "API",
+              "PING",
+              "CONFIGURE",
+              "GET_INFO",
+              "BEAT"
+          ]
+      }
+  ]
+}
