@@ -21,6 +21,7 @@ from netutils.interface import abbreviated_interface_name
 from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
 from django.core.exceptions import ObjectDoesNotExist
 from typing import Literal, Union, Optional
+from django.conf import settings
 from dash.celery import app
 import requests
 from datetime import datetime, timedelta, timezone
@@ -37,6 +38,18 @@ logger_network = logging.getLogger('map')
 secret_token = 'Bababooey'
 
 github_token = os.getenv('GITHUB_TOKEN')
+
+def get_jwt_token():
+    response = requests.post(
+        'https://license.strawberryspider.com/api/token/',
+        data={
+            'username': settings.API_USER,
+            'password': settings.API_PASSWORD
+        }
+    )
+    response.raise_for_status()
+    return response.json().get('access')
+
 
 @app.task(queue='ping_devices_queue')
 def ping_license_server():
@@ -60,12 +73,17 @@ def check_date():
     try:
         org = Org_Info.objects.get()
         if org.is_setup:
+            jwt_token = get_jwt_token()
             data = {
-            'org_id': org.org_id,
-            'license': org.license,
-            'free_trial_used': False
+                'org_id': org.org_id,
+                'license': org.license,
+                'free_trial_used': False
             }
-            response = requests.post(base_url + 'check/license/', data=data)
+            response = requests.post(
+                'https://license.strawberryspider.com/api/check/license/',
+                headers={'Authorization': f'Bearer {jwt_token}'},
+                data=data
+            )
             if response.status_code == 200:
                 logger_network.info("Connected to license")
                 response_data = response.json()
@@ -77,7 +95,7 @@ def check_date():
                     org.save()
                     logger_network.info(f"Saved new Date {org.valid_time}")
             else:
-               logger_network.info("Could not connect to License server using old data")
+                logger_network.info("Could not connect to License server using old data")
             try:
                 date = datetime.strptime(org.valid_time, '%Y-%m-%dT%H:%M:%S.%fZ')
             except ValueError:

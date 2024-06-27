@@ -199,9 +199,10 @@ def update_org_license(request):
         
 def update_license(request):
     try:
+        jwt_token = get_jwt_token()
         org = get_object_or_404(Org_Info)
         logger.info(f"Update license view accessed for org: {org.org_name}")
-        return render(request, 'update_license.html', {'org': org})
+        return render(request, 'update_license.html', {'org': org, 'jwt_token': jwt_token})
     except Exception as e:
         logger.error(f"Error in update license view: {str(e)}")
         raise
@@ -209,24 +210,35 @@ def update_license(request):
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
+def get_jwt_token():
+    response = requests.post(
+        'https://license.strawberryspider.com/api/token/',
+        data={
+            'username': settings.API_USER,
+            'password': settings.API_PASSWORD
+        }
+    )
+    response.raise_for_status()
+    return response.json().get('access')
+
 def setup(request):
     ping_license_server.delay()
     if Org_Info.objects.exists():
         return redirect('home')
-    
+
     if request.method == 'POST':
         org_form = OrgInfoForm(request.POST, request.FILES)
         network_form = NetworkAccountForm(request.POST, request.FILES)
         ldap_form = LdapAccountForm(request.POST)
         admin_form = AdminCreationForm(request.POST)
-        
+
         if org_form.is_valid() and network_form.is_valid() and ldap_form.is_valid() and admin_form.is_valid():
             try:
                 org_info_data = org_form.cleaned_data
                 network_data = network_form.cleaned_data
                 ldap_data = ldap_form.cleaned_data
                 admin_data = admin_form.cleaned_data
-                
+
                 username = admin_data['username']
                 password = admin_data['password1']
                 email = org_info_data['contact_email']
@@ -237,17 +249,28 @@ def setup(request):
                     network_device_ips = csv_file
                 else:
                     network_device_ips = network_data.get('network_device_ips', [])
+
                 # Prepare org_data for external API request
                 org_data = {
                     'name': org_info_data['org_name'],
                     'contact_email': org_info_data['contact_email'],
                     'contact_phone': org_info_data['contact_phone'],
-                    'hamster_solar': 'Bababooey'
+                    'hamster_solar': 'Bababooey'  # Assuming this is a placeholder
                 }
-                response = requests.post('https://license.strawberryspider.com/api/create/org/', data=org_data)
+
+                # Get JWT token for API authentication
+                jwt_token = get_jwt_token()
+
+                # Send API request to license.strawberryspider.com to create org
+                response = requests.post(
+                    'https://license.strawberryspider.com/api/create/org/',
+                    headers={'Authorization': f'Bearer {jwt_token}'},
+                    data=org_data
+                )
 
                 if response.status_code == 200:
-                    org_id = response.json().get('org_id')
+                    response_data = response.json()
+                    org_id = response_data.get('org_id')
                     if org_id:
                         user = User.objects.create_user(username, email=email, password=password)
                         user.is_superuser = True
@@ -286,7 +309,7 @@ def setup(request):
                         logger.info("Sent Network device setup task.")
                         sync_ldap.delay()
                         reboot_gunicorn()
-                        return redirect('update_license')
+                        return redirect('update_license', {'jwt_token': jwt_token})
                     else:
                         logger.error("Failed to retrieve org ID from server.")
                         return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})

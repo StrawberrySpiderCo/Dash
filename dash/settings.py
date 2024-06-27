@@ -27,8 +27,12 @@ from pathlib import Path
 from django.contrib.staticfiles.views import serve
 from django_auth_ldap.config import LDAPSearch,LDAPSearchUnion
 import ldap
+import environ
 
-
+env = environ.Env()
+environ.Env.read_env(env_file='/home/sbs/Dash/.env')
+API_USER = env('API_USER')
+API_PASSWORD = env('API_PASSWORD')
 #os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dash.settings')
 #django.setup()
 
