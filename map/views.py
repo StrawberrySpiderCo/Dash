@@ -414,7 +414,9 @@ def purrception_view(request):
 def license_server(request):
     status = LicenseServerStatus.objects.first()
     return JsonResponse({'status': status.status if status else False})
-    
+def offline(request):
+    return render(request, 'offline.html')
+
 @login_required
 def purrception_results(request):
     output_messages = []

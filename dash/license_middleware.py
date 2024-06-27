@@ -21,3 +21,29 @@ class LicenseCheckMiddleware:
             pass
         
         return self.get_response(request)
+    
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+from map.models import LicenseServerStatus
+
+class LicenseServerMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Check if the request is already for the offline page to avoid loops
+        if request.path != reverse('offline'):
+            # Fetch the status from the database
+            try:
+                status = LicenseServerStatus.objects.first()
+                server_status = status.status if status else False
+            except Exception as e:
+                server_status = False
+                print(f"License server status check failed: {e}")
+
+            # Check the status and redirect if offline
+            if not server_status:
+                return HttpResponseRedirect(reverse('offline'))
+
+        response = self.get_response(request)
+        return response

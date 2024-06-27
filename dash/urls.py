@@ -32,6 +32,7 @@ from project import views as project
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('offline/', map.offline, name='offline'),
     path('ping_license_server/', map.license_server, name='ping_license_server'),
     path('ticket/', map.ticket_details, name='ticket_details'),
     path('settings/', map.settings, name='settings'),

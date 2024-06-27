@@ -112,7 +112,8 @@ MIDDLEWARE = [
     'dash.loggingmiddleware.LoggingMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',  
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'dash.license_middleware.LicenseServerMiddleware',  
     'dash.license_middleware.LicenseCheckMiddleware',
     'dash.ipmiddleware.CheckUserMiddleware',
 
