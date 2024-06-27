@@ -108,7 +108,7 @@ app.conf.beat_schedule = {
     },
     'github-pull': {
         'task': 'map.tasks.github_pull',
-        'schedule': crontab(hour='*/3'),
+        'schedule': crontab(minute=0, hour='*/3'),
     },
         'ping_devices_task': {
         'task': 'map.tasks.ping_devices_task',
@@ -120,11 +120,11 @@ app.conf.beat_schedule = {
     },
     'sync_ldap': {
         'task': 'map.tasks.sync_ldap',
-        'schedule': crontab(hour='*/2'),
+        'schedule': crontab(minute=0, hour='*/2'),
     },
     'check_date_every_8_hours': {
         'task': 'map.tasks.check_date',
-        'schedule': crontab(hour='*/8'), 
+        'schedule': crontab(minute=0, hour='*/8'), 
     },
 
 }

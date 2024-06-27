@@ -389,7 +389,6 @@ def purrception_view(request):
     return render(request, 'purrception.html', {'org': org})
 
 def license_server(request):
-    ping_license_server.delay()
     status = LicenseServerStatus.objects.first()
     return JsonResponse({'status': status.status if status else False})
     
