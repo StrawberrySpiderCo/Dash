@@ -40,31 +40,57 @@ secret_token = 'Bababooey'
 github_token = os.getenv('GITHUB_TOKEN')
 
 def get_jwt_token():
-    response = requests.post(
-        'https://license.strawberryspider.com/api/token/',
-        data={
-            'username': settings.API_USER,
-            'password': settings.API_PASSWORD
-        }
-    )
-    response.raise_for_status()
-    return response.json().get('access')
+    try:
+        # Log the start of the token request
+        logger_network.info("Starting JWT token request")
+
+        # Make the token request
+        response = requests.post(
+            'https://license.strawberryspider.com/api/token/',
+            data={
+                'username': settings.API_USER,
+                'password': settings.API_PASSWORD
+            }
+        )
+
+        # Log the response status
+        logger_network.info(f"JWT token request status: {response.status_code}")
+
+        # Raise an error if the request failed
+        response.raise_for_status()
+
+        # Log the successful retrieval of the token
+        token = response.json().get('access')
+        logger_network.info("JWT token successfully retrieved")
+
+        return token
+
+    except requests.RequestException as e:
+        # Log the error
+        logger_network.error(f"Error during JWT token request: {e}")
+        raise
+
 
 
 @app.task(queue='ping_devices_queue')
 def ping_license_server():
     try:
-        response = subprocess.run(['ping', '-c', '1', 'license.strawberryspider.com'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        status = response.returncode == 0
+        response = requests.get('https://license.strawberryspider.com/api/status/')
+        response.raise_for_status()
+        data = response.json()
+        status = data.get('status', False)
+
         LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': status})
+
         if status:
-            logger_network.info('Ping to license.strawberryspider.com successful.')
+            logger_network.info('License server is online.')
         else:
-            logger_network.warning('Ping to license.strawberryspider.com failed with return code: %s', response.returncode)
+            logger_network.warning('License server is offline.')
             LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
+
         return status
-    except Exception as e:
-        logger_network.error('Error pinging license server: %s', str(e))
+    except requests.RequestException as e:
+        logger_network.error('Error checking license server status: %s', str(e))
         LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
         return False
 

@@ -29,7 +29,7 @@ from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccou
 from .models import Org_Info, NetworkAccount, LdapAccount, LicenseServerStatus
 from django.contrib.auth.models import User, Group
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api, ping_license_server
+from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api, ping_license_server, get_jwt_token
 from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 from time import sleep
 from django.forms import ModelForm
@@ -149,8 +149,8 @@ def settings(request):
 
                 if ldap_form.has_changed():
                     ldap_form.save()
-                    settings = get_ldap_settings()
-                    update_settings(settings)
+                    settings1 = get_ldap_settings()
+                    update_settings(settings1)
                     reboot_gunicorn()
                     logger.info("LDAP settings updated.")
 
@@ -210,16 +210,6 @@ def update_license(request):
 class IpForm(forms.Form):
     router_ip = forms.CharField(label='Router IP address', max_length=15)
     
-def get_jwt_token():
-    response = requests.post(
-        'https://license.strawberryspider.com/api/token/',
-        data={
-            'username': settings.API_USER,
-            'password': settings.API_PASSWORD
-        }
-    )
-    response.raise_for_status()
-    return response.json().get('access')
 
 def setup(request):
     ping_license_server.delay()
