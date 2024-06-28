@@ -82,8 +82,8 @@ app.conf.beat_schedule = {
         'task': 'map.tasks.clean_up',
         'schedule': crontab(day_of_month='1-31/90'),
     },
-    'update_host_file': {
-        'task': 'map.tasks.update_host_file',  
+    'update_host_file_task': {
+        'task': 'map.tasks.update_host_file_task',  
         'schedule': crontab(minute='*/30'),
     },
     'update-device-info': {

@@ -187,15 +187,15 @@ def ping_devices_task():
                     device.ansible_status = 'ONLINE'
                     device.save()
                     update_host_file()
-                    logger_network.info(f"Device {ip} is now online. Status updated.")
+                    logger_network.info(f"Device is now online. Status updated.")
                 elif not online and device.online:
                     device.online = False
                     device.ansible_status = 'OFFLINE'
                     device.save()
                     update_host_file()
-                    logger_network.info(f"Device {ip} is now offline. Status updated.")
+                    logger_network.info(f"Device is now offline. Status updated.")
             except NetworkDevice.DoesNotExist:
-                logger_network.warning(f"Device with IP {ip} does not exist in the database.")
+                logger_network.warning(f"Device does not exist in the database.")
                 
         logger_network.info("Ping devices task completed successfully.")
     except Exception as e:
