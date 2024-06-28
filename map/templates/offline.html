@@ -35,15 +35,19 @@
 	font-size: 0.8em;
 	font-weight: 700;
 	text-align: center;
+    text-wrap: wrap;
 	white-space: nowrap;
 	}
 
     .loader {
-  border: 16px solid #f3f3f3;
+  border: 8px solid #f3f3f3;
   border-radius: 50%;
-  border-top: 16px solid #3498db;
-  width: 120px;
-  height: 120px;
+  border-top: 8px solid #3498db;
+  width: 60px;
+  height: 60px;
+  text-align: center;
+
+  margin: 0 auto; /* Center horizontally */
   animation: spin 2s linear infinite;
 }
 
@@ -52,30 +56,39 @@
   100% { transform: rotate(360deg); }
 }
 </style>
-<h1>Device OFFLINE Please Connect to Internet</h1>
+<h1>Server OFFLINE Please Connect to Internet</h1>
 <div id="popup-container2" class="popup-container">
-    <div class="popup2">
-        <h2 id="popup-title">Connection to Server Failed</h2>
-        <p id="popup-message">Please ensure Dashboard is connected to the internet and try again.</p>
-        <div id="spinner" class="loader" style="display:none;"></div>
-        <p id="success-message" style="color:green; display:none;">Device is online, redirecting to home...</p>
+    <div class="popup">
+        <div id="error-message">
+            <h2>Connection to Server Failed</h2><br>
+            <h3 style="color:red;" >Please ensure Dashboard is connected to the internet and try again.</h3>
+        <p class="loader"></p>
+        </div>
+        <div id="success-message" style="display: none;">
+            <h2>Connected!</h2><br>
+        <h3 style="color:green;" >Device is online, redirecting to home...</h3>
+        </div>
     </div>
 </div>
 
 <script>
 
 var $popupContainer2 = document.getElementById('popup-container2'),
-    $popup2 = $popupContainer2.querySelector('.popup2'),
-    $popupTitle = document.getElementById('popup-title'),
-    $popupMessage = document.getElementById('popup-message'),
-    $spinner = document.getElementById('spinner'),
+    $errorMessage = document.getElementById('error-message'),
     $successMessage = document.getElementById('success-message');
+
+function showPopup() {
+    $popupContainer2.style.display = 'block';
+    setTimeout(() => {
+        $popupContainer2.style.opacity = 1;
+    }, 10);
+}
 
 function checkLicenseServer() {
     // Show the spinner and hide other messages
-    $spinner.style.display = 'block';
-    $popupMessage.style.display = 'none';
+    $errorMessage.style.display = 'block';
     $successMessage.style.display = 'none';
+    showPopup();
 
     fetch('{% url "ping_license_server" %}', {
         method: 'GET',
@@ -87,34 +100,28 @@ function checkLicenseServer() {
     .then(response => response.json())
     .then(data => {
         if (data.status) {
-            $spinner.style.display = 'none';
+            $errorMessage.style.display = 'none';
             $successMessage.style.display = 'block';
             setTimeout(function () {
                 $popupContainer2.style.opacity = 0;
                 setTimeout(function () {
-                    $popupContainer2.style.display = 'none';
                     window.location.href = "{% url 'home' %}";
                 }, 300);
             }, 2000);
         } else {
             $spinner.style.display = 'none';
-            $popupMessage.style.display = 'block';
-            $popupContainer2.style.display = 'block';
-            setTimeout(function () {
-                $popupContainer2.style.opacity = 1;
-            }, 100);
+            $errorMessage.style.display = 'block';
+            $successMessage.style.display = 'none';
         }
     })
     .catch(error => {
         $spinner.style.display = 'none';
-        $popupMessage.style.display = 'block';
-        $popupContainer2.style.display = 'block';
-        setTimeout(function () {
-            $popupContainer2.style.opacity = 1;
-        }, 100);
+        $errorMessage.style.display = 'block';
+        $successMessage.style.display = 'none';
     });
 }
 
 setInterval(checkLicenseServer, 4000);
+checkLicenseServer();
 </script>
 {% endblock %}

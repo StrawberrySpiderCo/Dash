@@ -79,7 +79,8 @@ def ping_license_server():
         response.raise_for_status()
         data = response.json()
         status = data.get('status', False)
-
+        if status == 'up':
+            status = True
         LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': status})
 
         if status:

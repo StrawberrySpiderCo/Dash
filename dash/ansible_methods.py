@@ -1,8 +1,9 @@
 import ansible_runner
 import json
 from map.models import Org_Info,NetworkDevice,NetworkInterface,NetworkTask,NetworkAccount
-import shutil
 import os
+import shutil
+import logging
 import subprocess
 
 playbookPath = r'/home/sbs/Dash/ansible/'
@@ -191,17 +192,23 @@ def ansible_logging(events):
                 #    "duration": i['event_data']['duration']
                 #}
                 #output["runner_on_failed"].append(failed_task)
-
+logger_network = logging.getLogger('network')
 def cleanup_artifacts_folder():
     artifacts_folder = '/home/sbs/Dash/ansible/artifacts'
     env_path = '/home/sbs/Dash/ansible/env/extravars'
     try:
         # Delete the entire artifacts folder and its contents
         shutil.rmtree(artifacts_folder)
-        print("Artifacts folder deleted successfully.")
+        logger_network.info("Artifacts folder deleted successfully.")
+    except FileNotFoundError:
+        logger_network.info("Artifacts folder already deleted.")
     except Exception as e:
-        print(f"Error deleting artifacts folder: {e}")
+        logger_network.error(f"Error deleting artifacts folder: {e}")
+
     try:
         os.remove(env_path)
+        logger_network.info("Env file deleted successfully.")
+    except FileNotFoundError:
+        logger_network.info("Env file already deleted.")
     except Exception as e:
-        print(f"Error deleting env file: {e}")
+        logger_network.error(f"Error deleting env file: {e}")
