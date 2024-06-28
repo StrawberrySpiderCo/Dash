@@ -103,9 +103,6 @@ class Client_Info(models.Model):
     pskGroup = models.CharField(max_length=100)
 
 class NetworkDevice(models.Model):
-    username = models.CharField(max_length=100)
-    password = models.CharField(max_length=100)
-    enable_password = models.CharField(max_length=100, default='', null=True)
     ip_address = models.CharField(max_length=200)
     model = models.CharField(max_length=200, default='', null=True)
     hostname = models.CharField(max_length=200, default='', null=True)

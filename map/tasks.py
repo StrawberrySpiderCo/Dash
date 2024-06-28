@@ -542,9 +542,6 @@ def setup_network_devices(added_ips=None, removed_ips=None):
                     ip_address=ip,
                     defaults={
                         'model': '',
-                        'username': org_info.ssh_username,
-                        'password': org_info.ssh_password,
-                        'enable_password': org_info.ssh_enable_password,
                         'online': online
                     }
                 )
