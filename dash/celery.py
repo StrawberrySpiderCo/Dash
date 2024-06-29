@@ -100,11 +100,11 @@ app.conf.beat_schedule = {
    },
     'gather-running-config': {
         'task': 'map.tasks.gather_running_configs',
-        'schedule': crontab(hour=4),
+        'schedule': crontab(minute=0, hour='*/4'),
     },
     'send-logs': {
         'task': 'map.tasks.send_logs',
-        'schedule': crontab(hour=5),
+        'schedule': crontab(minute=0, hour=5),
     },
     'github-pull': {
         'task': 'map.tasks.github_pull',
