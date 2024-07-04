@@ -555,11 +555,7 @@ def setup_network_devices(added_ips=None, removed_ips=None):
             logger_network.info("Removed devices that are no longer in the list.")
 
         playbook_dir = '/home/sbs/Dash/ansible'
-        host_file_path = f"{playbook_dir}/hosts.ini"
-        if os.path.exists(host_file_path):
-            os.remove(host_file_path)
-            logger_network.info("Existing hosts.ini file removed.")
-        
+        host_file_path = f"{playbook_dir}/hosts.ini"  
         with open(host_file_path, 'w') as host_file:
             host_file.write("[network_devices]\n")
             for ip in network_ips:

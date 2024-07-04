@@ -299,7 +299,7 @@ def setup(request):
                         logger.info("Sent Network device setup task.")
                         sync_ldap.delay()
                         reboot_gunicorn()
-                        return redirect('update_license', {'jwt_token': jwt_token})
+                        return redirect('update_license')
                     else:
                         logger.error("Failed to retrieve org ID from server.")
                         return render(request, 'setup.html', {'error_message': 'Failed to retrieve org ID from server', 'org_form': org_form, 'network_form': network_form, 'ldap_form': ldap_form, 'admin_form': admin_form})

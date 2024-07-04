@@ -236,7 +236,7 @@ LOGGING = {
             'level': 'INFO',  # Change from DEBUG to INFO
             'propagate': False,
         },
-            'celery': {
+            'celery.beat': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,

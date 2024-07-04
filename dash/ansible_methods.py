@@ -5,7 +5,7 @@ import os
 import shutil
 import logging
 import subprocess
-
+logger_network = logging.getLogger('network')
 playbookPath = r'/home/sbs/Dash/ansible/'
 private_data_path = r'/home/sbs/Dash/ansible/'
 inventory_path = r'/home/sbs/Dash/ansible/hosts.ini'
@@ -23,6 +23,7 @@ def update_host_file():
         for ip in network_ips:
             online = NetworkDevice.objects.get(ip_address=ip).online
             if online:
+                logger_network.info(f"Writing {ip} to host file Status:{online}")
                 host_file.write(f"{ip} ansible_host={ip}\n")
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
@@ -192,7 +193,7 @@ def ansible_logging(events):
                 #    "duration": i['event_data']['duration']
                 #}
                 #output["runner_on_failed"].append(failed_task)
-logger_network = logging.getLogger('network')
+
 def cleanup_artifacts_folder():
     artifacts_folder = '/home/sbs/Dash/ansible/artifacts'
     env_path = '/home/sbs/Dash/ansible/env/extravars'
