@@ -9,6 +9,7 @@ from celery.schedules import crontab
 from datetime import datetime
 
 from django.conf import settings
+from kombu import Exchange, Queue
 
 timezone = 'PST'
 
@@ -31,28 +32,12 @@ def configure_logging(**kwargs):
     from logging.config import dictConfig
     dictConfig(settings.LOGGING)
 
-app.conf.task_queues = {
-    'ping_devices_queue': {
-        'exchange': 'ping_devices_queue',
-        'exchange_type': 'direct',
-        'binding_key': 'ping_devices',
-    },
-    'configure_devices_queue': {
-        'exchange': 'configure_devices_queue',
-        'exchange_type': 'direct',
-        'binding_key': 'configure_devices',
-    },
-    'get_info_queue': {
-        'exchange': 'get_info_queue',
-        'exchange_type': 'direct',
-        'binding_key': 'get_info_server',
-    },
-        'api_queue': {
-        'exchange': 'api_queue',
-        'exchange_type': 'direct',
-        'binding_key': 'api_server',
-    },
-}
+app.conf.task_queues = (
+    Queue('ping_devices_queue', Exchange('ping_devices_queue'), routing_key='ping_devices'),
+    Queue('configure_devices_queue', Exchange('configure_devices_queue'), routing_key='configure_devices'),
+    Queue('get_info_queue', Exchange('get_info_queue'), routing_key='get_info_server'),
+    Queue('api_queue', Exchange('api_queue'), routing_key='api_server'),
+)
 
 app.conf.task_routes = {
     'map.tasks.ping_devices_task': {'queue': 'ping_devices_queue'},

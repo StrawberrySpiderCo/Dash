@@ -62,6 +62,16 @@
           "problemMatcher": []
       },
       {
+        "label": "HTOP",
+        "type": "shell",
+        "command": "htop",
+        "presentation": {
+            "panel": "dedicated",
+            "group": "HTOP"
+        },
+        "problemMatcher": []
+    },
+      {
           "label": "Run All Services",
           "dependsOn": [
               "GUNICORN",
@@ -69,7 +79,8 @@
               "PING",
               "CONFIGURE",
               "GET_INFO",
-              "BEAT"
+              "BEAT",
+              "HTOP"
           ]
       }
   ]

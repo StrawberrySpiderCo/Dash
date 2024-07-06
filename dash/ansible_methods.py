@@ -11,23 +11,32 @@ private_data_path = r'/home/sbs/Dash/ansible/'
 inventory_path = r'/home/sbs/Dash/ansible/hosts.ini'
 class AnsiblePlaybookRunError(Exception):
     pass
-def update_host_file():
-    org_info = NetworkAccount.objects.get()
-    network_ips = set(org_info.network_device_ips)
+def update_host_file_ping(online_devices):
     playbook_dir = '/home/sbs/Dash/ansible'
     host_file_path = f"{playbook_dir}/hosts.ini"
-    if os.path.exists(host_file_path):
-        os.remove(host_file_path)
+    
     with open(host_file_path, 'w') as host_file:
         host_file.write("[network_devices]\n")
-        for ip in network_ips:
-            online = NetworkDevice.objects.get(ip_address=ip).online
-            if online:
-                logger_network.info(f"Writing {ip} to host file Status:{online}")
-                host_file.write(f"{ip} ansible_host={ip}\n")
+        for ip in online_devices:
+            logger_network.info(f"Writing {ip} to host file")
+            host_file.write(f"{ip} ansible_host={ip}\n")
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
+def update_host_file():
+    playbook_dir = '/home/sbs/Dash/ansible'
+    host_file_path = f"{playbook_dir}/hosts.ini"
+    online_devices = {device.ip_address for device in NetworkDevice.objects.filter(online=True)}
+    with open(host_file_path, 'w') as host_file:
+        host_file.write("[network_devices]\n")
+        for ip in online_devices:
+            logger_network.info(f"Writing {ip} to host file")
+            host_file.write(f"{ip} ansible_host={ip}\n")
+        host_file.write("\n[network_devices:vars]\n")
+        host_file.write("ansible_network_os=ios\n")
+        host_file.write("ansible_connection=network_cli\n")
+
+
         
 def run_ansible_playbook(task_name, ansible_config):
     """

@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 from dash.get_ip import get_system_ip
 from dash.ansible_methods import run_ansible_playbook
 from netutils.interface import abbreviated_interface_name
-from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file
+from dash.ansible_methods import run_ansible_playbook, ansible_logging, cleanup_artifacts_folder, update_host_file_ping, update_host_file
 from django.core.exceptions import ObjectDoesNotExist
 from typing import Literal, Union, Optional
 from django.conf import settings
@@ -202,28 +202,33 @@ def ping_devices_task():
         org_info = NetworkAccount.objects.get()
         network_ips = set(org_info.network_device_ips)
         logger_network.info("Starting ping devices task.")
-        
+        current_online_devices = {device.ip_address for device in NetworkDevice.objects.filter(online=True)}
+        new_online_devices = set()
+
         for ip in network_ips:
             result = subprocess.call(['ping', ip, '-c', '2'])
             online = result == 0
-            
+
             try:
                 device = NetworkDevice.objects.get(ip_address=ip)
                 if online and not device.online:
                     device.online = True
                     device.ansible_status = 'ONLINE'
                     device.save()
-                    update_host_file()
-                    logger_network.info(f"Device is now online. Status updated.")
+                    logger_network.info(f"Device {ip} is now online. Status updated.")
                 elif not online and device.online:
                     device.online = False
                     device.ansible_status = 'OFFLINE'
                     device.save()
-                    update_host_file()
-                    logger_network.info(f"Device is now offline. Status updated.")
-            except NetworkDevice.DoesNotExist:
-                logger_network.warning(f"Device does not exist in the database.")
+                    logger_network.info(f"Device {ip} is now offline. Status updated.")
                 
+                if online:
+                    new_online_devices.add(ip)
+            except NetworkDevice.DoesNotExist:
+                logger_network.warning(f"Device {ip} does not exist in the database.")
+        if new_online_devices != current_online_devices:
+            update_host_file_ping(new_online_devices)
+            logger_network.info("Host file updated with new online devices.")
         logger_network.info("Ping devices task completed successfully.")
     except Exception as e:
         logger_network.error(f"An error occurred during ping devices task: {str(e)}")
@@ -245,36 +250,53 @@ def cycle_port_task(hostname, interface):
 
 @app.task(queue='configure_devices_queue')
 def update_port_info(hostname=None):
-
     if hostname is None:
         hostname = 'network_devices'
-    r, output = run_ansible_playbook('get_interface_data',{'hostname':hostname})
-    for runner_on_ok in output['runner_on_ok']:
-        ip_address = (runner_on_ok['hostname'])
-        net_device = NetworkDevice.objects.get(ip_address=ip_address)
-        ansible_data = runner_on_ok['task_result']['ansible_facts']
-        for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
-            short_name = abbreviated_interface_name(interface_name)
-            defaults = {
-                'device': net_device,
-                'description': interface_data['description'],
-                'mac_address': interface_data['macaddress'],
-                'mtu': interface_data['mtu'],
-                'bandwidth': interface_data['bandwidth'],
-                'media_type': interface_data['mediatype'],
-                'duplex': interface_data['duplex'],
-                'line_protocol': interface_data['lineprotocol'],
-                'oper_status': interface_data['operstatus'],
-                'interface_type': interface_data['type'],
-                'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data['ipv4'] else None,
-                'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data['ipv4'] else None,
-                'short_name': short_name
-            }
-            obj, created = NetworkInterface.objects.update_or_create(
-                device=net_device,
-                name=interface_name,
-                defaults=defaults
-            )
+    
+    logger_network.info(f"Starting update_port_info task for hostname: {hostname}")
+    
+    try:
+        r, output = run_ansible_playbook('get_interface_data', {'hostname': hostname})
+        logger_network.info(f"Ansible playbook run completed with result: {r}")
+
+        for runner_on_ok in output['runner_on_ok']:
+            ip_address = runner_on_ok['hostname']
+            net_device = NetworkDevice.objects.get(ip_address=ip_address)
+            logger_network.info(f"Processing network device: {ip_address}")
+            
+            ansible_data = runner_on_ok['task_result']['ansible_facts']
+            for interface_name, interface_data in ansible_data['ansible_net_interfaces'].items():
+                short_name = abbreviated_interface_name(interface_name)
+                defaults = {
+                    'device': net_device,
+                    'description': interface_data.get('description', ''),
+                    'mac_address': interface_data.get('macaddress', ''),
+                    'mtu': interface_data.get('mtu', ''),
+                    'bandwidth': interface_data.get('bandwidth', ''),
+                    'media_type': interface_data.get('mediatype', ''),
+                    'duplex': interface_data.get('duplex', ''),
+                    'line_protocol': interface_data.get('lineprotocol', ''),
+                    'oper_status': interface_data.get('operstatus', ''),
+                    'interface_type': interface_data.get('type', ''),
+                    'ipv4_address': interface_data['ipv4'][0]['address'] if interface_data.get('ipv4') else None,
+                    'ipv4_subnet': interface_data['ipv4'][0]['subnet'] if interface_data.get('ipv4') else None,
+                    'short_name': short_name
+                }
+                obj, created = NetworkInterface.objects.update_or_create(
+                    device=net_device,
+                    name=interface_name,
+                    defaults=defaults
+                )
+                if created:
+                    logger_network.info(f"Created new interface: {interface_name} for device: {ip_address}")
+                else:
+                    logger_network.info(f"Updated interface: {interface_name} for device: {ip_address}")
+        
+        logger_network.info(f"Completed update_port_info task for hostname: {hostname}")
+    
+    except Exception as e:
+        logger_network.error(f"An error occurred in update_port_info task: {str(e)}")
+        raise
 
 @app.task(queue='configure_devices_queue')
 def set_interface(hostname: str,
