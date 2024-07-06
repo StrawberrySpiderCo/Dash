@@ -73,7 +73,7 @@ app.conf.beat_schedule = {
     },
     'update-device-info': {
         'task': 'map.tasks.get_device_info',
-        'schedule': crontab(day_of_week=0, hour=3),
+        'schedule': crontab(minute=0, hour='*/1'),
     },
    'update-port-info': {
        'task': 'map.tasks.update_port_info',

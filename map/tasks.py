@@ -228,6 +228,7 @@ def ping_devices_task():
                 logger_network.warning(f"Device {ip} does not exist in the database.")
         if new_online_devices != current_online_devices:
             update_host_file_ping(new_online_devices)
+            get_device_info.delay(new_online_devices)
             logger_network.info("Host file updated with new online devices.")
         logger_network.info("Ping devices task completed successfully.")
     except Exception as e:

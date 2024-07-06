@@ -14,12 +14,11 @@ class AnsiblePlaybookRunError(Exception):
 def update_host_file_ping(online_devices):
     playbook_dir = '/home/sbs/Dash/ansible'
     host_file_path = f"{playbook_dir}/hosts.ini"
-    
     with open(host_file_path, 'w') as host_file:
         host_file.write("[network_devices]\n")
         for ip in online_devices:
             logger_network.info(f"Writing {ip} to host file")
-            host_file.write(f"{ip} ansible_host={ip}\n")
+            host_file.write(f"{ip} ansible_host={ip}\n")    
         host_file.write("\n[network_devices:vars]\n")
         host_file.write("ansible_network_os=ios\n")
         host_file.write("ansible_connection=network_cli\n")
