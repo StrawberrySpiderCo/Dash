@@ -671,8 +671,15 @@ def setup_github_repo():
         if github_token:
             logger_network.info("GitHub token found, proceeding with repository setup.")
             
-            github_pull_from_main()
-            logger_network.info("Pulled latest changes from GitHub main branch.")
+            try:
+                github_pull_from_main()
+                logger_network.info("Pulled latest changes from GitHub main branch.")
+            except subprocess.CalledProcessError as e:
+                logger_network.error(f"Subprocess error during git pull: {str(e)}. Output: {e.stdout}, Errors: {e.stderr}")
+                return f"Subprocess error during git pull: {str(e)}"
+            except Exception as e:
+                logger_network.error(f"An error occurred during git pull: {str(e)}")
+                return f"An error occurred during git pull: {str(e)}"
             
             repo_name = org_info.org_name.lower().replace(" ", "-")
             org_info.repo_name = f"{repo_name}-dash"
@@ -694,26 +701,30 @@ def setup_github_repo():
                 return f"Failed to create repository on GitHub: {response.text}"
             
             new_repo_url = f'https://github.com/StrawberrySpiderCo/{repo_name}-dash.git'
+
             # Change the remote URL
-            remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url])
+            remote_change = subprocess.run(['git', 'remote', 'set-url', 'origin', new_repo_url],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if remote_change.returncode != 0:
-                logger_network.error("Failed to change remote URL.")
+                logger_network.error(f"Failed to change remote URL. Output: {remote_change.stdout}, Errors: {remote_change.stderr}")
                 return "Failed to change remote URL."
-            logger_network.info("Remote URL changed successfully.")
+            logger_network.info(f"Remote URL changed successfully. Output: {remote_change.stdout}")
 
             # Rename the default branch to 'main'
-            branch_rename = subprocess.run(['git', 'branch', '-M', 'main'])
+            branch_rename = subprocess.run(['git', 'branch', '-M', 'main'],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if branch_rename.returncode != 0:
-                logger_network.error("Failed to rename the default branch to 'main'.")
+                logger_network.error(f"Failed to rename the default branch to 'main'. Output: {branch_rename.stdout}, Errors: {branch_rename.stderr}")
                 return "Failed to rename the default branch to 'main'."
-            logger_network.info("Default branch renamed to 'main' successfully.")
+            logger_network.info(f"Default branch renamed to 'main' successfully. Output: {branch_rename.stdout}")
 
             # Push changes to the new repository
-            push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'])
+            push_changes = subprocess.run(['git', 'push', '-u', f'https://x-access-token:{github_token}@github.com/StrawberrySpiderCo/{repo_name}-dash.git', 'main'],
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if push_changes.returncode != 0:
-                logger_network.error("Failed to push changes to the new repository.")
+                logger_network.error(f"Failed to push changes to the new repository. Output: {push_changes.stdout}, Errors: {push_changes.stderr}")
                 return "Failed to push changes to the new repository."
-            logger_network.info("Changes pushed to the new repository successfully.")
+            logger_network.info(f"Changes pushed to the new repository successfully. Output: {push_changes.stdout}")
 
             server_ip = get_system_ip()
             # Write setup info to a file
@@ -727,21 +738,24 @@ def setup_github_repo():
             logger_network.info("Setup info written to file.")
 
             # Add, commit, and push the file to the repository
-            add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'])
+            add_file = subprocess.run(['git', 'add', 'dash/setup_info.txt'],
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if add_file.returncode != 0:
-                logger_network.error("Failed to add the file to the Git repository.")
+                logger_network.error(f"Failed to add the file to the Git repository. Output: {add_file.stdout}, Errors: {add_file.stderr}")
                 return "Failed to add the file to the Git repository."
 
-            commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'])
+            commit_changes = subprocess.run(['git', 'commit', '-m', 'Add setup info file'],
+                                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if commit_changes.returncode != 0:
-                logger_network.error("Failed to commit the changes.")
+                logger_network.error(f"Failed to commit the changes. Output: {commit_changes.stdout}, Errors: {commit_changes.stderr}")
                 return "Failed to commit the changes."
 
-            push_changes = subprocess.run(['git', 'push'])
+            push_changes = subprocess.run(['git', 'push'],
+                                          stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if push_changes.returncode != 0:
-                logger_network.error("Failed to push changes to the remote repository.")
+                logger_network.error(f"Failed to push changes to the remote repository. Output: {push_changes.stdout}, Errors: {push_changes.stderr}")
                 return "Failed to push changes to the remote repository."
-            logger_network.info("Setup info file pushed to the repository successfully.")
+            logger_network.info(f"Setup info file pushed to the repository successfully. Output: {push_changes.stdout}")
 
             return "Setup completed successfully."
         else:
@@ -750,7 +764,6 @@ def setup_github_repo():
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub repository setup task: {str(e)}")
         raise
-
 
 @shared_task(queue='api_queue')
 def send_logs():
