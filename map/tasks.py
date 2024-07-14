@@ -169,15 +169,28 @@ def github_pull_from_main():
             
             # Perform git pull
             logger_network.info("Starting git pull from main.")
-            git_update = subprocess.run(['git', 'pull', git_url], check=True)
-            logger_network.info("Git pull from main completed successfully.")
+            git_update = subprocess.run(
+                ['git', 'pull', git_url], 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+            logger_network.info(f"Git pull from main completed successfully. Output: {git_update.stdout}, Errors: {git_update.stderr}")
             
             # Perform database migration
             logger_network.info("Starting database migration.")
-            migrate_process = subprocess.run(['python3', 'manage.py', 'migrate'], cwd='/home/sbs/Dash', check=True)
-            logger_network.info("Database migration completed successfully.")
+            migrate_process = subprocess.run(
+                ['python3', 'manage.py', 'migrate'], 
+                cwd='/home/sbs/Dash', 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+            logger_network.info(f"Database migration completed successfully. Output: {migrate_process.stdout}, Errors: {migrate_process.stderr}")
         except subprocess.CalledProcessError as e:
-            logger_network.error(f"Subprocess error during git pull or migration: {str(e)}")
+            logger_network.error(f"Subprocess error during git pull or migration: {str(e)}. Output: {e.stdout}, Errors: {e.stderr}")
             raise
         except Exception as e:
             logger_network.error(f"An error occurred during GitHub pull or migration: {str(e)}")
@@ -316,7 +329,6 @@ def set_interface(hostname: str,
         logger_network.error(f"An error occurred during set interface task for hostname: {hostname}, interface: {interface}, action: {action}: {str(e)}")
         raise
 
-
 @app.task(queue='configure_devices_queue')
 def set_l2interface(hostname, 
                     interface, 
@@ -345,7 +357,6 @@ def set_l2interface(hostname,
     except Exception as e:
         logger_network.error(f"An error occurred during set L2 interface task for hostname: {hostname}, interface: {interface}, mode: {mode}, vlan: {vlan}, voice_vlan: {voice_vlan}, native_vlan: {native_vlan}, allowed_vlan: {allowed_vlan}, encapsulation: {encapsulation}: {str(e)}")
         raise
-
 
 @app.task(queue='configure_devices_queue')
 def set_l3interface(hostname: str = '',
@@ -420,7 +431,6 @@ def push_startup_configs(hostname, config):
         logger_network.error(f"An error occurred during push startup configs task for hostname: {hostname}: {str(e)}")
         raise
 
-
 @app.task(queue='configure_devices_queue')
 def gather_startup_configs(hostname=None):
     if hostname is None:
@@ -451,7 +461,6 @@ def gather_startup_configs(hostname=None):
     except Exception as e:
         logger_network.error(f"An error occurred during gather startup configs task for hostname: {hostname}: {str(e)}")
         raise
-
 
 @app.task(queue='get_info_queue')
 def gather_running_configs(hostname=None):
