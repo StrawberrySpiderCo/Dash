@@ -177,6 +177,8 @@ def github_pull_from_main():
                 text=True
             )
             logger_network.info(f"Git pull from main completed successfully. Output: {git_update.stdout}, Errors: {git_update.stderr}")
+            if git_update.returncode != 0:
+                logger_network.error(f"Git pull returned non-zero exit status {git_update.returncode}.")
             
             # Perform database migration
             logger_network.info("Starting database migration.")
@@ -189,6 +191,9 @@ def github_pull_from_main():
                 text=True
             )
             logger_network.info(f"Database migration completed successfully. Output: {migrate_process.stdout}, Errors: {migrate_process.stderr}")
+            if migrate_process.returncode != 0:
+                logger_network.error(f"Database migration returned non-zero exit status {migrate_process.returncode}.")
+                
         except subprocess.CalledProcessError as e:
             logger_network.error(f"Subprocess error during git pull or migration: {str(e)}. Output: {e.stdout}, Errors: {e.stderr}")
             raise
