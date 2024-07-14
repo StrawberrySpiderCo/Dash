@@ -177,6 +177,7 @@ def github_pull_from_main():
                 text=True
             )
             logger_network.info(f"Git pull from main completed successfully. Output: {git_update.stdout}, Errors: {git_update.stderr}")
+            logger_network.info(f"Git pull return code: {git_update.returncode}")
             if git_update.returncode != 0:
                 logger_network.error(f"Git pull returned non-zero exit status {git_update.returncode}.")
             
@@ -191,6 +192,7 @@ def github_pull_from_main():
                 text=True
             )
             logger_network.info(f"Database migration completed successfully. Output: {migrate_process.stdout}, Errors: {migrate_process.stderr}")
+            logger_network.info(f"Database migration return code: {migrate_process.returncode}")
             if migrate_process.returncode != 0:
                 logger_network.error(f"Database migration returned non-zero exit status {migrate_process.returncode}.")
                 
