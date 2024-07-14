@@ -27,7 +27,7 @@ import requests
 from datetime import datetime, timedelta, timezone
 import logging
 import gzip
-from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
+from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn, reboot_celery
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
@@ -741,7 +741,8 @@ def send_logs():
         org_id = org.org_id
         log_file_path = '/home/sbs/Dash/django_debug.log'
         compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
-        
+        result = subprocess.run(['df', '-h'], capture_output=True, text=True, check=True)
+        logging.info("Disk space remaining:\n" + result.stdout)
         logger_network.info(f"Starting log file compression and upload for org_id: {org_id}")
         
         # Compress the log file
@@ -759,6 +760,7 @@ def send_logs():
                 os.remove(log_file_path)
                 os.remove(compressed_log_file_path)
                 reboot_gunicorn()
+                reboot_celery()
             else:
                 logger_network.error(f"Failed to upload file: {response.text}")
     except Org_Info.DoesNotExist:

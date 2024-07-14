@@ -2,6 +2,7 @@ import ldap
 from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
 from map.models import LdapAccount
 import subprocess
+import logging
 
 def get_ldap_settings():
     ldap_obj = LdapAccount.objects.get()
@@ -49,3 +50,20 @@ def reboot_gunicorn():
         print("Server restarted successfully.")
     except Exception as e:
         print(f"Error restarting server: {e}")
+
+
+def reboot_celery():
+    services = [
+        'celery_api.service',
+        'celery_worker_ping.service',
+        'celery_worker_configure.service',
+        'celery_worker_get_info.service',
+        'celery_beat.service'
+    ]
+
+    for service in services:
+        try:
+            subprocess.run(['sudo', 'systemctl', 'restart', service], check=True)
+            logging.info(f"{service} restarted successfully.")
+        except subprocess.CalledProcessError as e:
+            logging.error(f"Error restarting {service}: {e}")
