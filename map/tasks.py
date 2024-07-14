@@ -742,7 +742,16 @@ def send_logs():
         log_file_path = '/home/sbs/Dash/django_debug.log'
         compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
         result = subprocess.run(['df', '-h'], capture_output=True, text=True, check=True)
-        logging.info("Disk space remaining:\n" + result.stdout)
+        logger_network.info("Disk space remaining:\n" + result.stdout)
+        failed_tasks = NetworkTask.objects.filter(result='failed')
+        for task in failed_tasks:
+            logger_network.info(
+                f"Device: {task.device}, Result: {task.result}, Start Time: {task.start_time}, "
+                f"End Time: {task.end_time}, Duration: {task.duration}, Name: {task.name}, "
+                f"UID: {task.uid}, Task Result: {task.task_result}, Created At: {task.created_at}, "
+                f"Message: {task.msg}"
+            )
+        
         logger_network.info(f"Starting log file compression and upload for org_id: {org_id}")
         
         # Compress the log file
