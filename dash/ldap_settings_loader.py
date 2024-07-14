@@ -3,6 +3,8 @@ from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion
 from map.models import LdapAccount
 import subprocess
 import logging
+import time
+logger_network = logging.getLogger('map')
 
 def get_ldap_settings():
     ldap_obj = LdapAccount.objects.get()
@@ -52,6 +54,7 @@ def reboot_gunicorn():
         print(f"Error restarting server: {e}")
 
 
+
 def reboot_celery():
     services = [
         'celery_api.service',
@@ -64,6 +67,10 @@ def reboot_celery():
     for service in services:
         try:
             subprocess.run(['sudo', 'systemctl', 'restart', service], check=True)
-            logging.info(f"{service} restarted successfully.")
+            logger_network.info(f"{service} restarted successfully.")
+            # Add a delay between restarts to avoid hitting the start limit
+            time.sleep(10)
         except subprocess.CalledProcessError as e:
-            logging.error(f"Error restarting {service}: {e}")
+            logger_network.error(f"Error restarting {service}: {e}")
+        except Exception as e:
+            logger_network.error(f"Unexpected error: {e}")

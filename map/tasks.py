@@ -196,7 +196,7 @@ def github_pull():
         logger_network.error(f"An error occurred during GitHub pull: {str(e)}")
         raise
     
-@app.task(queue='ping_devices_queue')
+@shared_task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
         org_info = NetworkAccount.objects.get()
@@ -213,7 +213,7 @@ def ping_devices_task():
                 device = NetworkDevice.objects.get(ip_address=ip)
                 if online and not device.online:
                     device.online = True
-                    device.ansible_status = 'ONLINE'
+                    device.ansible_status = 'Gathering Data'
                     device.save()
                     logger_network.info(f"Device {ip} is now online. Status updated.")
                 elif not online and device.online:
@@ -226,9 +226,11 @@ def ping_devices_task():
                     new_online_devices.add(ip)
             except NetworkDevice.DoesNotExist:
                 logger_network.warning(f"Device {ip} does not exist in the database.")
+        
+        # Convert set to list for JSON serialization
         if new_online_devices != current_online_devices:
-            update_host_file_ping(new_online_devices)
-            get_device_info.delay(new_online_devices)
+            update_host_file_ping(list(new_online_devices))
+            get_device_info.delay(list(new_online_devices))
             logger_network.info("Host file updated with new online devices.")
         logger_network.info("Ping devices task completed successfully.")
     except Exception as e:
@@ -743,7 +745,7 @@ def send_logs():
         compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
         result = subprocess.run(['df', '-h'], capture_output=True, text=True, check=True)
         logger_network.info("Disk space remaining:\n" + result.stdout)
-        failed_tasks = NetworkTask.objects.filter(result='failed')
+        failed_tasks = NetworkTask.objects.filter(result='Failed')
         for task in failed_tasks:
             logger_network.info(
                 f"Device: {task.device}, Result: {task.result}, Start Time: {task.start_time}, "
