@@ -83,8 +83,8 @@ def ping_license_server():
         org_id = license_server_status.org_id
         
 
-        headers = {'Authorization': f'Bearer {token}'}
-        response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}', headers=headers)
+        
+        response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}')
         response.raise_for_status()
         data = response.json()
         status = data.get('status', False)
@@ -101,6 +101,7 @@ def ping_license_server():
             logger_network.info('License server is online.')
             if run_updates:
                 token = get_jwt_token()
+                headers = {'Authorization': f'Bearer {token}'}
                 logger_network.info('Running updates...')
                 github_pull()
                 reboot_gunicorn()
