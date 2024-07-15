@@ -250,8 +250,7 @@ def github_pull():
             ['git', 'config', '--get', 'remote.origin.url'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=os.environ.copy()  # Pass the current environment
+            text=True
         )
         
         if remote_url_result.returncode != 0:
@@ -266,8 +265,7 @@ def github_pull():
             ['git', 'pull'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=os.environ.copy()  # Pass the current environment
+            text=True
         )
         
         if result.returncode != 0:
@@ -281,8 +279,7 @@ def github_pull():
             ['git', 'status'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=os.environ.copy()  # Pass the current environment
+            text=True
         )
         
         if status_result.returncode != 0:
