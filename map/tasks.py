@@ -273,8 +273,9 @@ def github_pull():
 
             logger_network.info("Remote URL set successfully for authentication.")
 
-            # Perform the git pull operation
-            pull_command = ['git', 'pull']
+            pull_command = [
+                'git', '-c', f'http.extraheader=Authorization: Bearer {github_token}', 'pull', remote_url, 'main'
+            ]
             pull_result = subprocess.run(pull_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
             
             if pull_result.returncode != 0:
