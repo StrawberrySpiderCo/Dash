@@ -260,7 +260,7 @@ def github_pull():
             # Insert the token into the URL
             token = github_token
             parts = remote_url.split('https://')
-            authenticated_url = f"https://{token}@{parts[1]}"
+            authenticated_url = f"https://x-access-token:{token}@{parts[1]}"
 
             logger_network.info(f"Authenticated URL: {authenticated_url}")
 
