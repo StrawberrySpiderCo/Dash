@@ -284,13 +284,24 @@ def github_pull():
             capture_output=True,
             text=True
         )
-        
         if status_result.returncode != 0:
             logger_network.error(f"Git status command failed with error: {status_result.stderr.strip()}")
             raise Exception(f"Git status failed: {status_result.stderr.strip()}")
         
         logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
-        
+        logger_network.info("Starting database migration.")
+        migrate_process = subprocess.run(
+                ['python3', 'manage.py', 'migrate'], 
+                cwd='/home/sbs/Dash', 
+                check=True, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE, 
+                text=True
+            )
+        logger_network.info(f"Database migration completed successfully. Output: {migrate_process.stdout}, Errors: {migrate_process.stderr}")
+        logger_network.info(f"Database migration return code: {migrate_process.returncode}")
+        if migrate_process.returncode != 0:
+            logger_network.error(f"Database migration returned non-zero exit status {migrate_process.returncode}.")
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
