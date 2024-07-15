@@ -262,7 +262,7 @@ def github_pull():
         
         # Perform the git pull operation
         result = subprocess.run(
-            ['git', 'pull', remote_url],
+            ['git', 'pull'],
             cwd='/home/sbs/Dash',
             capture_output=True,
             text=True
