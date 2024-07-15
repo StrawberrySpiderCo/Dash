@@ -12,3 +12,4 @@ celerybeat-schedule
 .env
 ansible/hosts.ini
 django_debug.log.gz
+git-credentials.sh
