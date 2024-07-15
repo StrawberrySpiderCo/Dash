@@ -245,8 +245,28 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
+        # Get the remote URL for logging
+        remote_url_result = subprocess.run(
+            ['git', 'config', '--get', 'remote.origin.url'],
+            cwd='/home/sbs/Dash',
+            capture_output=True,
+            text=True
+        )
+        
+        if remote_url_result.returncode != 0:
+            logger_network.error(f"Failed to get remote URL: {remote_url_result.stderr.strip()}")
+            raise Exception(f"Failed to get remote URL: {remote_url_result.stderr.strip()}")
+        
+        remote_url = remote_url_result.stdout.strip()
+        logger_network.info(f"Remote URL: {remote_url}")
+        
         # Perform the git pull operation
-        result = subprocess.run(['git', 'pull'], cwd='/home/sbs/Dash', capture_output=True, text=True)
+        result = subprocess.run(
+            ['git', 'pull', remote_url],
+            cwd='/home/sbs/Dash',
+            capture_output=True,
+            text=True
+        )
         
         if result.returncode != 0:
             logger_network.error(f"GitHub pull task failed with error: {result.stderr.strip()}")
@@ -255,7 +275,12 @@ def github_pull():
         logger_network.info(f"GitHub pull task completed successfully. Output: {result.stdout.strip()}")
         
         # Confirm the status of the repository after pull
-        status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
+        status_result = subprocess.run(
+            ['git', 'status'],
+            cwd='/home/sbs/Dash',
+            capture_output=True,
+            text=True
+        )
         
         if status_result.returncode != 0:
             logger_network.error(f"Git status command failed with error: {status_result.stderr.strip()}")
