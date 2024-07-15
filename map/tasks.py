@@ -102,7 +102,7 @@ def ping_license_server():
             if run_updates:
                 token = get_jwt_token()
                 logger_network.info('Running updates...')
-                github_pull_from_main()
+                github_pull()
                 reboot_gunicorn()
                 reboot_celery()
                 log_message = get_last_log_messages()
