@@ -290,6 +290,16 @@ def github_pull():
         
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
+        # Restart the service
+        restart_result = subprocess.run(
+            ['sudo', 'systemctl', 'restart', 'celery_worker_get_info.service'],
+            capture_output=True,
+            text=True
+        )
+        if restart_result.returncode != 0:
+            logger_network.error(f"Failed to restart celery_worker_get_info.service: {restart_result.stderr.strip()}")
+        else:
+            logger_network.info(f"Successfully restarted celery_worker_get_info.service")
         raise
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
