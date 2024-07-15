@@ -240,20 +240,62 @@ def github_pull_from_main():
     else:
         logger_network.warning("GitHub token not found in environment variables.")
 
-@shared_task(queue='get_info_queue')
+shared_task(queue='get_info_queue')
 def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
+
+        # Retrieve the current remote URL
+        get_url_command = ['git', 'remote', 'get-url', 'origin']
+        get_url_result = subprocess.run(get_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
         
-        # Perform the git pull operation
-        result = subprocess.run(['git', 'pull'],  cwd='/home/sbs/Dash',capture_output=True, text=True)
+        if get_url_result.returncode != 0:
+            logger_network.error(f"Failed to get remote URL: {get_url_result.stderr}")
+            raise Exception(f"Failed to get remote URL: {get_url_result.stderr}")
         
-        if result.returncode != 0:
-            logger_network.error(f"GitHub pull task failed with error: {result.stderr}")
-            raise Exception(f"Git pull failed: {result.stderr}")
+        remote_url = get_url_result.stdout.strip()
+        logger_network.info(f"Current remote URL: {remote_url}")
+
+        if remote_url.startswith('https://'):
+            # Insert the token into the URL
+            token = settings.GITHUB_TOKEN
+            parts = remote_url.split('https://')
+            authenticated_url = f"https://{token}@{parts[1]}"
+
+            logger_network.info(f"Authenticated URL: {authenticated_url}")
+
+            # Set the authenticated URL temporarily
+            set_url_command = ['git', 'remote', 'set-url', 'origin', authenticated_url]
+            set_url_result = subprocess.run(set_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+            if set_url_result.returncode != 0:
+                logger_network.error(f"Failed to set remote URL: {set_url_result.stderr}")
+                raise Exception(f"Failed to set remote URL: {set_url_result.stderr}")
+
+            logger_network.info("Remote URL set successfully for authentication.")
+
+            # Perform the git pull operation
+            pull_command = ['git', 'pull']
+            pull_result = subprocess.run(pull_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+            
+            if pull_result.returncode != 0:
+                logger_network.error(f"GitHub pull task failed with error: {pull_result.stderr}")
+                raise Exception(f"Git pull failed: {pull_result.stderr}")
+            
+            logger_network.info(f"GitHub pull task completed successfully. Output: {pull_result.stdout.strip()}")
+
+            # Reset the remote URL to the original
+            reset_url_command = ['git', 'remote', 'set-url', 'origin', remote_url]
+            reset_url_result = subprocess.run(reset_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+            if reset_url_result.returncode != 0:
+                logger_network.error(f"Failed to reset remote URL: {reset_url_result.stderr}")
+                raise Exception(f"Failed to reset remote URL: {reset_url_result.stderr}")
+
+            logger_network.info("Remote URL reset to the original successfully.")
         
-        logger_network.info(f"GitHub pull task completed successfully. Output: {result.stdout.strip()}")
-        
+        else:
+            logger_network.error(f"Unsupported remote URL scheme: {remote_url}")
+            raise Exception(f"Unsupported remote URL scheme: {remote_url}")
+
         # Confirm the status of the repository after pull
         status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
         
@@ -262,9 +304,9 @@ def github_pull():
             raise Exception(f"Git status failed: {status_result.stderr}")
         
         logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
-    
-        logger_network.info("Gunicorn service restarted successfully.")
-        
+
+        logger_network.info("GitHub pull task completed successfully.")
+
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
@@ -720,7 +762,7 @@ def setup_github_repo():
         org_info = Org_Info.objects.get()
         logger_network.info(f"Retrieved Org_Info instance for organization: {org_info.org_name}")
         
-        github_token = os.getenv('GITHUB_TOKEN')
+        github_token = github_token
         if github_token:
             logger_network.info("GitHub token found, proceeding with repository setup.")
             
