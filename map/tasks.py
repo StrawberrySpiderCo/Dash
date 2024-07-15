@@ -99,7 +99,13 @@ def ping_license_server():
                 token = get_jwt_token()
                 headers = {'Authorization': f'Bearer {token}'}
                 logger_network.info('Running updates...')
-                github_pull()
+                try:
+                    logger_network.info("Starting GitHub pull task.")
+                    subprocess.run(['git', 'pull'])
+                    logger_network.info("GitHub pull task completed successfully.")
+                except Exception as e:
+                    logger_network.error(f"An error occurred during GitHub pull: {str(e)}")
+                    raise    
                 log_message = get_last_log_messages()
                 payload = {
                     'org_id': org_id,
