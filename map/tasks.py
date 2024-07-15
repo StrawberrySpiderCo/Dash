@@ -259,24 +259,13 @@ def github_pull():
         
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
-        
-        # Try to perform the git pull operation with remote URL
+        # Perform the git pull operation
         result = subprocess.run(
-            ['git', 'pull', remote_url],
+            ['git', 'pull'],
             cwd='/home/sbs/Dash',
             capture_output=True,
             text=True
         )
-        
-        if result.returncode != 0:
-            logger_network.error(f"GitHub pull with remote URL failed with error: {result.stderr.strip()}. Falling back to regular git pull.")
-            # Fall back to performing the git pull operation without remote URL
-            result = subprocess.run(
-                ['git', 'pull'],
-                cwd='/home/sbs/Dash',
-                capture_output=True,
-                text=True
-            )
         
         if result.returncode != 0:
             logger_network.error(f"GitHub pull task failed with error: {result.stderr.strip()}")
