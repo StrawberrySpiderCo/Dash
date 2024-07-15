@@ -245,26 +245,17 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
-        # Configure Git to cache credentialsd
-        cache_credential_result = subprocess.run(
-            ['git', 'config', '--global', 'credential.helper', 'cache'],
-            cwd='/home/sbs/Dash',
-            capture_output=True,
-            text=True
-        )
-        
-        if cache_credential_result.returncode != 0:
-            logger_network.error(f"Failed to set credential cache: {cache_credential_result.stderr.strip()}")
-            raise Exception(f"Failed to set credential cache: {cache_credential_result.stderr.strip()}")
-        
-        logger_network.info("Credential cache configured successfully.")
+        # Set the GIT_ASKPASS environment variable to the script
+        env = os.environ.copy()
+        env['GIT_ASKPASS'] = '/home/sbs/Dash/git-credentials.sh'
         
         # Get the remote URL for logging
         remote_url_result = subprocess.run(
             ['git', 'config', '--get', 'remote.origin.url'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True
+            text=True,
+            env=env
         )
         
         if remote_url_result.returncode != 0:
@@ -279,7 +270,8 @@ def github_pull():
             ['git', 'pull'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True
+            text=True,
+            env=env
         )
         
         if result.returncode != 0:
@@ -293,7 +285,8 @@ def github_pull():
             ['git', 'status'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True
+            text=True,
+            env=env
         )
         
         if status_result.returncode != 0:
