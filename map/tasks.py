@@ -746,7 +746,7 @@ def setup_github_repo():
         org_info = Org_Info.objects.get()
         logger_network.info(f"Retrieved Org_Info instance for organization: {org_info.org_name}")
         
-        github_token = github_token
+        github_token = os.getenv('GITHUB_TOKEN')
         if github_token:
             logger_network.info("GitHub token found, proceeding with repository setup.")
             
