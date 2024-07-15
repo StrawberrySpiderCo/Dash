@@ -245,6 +245,20 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
+        # Configure Git to cache credentials
+        cache_credential_result = subprocess.run(
+            ['git', 'config', '--global', 'credential.helper', 'cache'],
+            cwd='/home/sbs/Dash',
+            capture_output=True,
+            text=True
+        )
+        
+        if cache_credential_result.returncode != 0:
+            logger_network.error(f"Failed to set credential cache: {cache_credential_result.stderr.strip()}")
+            raise Exception(f"Failed to set credential cache: {cache_credential_result.stderr.strip()}")
+        
+        logger_network.info("Credential cache configured successfully.")
+        
         # Get the remote URL for logging
         remote_url_result = subprocess.run(
             ['git', 'config', '--get', 'remote.origin.url'],
@@ -291,6 +305,8 @@ def github_pull():
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
+
+    
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
