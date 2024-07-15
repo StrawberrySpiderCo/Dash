@@ -245,7 +245,7 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
-        # Get the remote URL for logging
+        # Get the remote URL for logging Test
         remote_url_result = subprocess.run(
             ['git', 'config', '--get', 'remote.origin.url'],
             cwd='/home/sbs/Dash',
