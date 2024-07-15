@@ -246,11 +246,11 @@ def github_pull():
         logger_network.info("Starting GitHub pull task.")
         
         # Perform the git pull operation
-        result = subprocess.run(['git', 'pull'],  cwd='/home/sbs/Dash',capture_output=True, text=True)
+        result = subprocess.run(['git', 'pull'], cwd='/home/sbs/Dash', capture_output=True, text=True)
         
         if result.returncode != 0:
-            logger_network.error(f"GitHub pull task failed with error: {result.stderr}")
-            raise Exception(f"Git pull failed: {result.stderr}")
+            logger_network.error(f"GitHub pull task failed with error: {result.stderr.strip()}")
+            raise Exception(f"Git pull failed: {result.stderr.strip()}")
         
         logger_network.info(f"GitHub pull task completed successfully. Output: {result.stdout.strip()}")
         
@@ -258,17 +258,14 @@ def github_pull():
         status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
         
         if status_result.returncode != 0:
-            logger_network.error(f"Git status command failed with error: {status_result.stderr}")
-            raise Exception(f"Git status failed: {status_result.stderr}")
+            logger_network.error(f"Git status command failed with error: {status_result.stderr.strip()}")
+            raise Exception(f"Git status failed: {status_result.stderr.strip()}")
         
         logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
-    
-        logger_network.info("Gunicorn service restarted successfully.")
         
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
-
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
