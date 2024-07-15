@@ -245,17 +245,12 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
-        # Set the GIT_ASKPASS environment variable to the script
-        env = os.environ.copy()
-        env['GIT_ASKPASS'] = '/home/sbs/Dash/git-credentials.sh'
-        
         # Get the remote URL for logging
         remote_url_result = subprocess.run(
             ['git', 'config', '--get', 'remote.origin.url'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=env
+            text=True
         )
         
         if remote_url_result.returncode != 0:
@@ -270,8 +265,7 @@ def github_pull():
             ['git', 'pull'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=env
+            text=True
         )
         
         if result.returncode != 0:
@@ -285,8 +279,7 @@ def github_pull():
             ['git', 'status'],
             cwd='/home/sbs/Dash',
             capture_output=True,
-            text=True,
-            env=env
+            text=True
         )
         
         if status_result.returncode != 0:
