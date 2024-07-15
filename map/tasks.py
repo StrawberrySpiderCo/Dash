@@ -259,12 +259,7 @@ def github_pull():
         
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
-        result = subprocess.run(
-            ['git', 'pull', remote_url],
-            cwd='/home/sbs/Dash',
-            capture_output=True,
-            text=True
-        )
+
         # Perform the git pull operation
         result = subprocess.run(
             ['git', 'pull'],
