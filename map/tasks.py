@@ -260,6 +260,14 @@ def github_pull():
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
         
+        # Ensure the Git credential helper is set
+        subprocess.run(
+            ['git', 'config', '--global', 'credential.helper', 'cache --timeout=3600'],
+            cwd='/home/sbs/Dash',
+            capture_output=True,
+            text=True
+        )
+        
         # Perform the git pull operation
         result = subprocess.run(
             ['git', 'pull'],
@@ -291,7 +299,6 @@ def github_pull():
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
-
     
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
