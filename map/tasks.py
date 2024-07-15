@@ -72,28 +72,65 @@ def get_jwt_token():
 
 
 
-@app.task(queue='ping_devices_queue')
+@shared_task(queue='ping_devices_queue')
 def ping_license_server():
     try:
-        response = requests.get('https://license.strawberryspider.com/api/status/')
+        license_server_status = LicenseServerStatus.objects.first()
+        if not license_server_status or not license_server_status.org_id:
+            logger_network.error('Organization information not found in LicenseServerStatus.')
+            return False
+
+        org_id = license_server_status.org_id
+        token = get_jwt_token()
+
+        headers = {'Authorization': f'Bearer {token}'}
+        response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}', headers=headers)
         response.raise_for_status()
         data = response.json()
         status = data.get('status', False)
+        run_updates = data.get('run_updates', False)
+
         if status == 'up':
             status = True
-        LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': status})
+        else:
+            status = False
+
+        LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': status})
 
         if status:
             logger_network.info('License server is online.')
+            if run_updates:
+                logger_network.info('Running updates...')
+                github_pull_from_main()
+                reboot_gunicorn()
+                reboot_celery()
+                log_message = get_last_log_messages()
+                payload = {
+                    'org_id': org_id,
+                    'update_status': 'success',
+                    'log': log_message
+                }
+                requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+            else:
+                logger_network.info('No updates required.')
         else:
             logger_network.warning('License server is offline.')
-            LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
+            LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': False})
 
         return status
     except requests.RequestException as e:
         logger_network.error('Error checking license server status: %s', str(e))
-        LicenseServerStatus.objects.update_or_create(id=1, defaults={'status': False})
+        LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': False})
         return False
+    
+def get_last_log_messages():
+    try:
+        with open('/home/sbs/Dash/django_debug.log', 'r') as log_file:
+            logs = log_file.readlines()
+        return ''.join(logs[-65:])
+    except Exception as e:
+        logger_network.error(f'Error reading log file: {e}')
+        return 'Error reading log file'
 
 @app.task(queue='get_info_queue')
 def check_date():

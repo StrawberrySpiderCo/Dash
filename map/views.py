@@ -292,6 +292,7 @@ def setup(request):
                             admin_username=username,
                             tech_group=ldap_data['tech_group'],
                         )
+                        LicenseServerStatus.objects.update_or_create(id=1, defaults={'org_id': org_id})
                         settings = get_ldap_settings()
                         update_settings(settings)
                         setup_github_repo.delay()

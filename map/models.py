@@ -197,6 +197,7 @@ class RunningConfig(models.Model):
 class LicenseServerStatus(models.Model):
     status = models.BooleanField(default=False)
     last_checked = models.DateTimeField(auto_now=True)
+    org_id = models.CharField(max_length=200, default='')
     
 class Org_Info(models.Model):
     org_name = models.CharField(max_length=200, default='')
