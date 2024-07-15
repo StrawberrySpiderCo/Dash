@@ -273,7 +273,7 @@ def github_pull():
 
         if remote_url.startswith('https://'):
             # Insert the token into the URL
-            token = settings.GITHUB_TOKEN
+            token = github_token
             parts = remote_url.split('https://')
             authenticated_url = f"https://{token}@{parts[1]}"
 
