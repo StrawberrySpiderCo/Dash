@@ -247,17 +247,9 @@ def github_pull():
         
         repo_path = '/home/sbs/Dash'  # Path to your Git repository
 
-        # Ensure environment variables are correct
+        # Set the HOME environment variable to ensure the correct SSH keys are used
         env = os.environ.copy()
         env['HOME'] = '/home/sbs'
-        env['GIT_ASKPASS'] = 'echo'
-
-        # Log all environment variables for debugging
-        logger_network.info(f"Environment Variables: {env}")
-
-        # Ensure SSH agent is running and the key is added
-        subprocess.run(['ssh-agent', '-s'], env=env, check=True)
-        subprocess.run(['ssh-add', '/home/sbs/.ssh/id_rsa'], env=env, check=True)
 
         # Perform the git pull operation
         result = subprocess.run(['git', 'pull'], cwd=repo_path, capture_output=True, text=True, env=env)
@@ -276,6 +268,10 @@ def github_pull():
             raise Exception(f"Git status failed: {status_result.stderr}")
         
         logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
+        
+        # Reboot Gunicorn
+        reboot_gunicorn()
+        logger_network.info("Gunicorn service restarted successfully.")
         
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
