@@ -245,7 +245,7 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
-        # Configure Git to cache credentials
+        # Configure Git to cache credentialsd
         cache_credential_result = subprocess.run(
             ['git', 'config', '--global', 'credential.helper', 'cache'],
             cwd='/home/sbs/Dash',
