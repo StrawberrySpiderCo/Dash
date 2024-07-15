@@ -245,7 +245,7 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
         
-        # Get the remote URL for logging Test
+        # Get the remote URL for logging
         remote_url_result = subprocess.run(
             ['git', 'config', '--get', 'remote.origin.url'],
             cwd='/home/sbs/Dash',
@@ -259,13 +259,7 @@ def github_pull():
         
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
-        # Perform the git pull operation
-        result = subprocess.run(
-            ['git', 'pull', remote_url],
-            cwd='/home/sbs/Dash',
-            capture_output=True,
-            text=True
-        )
+        
         # Perform the git pull operation
         result = subprocess.run(
             ['git', 'pull'],
@@ -296,16 +290,6 @@ def github_pull():
         
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
-        # Restart the service
-        restart_result = subprocess.run(
-            ['sudo', 'systemctl', 'restart', 'celery_worker_get_info.service'],
-            capture_output=True,
-            text=True
-        )
-        if restart_result.returncode != 0:
-            logger_network.error(f"Failed to restart celery_worker_get_info.service: {restart_result.stderr.strip()}")
-        else:
-            logger_network.info(f"Successfully restarted celery_worker_get_info.service")
         raise
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
