@@ -245,6 +245,21 @@ def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
 
+        # Check for unstaged changes
+        status_result = subprocess.run(['git', 'status', '--porcelain'], cwd='/home/sbs/Dash', capture_output=True, text=True)
+        
+        if status_result.returncode != 0:
+            logger_network.error(f"Git status command failed with error: {status_result.stderr}")
+            raise Exception(f"Git status failed: {status_result.stderr}")
+        
+        if status_result.stdout.strip():
+            logger_network.info("Unstaged changes detected. Stashing changes.")
+            stash_result = subprocess.run(['git', 'stash'], cwd='/home/sbs/Dash', capture_output=True, text=True)
+            if stash_result.returncode != 0:
+                logger_network.error(f"Git stash command failed with error: {stash_result.stderr}")
+                raise Exception(f"Git stash failed: {stash_result.stderr}")
+            logger_network.info("Changes stashed successfully.")
+
         # Retrieve the current remote URL
         get_url_command = ['git', 'remote', 'get-url', 'origin']
         get_url_result = subprocess.run(get_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
@@ -258,7 +273,7 @@ def github_pull():
 
         if remote_url.startswith('https://'):
             # Insert the token into the URL
-            token = github_token
+            token = settings.GITHUB_TOKEN
             parts = remote_url.split('https://')
             authenticated_url = f"https://{token}@{parts[1]}"
 
@@ -297,15 +312,13 @@ def github_pull():
             raise Exception(f"Unsupported remote URL scheme: {remote_url}")
 
         # Confirm the status of the repository after pull
-        status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
+        final_status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
         
-        if status_result.returncode != 0:
-            logger_network.error(f"Git status command failed with error: {status_result.stderr}")
-            raise Exception(f"Git status failed: {status_result.stderr}")
+        if final_status_result.returncode != 0:
+            logger_network.error(f"Git status command failed with error: {final_status_result.stderr}")
+            raise Exception(f"Git status failed: {final_status_result.stderr}")
         
-        logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
-
-        logger_network.info("GitHub pull task completed successfully.")
+        logger_network.info(f"Git repository status after pull: {final_status_result.stdout.strip()}")
 
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
