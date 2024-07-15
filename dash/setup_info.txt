@@ -1,5 +1,5 @@
-Org Name: Test
-Website IP: 192.168.0.24
+Org Name: TrySomething
+Website IP: 192.168.0.26
 Site Count: 0
 Contact Email: jtomlin2001@gmail.com
-Contact Phone: 696616161
+Contact Phone: 6612059590
