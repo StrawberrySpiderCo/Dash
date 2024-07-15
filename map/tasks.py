@@ -246,17 +246,35 @@ def github_pull_from_main():
     else:
         logger_network.warning("GitHub token not found in environment variables.")
 
-@app.task(queue='get_info_queue')
+@shared_task(queue='get_info_queue')
 def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
-        subprocess.run(['git', 'pull'])
-        logger_network.info("GitHub pull task completed successfully.")
-        reboot_gunicorn()
-    except Exception as e:
-        logger_network.error(f"An error occurred during GitHub pull: {str(e)}")
-        raise
+        
+        # Perform the git pull operation
+        result = subprocess.run(['git', 'pull'], cwd='/path/to/your/repo', capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            logger_network.error(f"GitHub pull task failed with error: {result.stderr}")
+            raise Exception(f"Git pull failed: {result.stderr}")
+        
+        logger_network.info(f"GitHub pull task completed successfully. Output: {result.stdout.strip()}")
+        
+        # Confirm the status of the repository after pull
+        status_result = subprocess.run(['git', 'status'], cwd='/path/to/your/repo', capture_output=True, text=True)
+        
+        if status_result.returncode != 0:
+            logger_network.error(f"Git status command failed with error: {status_result.stderr}")
+            raise Exception(f"Git status failed: {status_result.stderr}")
+        
+        logger_network.info(f"Git repository status after pull: {status_result.stdout.strip()}")
     
+        logger_network.info("Gunicorn service restarted successfully.")
+        
+    except Exception as e:
+        logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
+        raise
+
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
