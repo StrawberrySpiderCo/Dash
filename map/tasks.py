@@ -259,6 +259,7 @@ def github_pull():
         
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
+        
         # Perform the git pull operation
         result = subprocess.run(
             ['git', 'pull'],
@@ -289,6 +290,7 @@ def github_pull():
         
     except Exception as e:
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
+        reboot_celery()  # Reboot Celery service on failure
         raise
 @shared_task(queue='ping_devices_queue')
 def ping_devices_task():
