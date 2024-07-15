@@ -260,7 +260,7 @@ def github_pull():
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
         
-        # Ensure the Git credential helper is set
+        # Ensure the Git credential helper is sets
         subprocess.run(
             ['git', 'config', '--global', 'credential.helper', 'cache --timeout=3600'],
             cwd='/home/sbs/Dash',
