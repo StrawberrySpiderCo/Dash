@@ -260,13 +260,19 @@ def github_pull():
         remote_url = remote_url_result.stdout.strip()
         logger_network.info(f"Remote URL: {remote_url}")
         
-        # Ensure the Git credential helper is sets
-        subprocess.run(
-            ['git', 'config', '--global', 'credential.helper', 'cache --timeout=3600'],
+        # Perform a blank commit to refresh authentication
+        blank_commit_result = subprocess.run(
+            ['git', 'commit', '--allow-empty', '-m', 'Blank commit to refresh authentication'],
             cwd='/home/sbs/Dash',
             capture_output=True,
             text=True
         )
+        
+        if blank_commit_result.returncode != 0:
+            logger_network.error(f"Blank commit failed with error: {blank_commit_result.stderr.strip()}")
+            raise Exception(f"Blank commit failed: {blank_commit_result.stderr.strip()}")
+        
+        logger_network.info(f"Blank commit completed successfully. Output: {blank_commit_result.stdout.strip()}")
         
         # Perform the git pull operation
         result = subprocess.run(
