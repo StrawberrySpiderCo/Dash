@@ -246,7 +246,7 @@ def github_pull():
         logger_network.info("Starting GitHub pull task.")
         
         # Perform the git pull operation
-        result = subprocess.run(['git', 'pull'], cwd='/path/to/your/repo', capture_output=True, text=True)
+        result = subprocess.run(['git', 'pull'], capture_output=True, text=True)
         
         if result.returncode != 0:
             logger_network.error(f"GitHub pull task failed with error: {result.stderr}")
@@ -255,7 +255,7 @@ def github_pull():
         logger_network.info(f"GitHub pull task completed successfully. Output: {result.stdout.strip()}")
         
         # Confirm the status of the repository after pull
-        status_result = subprocess.run(['git', 'status'], cwd='/path/to/your/repo', capture_output=True, text=True)
+        status_result = subprocess.run(['git', 'status'], capture_output=True, text=True)
         
         if status_result.returncode != 0:
             logger_network.error(f"Git status command failed with error: {status_result.stderr}")
