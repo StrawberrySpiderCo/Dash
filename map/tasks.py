@@ -240,6 +240,7 @@ def github_pull_from_main():
     else:
         logger_network.warning("GitHub token not found in environment variables.")
 
+
 @shared_task(queue='get_info_queue')
 def github_pull():
     try:
@@ -271,46 +272,48 @@ def github_pull():
         remote_url = get_url_result.stdout.strip()
         logger_network.info(f"Current remote URL: {remote_url}")
 
-        if remote_url.startswith('https://'):
-            # Insert the token into the URL
-            token = github_token
-            parts = remote_url.split('https://')
-            authenticated_url = f"https://{token}@{parts[1]}"
-
-            logger_network.info(f"Authenticated URL: {authenticated_url}")
-
-            # Set the authenticated URL temporarily
-            set_url_command = ['git', 'remote', 'set-url', 'origin', authenticated_url]
-            set_url_result = subprocess.run(set_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
-            if set_url_result.returncode != 0:
-                logger_network.error(f"Failed to set remote URL: {set_url_result.stderr}")
-                raise Exception(f"Failed to set remote URL: {set_url_result.stderr}")
-
-            logger_network.info("Remote URL set successfully for authentication.")
-
-            # Perform the git pull operation
-            pull_command = ['git', 'pull']
-            pull_result = subprocess.run(pull_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
-            
-            if pull_result.returncode != 0:
-                logger_network.error(f"GitHub pull task failed with error: {pull_result.stderr}")
-                raise Exception(f"Git pull failed: {pull_result.stderr}")
-            
-            logger_network.info(f"GitHub pull task completed successfully. Output: {pull_result.stdout.strip()}")
-
-            # Reset the remote URL to the original
-            reset_url_command = ['git', 'remote', 'set-url', 'origin', remote_url]
-            reset_url_result = subprocess.run(reset_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
-            if reset_url_result.returncode != 0:
-                logger_network.error(f"Failed to reset remote URL: {reset_url_result.stderr}")
-                raise Exception(f"Failed to reset remote URL: {reset_url_result.stderr}")
-
-            logger_network.info("Remote URL reset to the original successfully.")
-        
+        # Check if the URL already includes the token
+        if '://' in remote_url:
+            scheme, rest = remote_url.split('://', 1)
+            if '@' in rest:
+                authenticated_url = remote_url
+            else:
+                # Insert the token into the URL
+                token = github_token
+                authenticated_url = f"{scheme}://{token}@{rest}"
         else:
-            logger_network.error(f"Unsupported remote URL scheme: {remote_url}")
-            raise Exception(f"Unsupported remote URL scheme: {remote_url}")
+            raise Exception("Invalid remote URL format.")
 
+        logger_network.info(f"Authenticated URL: {authenticated_url}")
+
+        # Set the authenticated URL temporarily
+        set_url_command = ['git', 'remote', 'set-url', 'origin', authenticated_url]
+        set_url_result = subprocess.run(set_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+        if set_url_result.returncode != 0:
+            logger_network.error(f"Failed to set remote URL: {set_url_result.stderr}")
+            raise Exception(f"Failed to set remote URL: {set_url_result.stderr}")
+
+        logger_network.info("Remote URL set successfully for authentication.")
+
+        # Perform the git pull operation
+        pull_command = ['git', 'pull']
+        pull_result = subprocess.run(pull_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+        
+        if pull_result.returncode != 0:
+            logger_network.error(f"GitHub pull task failed with error: {pull_result.stderr}")
+            raise Exception(f"Git pull failed: {pull_result.stderr}")
+        
+        logger_network.info(f"GitHub pull task completed successfully. Output: {pull_result.stdout.strip()}")
+
+        # Reset the remote URL to the original
+        reset_url_command = ['git', 'remote', 'set-url', 'origin', remote_url]
+        reset_url_result = subprocess.run(reset_url_command, cwd='/home/sbs/Dash', capture_output=True, text=True)
+        if reset_url_result.returncode != 0:
+            logger_network.error(f"Failed to reset remote URL: {reset_url_result.stderr}")
+            raise Exception(f"Failed to reset remote URL: {reset_url_result.stderr}")
+
+        logger_network.info("Remote URL reset to the original successfully.")
+        
         # Confirm the status of the repository after pull
         final_status_result = subprocess.run(['git', 'status'], cwd='/home/sbs/Dash', capture_output=True, text=True)
         
