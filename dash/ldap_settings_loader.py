@@ -69,7 +69,7 @@ def reboot_celery():
             subprocess.run(['sudo', 'systemctl', 'restart', service], check=True)
             logger_network.info(f"{service} restarted successfully.")
             # Add a delay between restarts to avoid hitting the start limit
-            time.sleep(10)
+            time.sleep(5)
         except subprocess.CalledProcessError as e:
             logger_network.error(f"Error restarting {service}: {e}")
         except Exception as e:

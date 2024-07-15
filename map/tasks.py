@@ -104,7 +104,6 @@ def ping_license_server():
                 headers = {'Authorization': f'Bearer {token}'}
                 logger_network.info('Running updates...')
                 github_pull()
-                reboot_gunicorn()
                 reboot_celery()
                 log_message = get_last_log_messages()
                 payload = {
@@ -113,6 +112,7 @@ def ping_license_server():
                     'log': log_message
                 }
                 requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+                reboot_gunicorn()
             else:
                 logger_network.info('No updates required.')
         else:
