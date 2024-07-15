@@ -58,10 +58,10 @@ def reboot_gunicorn():
 def reboot_celery():
     services = [
         'celery_api.service',
-        'celery_worker_ping.service',
         'celery_worker_configure.service',
         'celery_worker_get_info.service',
-        'celery_beat.service'
+        'celery_beat.service',
+        'celery_worker_ping.service'
     ]
 
     for service in services:

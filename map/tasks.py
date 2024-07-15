@@ -79,11 +79,7 @@ def ping_license_server():
         if not license_server_status or not license_server_status.org_id:
             logger_network.error('Organization information not found in LicenseServerStatus.')
             return False
-
         org_id = license_server_status.org_id
-        
-
-        
         response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}')
         response.raise_for_status()
         data = response.json()
@@ -104,7 +100,6 @@ def ping_license_server():
                 headers = {'Authorization': f'Bearer {token}'}
                 logger_network.info('Running updates...')
                 github_pull()
-                reboot_celery()
                 log_message = get_last_log_messages()
                 payload = {
                     'org_id': org_id,
@@ -112,6 +107,7 @@ def ping_license_server():
                     'log': log_message
                 }
                 requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+                reboot_celery()
                 reboot_gunicorn()
             else:
                 logger_network.info('No updates required.')
