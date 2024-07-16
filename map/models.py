@@ -195,7 +195,7 @@ class RunningConfig(models.Model):
         """
         return f"Configuration for {self.device} created at {self.created_at}"
 class LicenseServerStatus(models.Model):
-    status = models.BooleanField(default=False)
+    status = models.BooleanField(default=True)
     last_checked = models.DateTimeField(auto_now=True)
     org_id = models.CharField(max_length=200, default='')
     
