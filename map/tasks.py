@@ -77,7 +77,7 @@ def ping_license_server():
     try:
         license_server_status = LicenseServerStatus.objects.first()
         if not license_server_status or not license_server_status.org_id:
-            logger_network.error('Organization information not found in LicenseServerStatus.')
+            logger_network.error('Organization information not found in LicenseServerStatus. Still pinging server')
             response = requests.get('https://license.strawberryspider.com/api/status/')
             response.raise_for_status()
             data = response.json()
@@ -86,48 +86,51 @@ def ping_license_server():
                 status = True
             else:
                 status = False
-            LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': status})
-        org_id = license_server_status.org_id
-        response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}')
-        response.raise_for_status()
-        data = response.json()
-        status = data.get('status', False)
-        run_updates = data.get('run_updates', False)
-
-        if status == 'up':
-            status = True
+            LicenseServerStatus.objects.update_or_create(id=license_server_status.id if license_server_status else None, defaults={'status': status})
+            logger_network.info('Updated LicenseServerStatus without org_id')
         else:
-            status = False
+            org_id = license_server_status.org_id
+            response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}')
+            response.raise_for_status()
+            data = response.json()
+            status = data.get('status', False)
+            run_updates = data.get('run_updates', False)
 
-        LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': status})
-
-        if status:
-            logger_network.info('License server is online.')
-            if run_updates:
-                token = get_jwt_token()
-                headers = {'Authorization': f'Bearer {token}'}
-                logger_network.info('Running updates...')
-                github_pull()
-                log_message = get_last_log_messages()
-                payload = {
-                    'org_id': org_id,
-                    'update_status': 'success',
-                    'log': log_message
-                }
-                requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
-                reboot_celery()
-                reboot_gunicorn()
+            if status == 'up':
+                status = True
             else:
-                logger_network.info('No updates required.')
-        else:
-            logger_network.warning('License server is offline.')
-            LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': False})
+                status = False
+
+            LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': status})
+
+            if status:
+                logger_network.info('License server is online.')
+                if run_updates:
+                    token = get_jwt_token()
+                    headers = {'Authorization': f'Bearer {token}'}
+                    logger_network.info('Running updates...')
+                    github_pull()
+                    log_message = get_last_log_messages()
+                    payload = {
+                        'org_id': org_id,
+                        'update_status': 'success',
+                        'log': log_message
+                    }
+                    requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+                    reboot_celery()
+                    reboot_gunicorn()
+                else:
+                    logger_network.info('No updates required.')
+            else:
+                logger_network.warning('License server is offline.')
+                LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': False})
 
         return status
     except requests.RequestException as e:
         logger_network.error('Error checking license server status: %s', str(e))
-        LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': False})
+        LicenseServerStatus.objects.update_or_create(id=license_server_status.id if license_server_status else None, defaults={'status': False})
         return False
+
     
 def get_last_log_messages():
     try:
