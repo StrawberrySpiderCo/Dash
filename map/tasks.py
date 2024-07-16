@@ -980,6 +980,7 @@ def nuke():
     NetworkInterface.objects.all().delete()
     NetworkAccount.objects.all().delete()
     LdapAccount.objects.all().delete()
+    LicenseServerStatus.objects.all().delete()
     FeatureRequest.objects.all().delete()
     os.remove(log_file_path)
 ### MERAKI, AZURE, WEBEX CODE #####

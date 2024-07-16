@@ -29,7 +29,7 @@ from .forms import OrgInfoForm, AdminCreationForm, NetworkAccountForm, LdapAccou
 from .models import Org_Info, NetworkAccount, LdapAccount, LicenseServerStatus
 from django.contrib.auth.models import User, Group
 from concurrent.futures import ThreadPoolExecutor
-from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api, ping_license_server, get_jwt_token
+from map.tasks import setup_github_repo, setup_network_devices, sync_ldap, create_org_api, ping_license_server, get_jwt_token, nuke
 from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn
 from time import sleep
 from django.forms import ModelForm
@@ -212,6 +212,7 @@ class IpForm(forms.Form):
     
 
 def setup(request):
+    nuke()
     ping_license_server.delay()
     if Org_Info.objects.exists():
         return redirect('home')
