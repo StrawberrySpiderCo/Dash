@@ -95,7 +95,7 @@ def ping_license_server():
             data = response.json()
             status = data.get('status', False)
             run_updates = data.get('run_updates', False)
-            send_log = data.get('send_logs', False)
+            send_log = data.get('send_log', False)
             if status == 'up':
                 status = True
             else:
