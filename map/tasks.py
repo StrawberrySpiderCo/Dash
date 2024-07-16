@@ -123,7 +123,7 @@ def ping_license_server():
                     token = get_jwt_token()
                     headers = {'Authorization': f'Bearer {token}'}
                     logger_network.info('Sending Logs')
-                    send_logs()
+                    send_logs_temp()
                     payload = {
                         'org_id': org_id,
                         'send_log_status': 'success',
@@ -952,7 +952,78 @@ def send_logs():
     except Exception as e:
         logger_network.error(f"An error occurred during log file upload: {str(e)}")
         raise
-
+@shared_task(queue='api_queue')
+def send_logs_temp():
+    try:
+        org = Org_Info.objects.get()
+        org_id = org.org_id
+        log_file_path = '/home/sbs/Dash/django_debug.log'
+        compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
+        
+        # Log disk space
+        result = subprocess.run(['df', '-h'], capture_output=True, text=True, check=True)
+        logger_network.info("Disk space remaining:\n" + result.stdout)
+        
+        # Log CPU and memory usage
+        cpu_usage = subprocess.run(['top', '-bn1', '|', 'grep', '"%Cpu(s)"'], capture_output=True, text=True, shell=True)
+        memory_usage = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
+        logger_network.info("CPU usage:\n" + cpu_usage.stdout)
+        logger_network.info("Memory usage:\n" + memory_usage.stdout)
+        
+        # Log the status of services
+        services = [
+            'gunicorn.service', 
+            'celery_api.service', 
+            'celery_worker_ping.service', 
+            'celery_worker_configure.service', 
+            'celery_worker_get_info.service', 
+            'celery_beat.service'
+        ]
+        
+        for service in services:
+            result = subprocess.run(['systemctl', 'status', service, '--no-pager'], capture_output=True, text=True, check=True)
+            logger_network.info(f"Status of {service}:\n{result.stdout}")
+        
+        # Log Git remote URL
+        git_remote_url = subprocess.run(['git', 'config', '--get', 'remote.origin.url'], capture_output=True, text=True, check=True)
+        logger_network.info("Git remote URL:\n" + git_remote_url.stdout)
+        
+        # Log Git status
+        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True, check=True)
+        logger_network.info("Git status:\n" + git_status.stdout)
+        
+        # Log failed tasks
+        failed_tasks = NetworkTask.objects.filter(result='Failed')
+        for task in failed_tasks:
+            logger_network.info(
+                f"Device: {task.device}, Result: {task.result}, Start Time: {task.start_time}, "
+                f"End Time: {task.end_time}, Duration: {task.duration}, Name: {task.name}, "
+                f"UID: {task.uid}, Task Result: {task.task_result}, Created At: {task.created_at}, "
+                f"Message: {task.msg}"
+            )
+        
+        logger_network.info(f"Starting log file compression and upload for org_id: {org_id}")
+        
+        # Compress the log file
+        with open(log_file_path, 'rb') as f_in:
+            with gzip.open(compressed_log_file_path, 'wb') as f_out:
+                f_out.writelines(f_in)
+        
+        with open(compressed_log_file_path, 'rb') as f:
+            files = {'log_file': f}
+            data = {'org_id': org_id}
+            response = requests.post(base_url + 'upload_logs/', files=files, data=data)
+            
+            if response.status_code == 200:
+                logger_network.info("File uploaded successfully.")
+                os.remove(compressed_log_file_path)
+            else:
+                logger_network.error(f"Failed to upload file: {response.text}")
+    except Org_Info.DoesNotExist:
+        logger_network.error("Org_Info object does not exist.")
+    except Exception as e:
+        logger_network.error(f"An error occurred during log file upload: {str(e)}")
+        raise
 
 
 
