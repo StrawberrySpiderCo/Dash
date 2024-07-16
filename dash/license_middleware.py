@@ -32,7 +32,7 @@ class LicenseServerMiddleware:
 
     def __call__(self, request):
         # Check if the request is already for the offline page to avoid loops
-        if request.path not in [reverse('offline'), reverse('ping_license_server')]:
+        if request.path not in [reverse('offline'), reverse('ping_license_server'), reverse('setup')]:
             # Fetch the status from the database
             try:
                 status = LicenseServerStatus.objects.first()
