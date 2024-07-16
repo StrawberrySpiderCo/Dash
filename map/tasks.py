@@ -105,6 +105,16 @@ def ping_license_server():
 
             if status:
                 logger_network.info('License server is online.')
+                if send_log:
+                    token = get_jwt_token()
+                    headers = {'Authorization': f'Bearer {token}'}
+                    logger_network.info('Sending Logs')
+                    send_logs_temp()
+                    payload = {
+                        'org_id': org_id,
+                        'send_log_status': 'success',
+                    }
+                    requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
                 if run_updates:
                     token = get_jwt_token()
                     headers = {'Authorization': f'Bearer {token}'}
@@ -119,16 +129,7 @@ def ping_license_server():
                     requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
                     reboot_celery()
                     reboot_gunicorn()
-                if send_log:
-                    token = get_jwt_token()
-                    headers = {'Authorization': f'Bearer {token}'}
-                    logger_network.info('Sending Logs')
-                    send_logs_temp()
-                    payload = {
-                        'org_id': org_id,
-                        'send_log_status': 'success',
-                    }
-                    requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+
                     
                 else:
                     logger_network.info('No updates required.')
