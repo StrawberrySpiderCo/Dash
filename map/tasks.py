@@ -95,7 +95,7 @@ def ping_license_server():
             data = response.json()
             status = data.get('status', False)
             run_updates = data.get('run_updates', False)
-
+            send_log = data.get('send_logs', False)
             if status == 'up':
                 status = True
             else:
@@ -119,6 +119,17 @@ def ping_license_server():
                     requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
                     reboot_celery()
                     reboot_gunicorn()
+                if send_log:
+                    token = get_jwt_token()
+                    headers = {'Authorization': f'Bearer {token}'}
+                    logger_network.info('Sending Logs')
+                    send_logs()
+                    payload = {
+                        'org_id': org_id,
+                        'send_log_status': 'success',
+                    }
+                    requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+                    
                 else:
                     logger_network.info('No updates required.')
             else:
@@ -873,8 +884,40 @@ def send_logs():
         org_id = org.org_id
         log_file_path = '/home/sbs/Dash/django_debug.log'
         compressed_log_file_path = '/home/sbs/Dash/django_debug.log.gz'
+        
+        # Log disk space
         result = subprocess.run(['df', '-h'], capture_output=True, text=True, check=True)
         logger_network.info("Disk space remaining:\n" + result.stdout)
+        
+        # Log CPU and memory usage
+        cpu_usage = subprocess.run(['top', '-bn1', '|', 'grep', '"%Cpu(s)"'], capture_output=True, text=True, shell=True)
+        memory_usage = subprocess.run(['free', '-m'], capture_output=True, text=True, check=True)
+        logger_network.info("CPU usage:\n" + cpu_usage.stdout)
+        logger_network.info("Memory usage:\n" + memory_usage.stdout)
+        
+        # Log the status of services
+        services = [
+            'gunicorn.service', 
+            'celery_api.service', 
+            'celery_worker_ping.service', 
+            'celery_worker_configure.service', 
+            'celery_worker_get_info.service', 
+            'celery_beat.service'
+        ]
+        
+        for service in services:
+            result = subprocess.run(['systemctl', 'status', service, '--no-pager'], capture_output=True, text=True, check=True)
+            logger_network.info(f"Status of {service}:\n{result.stdout}")
+        
+        # Log Git remote URL
+        git_remote_url = subprocess.run(['git', 'config', '--get', 'remote.origin.url'], capture_output=True, text=True, check=True)
+        logger_network.info("Git remote URL:\n" + git_remote_url.stdout)
+        
+        # Log Git status
+        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True, check=True)
+        logger_network.info("Git status:\n" + git_status.stdout)
+        
+        # Log failed tasks
         failed_tasks = NetworkTask.objects.filter(result='Failed')
         for task in failed_tasks:
             logger_network.info(
@@ -909,6 +952,7 @@ def send_logs():
     except Exception as e:
         logger_network.error(f"An error occurred during log file upload: {str(e)}")
         raise
+
 
 
 
