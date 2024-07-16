@@ -212,7 +212,6 @@ class IpForm(forms.Form):
     
 
 def setup(request):
-    nuke()
     ping_license_server.delay()
     if Org_Info.objects.exists():
         return redirect('home')
