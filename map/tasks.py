@@ -78,7 +78,15 @@ def ping_license_server():
         license_server_status = LicenseServerStatus.objects.first()
         if not license_server_status or not license_server_status.org_id:
             logger_network.error('Organization information not found in LicenseServerStatus.')
-            return False
+            response = requests.get('https://license.strawberryspider.com/api/status/')
+            response.raise_for_status()
+            data = response.json()
+            status = data.get('status', False)
+            if status == 'up':
+                status = True
+            else:
+                status = False
+            LicenseServerStatus.objects.update_or_create(id=license_server_status.id, defaults={'status': status})
         org_id = license_server_status.org_id
         response = requests.get(f'https://license.strawberryspider.com/api/status/?org_id={org_id}')
         response.raise_for_status()
