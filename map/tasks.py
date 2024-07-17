@@ -136,7 +136,7 @@ def ping_license_server():
                     logger_network.info('Running updates...')
                     payload = {
                         'org_id': org_id,
-                        'needs_reboot': 'success',
+                        'needs_reboot_status': 'success',
 
                     }
                     requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
