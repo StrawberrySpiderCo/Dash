@@ -50,7 +50,6 @@
 <div class="container">
     <br><br>
     <h2>Organization Information Form</h2>
-    <h3>After submitting form service will restart. Please refresh the page when this happens.</h3>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ org_form.non_field_errors }}
