@@ -293,13 +293,14 @@ def setup(request):
                             tech_group=ldap_data['tech_group'],
                         )
                         LicenseServerStatus.objects.update_or_create(id=1, defaults={'org_id': org_id})
-                        settings = get_ldap_settings()
-                        update_settings(settings)
-                        setup_github_repo.delay()
+                        setup_github_repo()
                         setup_network_devices.delay()
                         logger.info("Sent Network device setup task.")
-                        sync_ldap.delay()
-                        reboot_gunicorn()
+                        if ldap_data['bind_account']:
+                            settings = get_ldap_settings()
+                            update_settings(settings)
+                            sync_ldap.delay()
+                            reboot_gunicorn()
                         return redirect('update_license')
                     else:
                         logger.error("Failed to retrieve org ID from server.")

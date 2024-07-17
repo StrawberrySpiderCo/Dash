@@ -70,8 +70,6 @@ def get_jwt_token():
         logger_network.error(f"Error during JWT token request: {e}")
         raise
 
-
-
 @shared_task(queue='ping_devices_queue')
 def ping_license_server():
     try:
@@ -273,7 +271,7 @@ def github_pull_from_main():
     else:
         logger_network.warning("GitHub token not found in environment variables.")
 
-@shared_task(queue='get_info_queue')
+@app.task(queue='get_info_queue')
 def github_pull():
     try:
         logger_network.info("Starting GitHub pull task.")
@@ -339,7 +337,7 @@ def github_pull():
         logger_network.error(f"An error occurred during GitHub pull task: {str(e)}")
         raise
     
-@shared_task(queue='ping_devices_queue')
+@app.task(queue='ping_devices_queue')
 def ping_devices_task():
     try:
         org_info = NetworkAccount.objects.get()
