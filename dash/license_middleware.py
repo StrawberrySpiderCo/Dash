@@ -8,8 +8,8 @@ class LicenseCheckMiddleware:
 
     def __call__(self, request):
         # Bypass the license check for admin pages
-        if request.path.startswith(reverse('admin:index')):
-            return self.get_response(request)
+        #if request.path.startswith(reverse('admin:index')):
+        #    return self.get_response(request)
         
         try:
             org = Org_Info.objects.get()
