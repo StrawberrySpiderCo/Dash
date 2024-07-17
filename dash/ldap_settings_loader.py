@@ -49,10 +49,16 @@ def update_settings(new_settings):
 def reboot_gunicorn():
     try:
         subprocess.run(['sudo', 'systemctl', 'restart', 'gunicorn.service'])
-        print("Server restarted successfully.")
+        logger_network("Server restarted successfully.")
     except Exception as e:
-        print(f"Error restarting server: {e}")
+        logger_network(f"Error restarting server: {e}")
 
+def reboot():
+    try:
+        subprocess.run(['sudo', 'reboot'])
+        logger_network("Server restarted successfully.")
+    except Exception as e:
+        logger_network(f"Error restarting server: {e}")   
 
 
 def reboot_celery():
