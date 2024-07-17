@@ -27,7 +27,7 @@ import requests
 from datetime import datetime, timedelta, timezone
 import logging
 import gzip
-from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn, reboot_celery
+from dash.ldap_settings_loader import get_ldap_settings, update_settings, reboot_gunicorn, reboot_celery, reboot
 
 # Define the base URL of the API
 base_url = 'https://license.strawberryspider.com/api/'
@@ -96,6 +96,7 @@ def ping_license_server():
             status = data.get('status', False)
             run_updates = data.get('run_updates', False)
             send_log = data.get('send_log', False)
+            needs_reboot = data.get('needs_reboot', False)
             if status == 'up':
                 status = True
             else:
@@ -129,8 +130,17 @@ def ping_license_server():
                     requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
                     reboot_celery()
                     reboot_gunicorn()
+                if needs_reboot:
+                    token = get_jwt_token()
+                    headers = {'Authorization': f'Bearer {token}'}
+                    logger_network.info('Running updates...')
+                    payload = {
+                        'org_id': org_id,
+                        'needs_reboot': 'success',
 
-                    
+                    }
+                    requests.post('https://license.strawberryspider.com/api/updates/', json=payload, headers=headers)
+                    reboot()
                 else:
                     logger_network.info('No updates required.')
             else:
